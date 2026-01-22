@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import SideBar from "../../HeaderAndFooter/SideBar";
 import TopHeader from "../../HeaderAndFooter/TopHeader";
+import { Outlet } from "react-router-dom";
 
 function Dashboard() {
     const [isCollapsed, setIsCollapsed] = useState(true);
@@ -40,9 +41,9 @@ function Dashboard() {
                         <TopHeader />
                     </div>
 
-                    {/* <main className="flex-1 p-4 overflow-y-auto">
+                    <main className="flex-1 p-4 overflow-y-auto">
                         <Outlet />
-                    </main> */}
+                    </main>
                 </div>
             </div>
         </div>
