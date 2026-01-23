@@ -1,7 +1,6 @@
 import React from "react";
 import DatePicker from "react-multi-date-picker";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCalendarDays } from "@fortawesome/free-solid-svg-icons";
+import { Calendar } from "lucide-react";
 
 function CommonDatePicker({
     value,
@@ -10,8 +9,8 @@ function CommonDatePicker({
     className = "",
     style = {},
     disabled = false,
-    minDate = null,  // New prop for minimum selectable date
-    maxDate = null   // New prop for maximum selectable date
+    minDate = null,
+    maxDate = null
 }) {
     return (
         <div className={`relative ${className}`} style={style}>
@@ -34,7 +33,10 @@ function CommonDatePicker({
                     minDate={minDate}
                     maxDate={maxDate}
                 />
-                <FontAwesomeIcon icon={faCalendarDays} className="text-indigo-500 text-sm ml-2" />
+                <Calendar
+                    size={16}
+                    className={`${disabled ? "text-gray-400" : "text-indigo-500"} ml-2`}
+                />
             </div>
         </div>
     )

@@ -1,11 +1,5 @@
 import React from "react"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import {
-    faTimes,
-    faCheckCircle,
-    faExclamationCircle,
-    faInfoCircle,
-} from "@fortawesome/free-solid-svg-icons"
+import { X, CheckCircle, XCircle, Info } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
 const CommonStatusPopUp = ({
@@ -18,7 +12,6 @@ const CommonStatusPopUp = ({
     secondaryButtonText = "",
     onPrimaryButtonClick = () => { },
     onSecondaryButtonClick = () => { },
-    size = "md",
     showCloseButton = true,
     type = "default",
     autoClose = false,
@@ -26,16 +19,14 @@ const CommonStatusPopUp = ({
 }) => {
     React.useEffect(() => {
         if (autoClose && isOpen) {
-            const timer = setTimeout(() => {
-                onClose()
-            }, autoCloseDuration)
+            const timer = setTimeout(onClose, autoCloseDuration)
             return () => clearTimeout(timer)
         }
     }, [isOpen, autoClose, autoCloseDuration, onClose])
 
     const typeConfig = {
         success: {
-            icon: faCheckCircle,
+            Icon: CheckCircle,
             iconColor: "text-emerald-500",
             bgColor: "bg-emerald-100",
             titleColor: "text-emerald-600",
@@ -43,7 +34,7 @@ const CommonStatusPopUp = ({
             animation: { scale: [1, 1.05, 1], rotate: [0, 5, -5, 0] },
         },
         error: {
-            icon: faExclamationCircle,
+            Icon: XCircle,
             iconColor: "text-red-600",
             bgColor: "bg-red-100",
             titleColor: "text-red-600",
@@ -51,7 +42,7 @@ const CommonStatusPopUp = ({
             animation: { scale: [1, 1.1, 1] },
         },
         info: {
-            icon: faInfoCircle,
+            Icon: Info,
             iconColor: "text-yellow-500",
             bgColor: "bg-yellow-100",
             titleColor: "text-yellow-500",
@@ -59,7 +50,7 @@ const CommonStatusPopUp = ({
             animation: { scale: [1, 1.05, 1], y: [0, -5, 0] },
         },
         default: {
-            icon: null,
+            Icon: null,
             iconColor: "text-gray-500",
             bgColor: "bg-gray-100",
             titleColor: "text-gray-600",
@@ -70,6 +61,7 @@ const CommonStatusPopUp = ({
 
     const currentType = typeConfig[type] || typeConfig.default
     const content = body || children
+    const StatusIcon = currentType.Icon
 
     return (
         <AnimatePresence>
@@ -88,29 +80,29 @@ const CommonStatusPopUp = ({
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         exit={{ scale: 0.9, opacity: 0, y: 10 }}
                         transition={{ type: "spring", damping: 20, stiffness: 300 }}
-                        className={`relative z-10 w-full max-w-xs rounded-xl bg-white px-6 py-8 shadow-2xl`}
+                        className="relative z-10 w-full max-w-xs rounded-xl bg-white px-6 py-8 shadow-2xl"
                     >
                         {showCloseButton && (
                             <button
                                 onClick={onClose}
-                                className="absolute top-3 right-3 cursor-pointer text-gray-400 hover:text-gray-500 transition-colors"
+                                className="absolute top-3 right-3 text-gray-400 hover:text-gray-500 transition"
                             >
-                                <FontAwesomeIcon icon={faTimes} />
+                                <X size={18} />
                             </button>
                         )}
 
-                        {(currentType.icon || title) && (
-                            <div className="flex flex-col items-center justify-center text-center space-y-4">
-                                {currentType.icon && (
+                        {(StatusIcon || title) && (
+                            <div className="flex flex-col items-center text-center space-y-4">
+                                {StatusIcon && (
                                     <motion.div
                                         initial={{ scale: 1 }}
                                         animate={currentType.animation}
                                         transition={{ duration: 1.5, repeat: Infinity }}
                                         className={`flex items-center justify-center w-20 h-20 rounded-full ${currentType.bgColor}`}
                                     >
-                                        <FontAwesomeIcon
-                                            icon={currentType.icon}
-                                            className={`text-4xl ${currentType.iconColor}`}
+                                        <StatusIcon
+                                            size={40}
+                                            className={currentType.iconColor}
                                         />
                                     </motion.div>
                                 )}
@@ -120,7 +112,12 @@ const CommonStatusPopUp = ({
                                         {title}
                                     </h3>
                                 )}
-                                {content && <div className="text-sm text-gray-600">{content}</div>}
+
+                                {content && (
+                                    <div className="text-sm text-gray-600">
+                                        {content}
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -129,7 +126,7 @@ const CommonStatusPopUp = ({
                                 {secondaryButtonText && (
                                     <button
                                         onClick={onSecondaryButtonClick || onClose}
-                                        className="px-4 py-2 cursor-pointer rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+                                        className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
                                     >
                                         {secondaryButtonText}
                                     </button>
@@ -137,7 +134,7 @@ const CommonStatusPopUp = ({
                                 {primaryButtonText && (
                                     <button
                                         onClick={onPrimaryButtonClick}
-                                        className={`px-4 py-2 rounded-lg cursor-pointer text-white ${currentType.buttonColor}`}
+                                        className={`px-4 py-2 rounded-lg text-white ${currentType.buttonColor}`}
                                     >
                                         {primaryButtonText}
                                     </button>

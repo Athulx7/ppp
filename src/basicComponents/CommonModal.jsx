@@ -1,56 +1,60 @@
-import React, { useEffect } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes } from '@fortawesome/free-solid-svg-icons';
-import PropTypes from 'prop-types';
+import React, { useEffect } from "react";
+import { X } from "lucide-react";
 
-function CommonModal({ isOpen, onClose, title, body, children, size = 'md', closeButton = true, overlayClose = true, animation = 'fade', customHeader, customFooter }) {
+function CommonModal({
+    isOpen,
+    onClose,
+    title,
+    body,
+    children,
+    size = "md",
+    closeButton = true,
+    overlayClose = true,
+    animation = "fade",
+    customHeader,
+    customFooter
+}) {
 
     useEffect(() => {
         const handleEscape = (e) => {
-            if (e.key === 'Escape' && isOpen) {
+            if (e.key === "Escape" && isOpen) {
                 onClose();
             }
         }
-
-        document.addEventListener('keydown', handleEscape);
-        return () => document.removeEventListener('keydown', handleEscape)
+        document.addEventListener("keydown", handleEscape)
+        return () => document.removeEventListener("keydown", handleEscape)
     }, [isOpen, onClose])
 
     useEffect(() => {
-        if (isOpen) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = 'auto';
-        }
+        document.body.style.overflow = isOpen ? "hidden" : "auto";
         return () => {
-            document.body.style.overflow = 'auto';
+            document.body.style.overflow = "auto"
         };
     }, [isOpen]);
 
     if (!isOpen) return null;
 
     const sizeClasses = {
-        sm: 'max-w-sm',
-        md: 'max-w-md',
-        lg: 'max-w-lg',
-        xl: 'max-w-xl',
-        '2xl': 'max-w-2xl',
-        full: 'max-w-full mx-4'
+        sm: "max-w-sm",
+        md: "max-w-md",
+        lg: "max-w-lg",
+        xl: "max-w-xl",
+        "2xl": "max-w-2xl",
+        full: "max-w-full mx-4",
     };
 
     const animationClasses = {
-        fade: 'animate-fadeIn',
-        slide: 'animate-slideIn',
-        bounce: 'animate-bounceIn'
+        fade: "animate-fadeIn",
+        slide: "animate-slideIn",
+        bounce: "animate-bounceIn",
     };
 
     return (
         <div className="fixed inset-0 z-50 overflow-y-auto">
-
             <div
                 className={`fixed inset-0 bg-black/50 transition-opacity ${animationClasses[animation]}`}
                 onClick={overlayClose ? onClose : undefined}
-            ></div>
+            />
 
             <div className="flex items-center justify-center min-h-screen p-4">
                 <div
@@ -63,21 +67,23 @@ function CommonModal({ isOpen, onClose, title, body, children, size = 'md', clos
                             {closeButton && (
                                 <button
                                     onClick={onClose}
-                                    className="text-gray-400 hover:text-gray-500 focus:outline-none cursor-pointer"
+                                    className="text-gray-400 hover:text-gray-500 cursor-pointer"
                                 >
-                                    <FontAwesomeIcon icon={faTimes} className="w-5 h-5" />
+                                    <X size={20} />
                                 </button>
                             )}
                         </div>
                     )}
 
                     <div className="p-4 overflow-y-auto max-h-[70vh]">
-                        {typeof body === 'function' ? body() : body}
+                        {typeof body === "function" ? body() : body || children}
                     </div>
 
                     {customFooter && (
                         <div className="p-4 border-t border-gray-200 bg-gray-50 rounded-b-xl">
-                            {typeof customFooter === 'function' ? customFooter() : customFooter}
+                            {typeof customFooter === "function"
+                                ? customFooter()
+                                : customFooter}
                         </div>
                     )}
                 </div>
@@ -86,26 +92,5 @@ function CommonModal({ isOpen, onClose, title, body, children, size = 'md', clos
     )
 }
 
-CommonModal.propTypes = {
-    isOpen: PropTypes.bool.isRequired,
-    onClose: PropTypes.func.isRequired,
-    title: PropTypes.string,
-    body: PropTypes.oneOfType([
-        PropTypes.node,
-        PropTypes.func
-    ]),
-    size: PropTypes.oneOf(['sm', 'md', 'lg', 'xl', '2xl', 'full']),
-    closeButton: PropTypes.bool,
-    overlayClose: PropTypes.bool,
-    animation: PropTypes.oneOf(['fade', 'slide', 'bounce']),
-    customHeader: PropTypes.oneOfType([
-        PropTypes.node,
-        PropTypes.func
-    ]),
-    customFooter: PropTypes.oneOfType([
-        PropTypes.node,
-        PropTypes.func
-    ])
-};
 
 export default CommonModal

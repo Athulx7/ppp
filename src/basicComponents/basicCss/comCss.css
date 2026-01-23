@@ -16,3 +16,12 @@
  .scrollbar::-webkit-scrollbar-thumb:hover {
      background: #5b64e8;
  }
+
+ .hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar:hover::-webkit-scrollbar {
+  display: block;
+  height: 5px;
+}

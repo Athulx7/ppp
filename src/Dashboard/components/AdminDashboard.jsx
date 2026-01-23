@@ -59,7 +59,7 @@ function AdminDashboard() {
 
     const getDayEvents = (day) => {
         const events = [];
-        const dateStr = `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${day}`;
+        // const dateStr = `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${day}`;
 
         if (day === 15 || day === 25) {
             events.push({ type: 'birthday', count: day === 15 ? 2 : 1 });
@@ -108,11 +108,11 @@ function AdminDashboard() {
         iconBg = "bg-blue-200";
     }
 
-    const upcomingHoliday = {
-        date: "17 Jul Mon",
-        name: "Ashura",
-        daysLeft: 3
-    };
+    // const upcomingHoliday = {
+    //     date: "17 Jul Mon",
+    //     name: "Ashura",
+    //     daysLeft: 3
+    // };
 
     const [isLoading, setIsLoading] = useState(false);
 
