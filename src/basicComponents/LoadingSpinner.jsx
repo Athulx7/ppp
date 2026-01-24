@@ -1,15 +1,14 @@
 import React, { useEffect } from 'react'
 
 const LoadingSpinner = ({message}) => {
+
     useEffect(() => {
-        // Add overflow-hidden to body when component mounts
-        document.body.style.overflow = 'hidden';
-        
-        // Cleanup: Remove overflow-hidden when component unmounts
+        document.body.style.overflow = 'hidden'
         return () => {
-            document.body.style.overflow = 'unset';
-        };
-    }, []);
+            document.body.style.overflow = 'unset'
+        }
+    }, [])
+
     return (
         <div className="min-h-screen fixed inset-0 z-[999] bg-white/60 p-4 md:p-10 flex items-center justify-center">
             <div className="text-center">
