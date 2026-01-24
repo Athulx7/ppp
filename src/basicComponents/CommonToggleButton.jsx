@@ -2,6 +2,8 @@ import React from "react"
 import { Check, X } from "lucide-react"
 
 function CommonToggleButton({
+    label = "",
+    required = false,
     value = 0,
     onChange = () => { },
     yesLabel = "Yes",
@@ -19,25 +21,33 @@ function CommonToggleButton({
     const isYes = value === 1
 
     return (
-        <div
-            className={`inline-flex items-center rounded-lg border cursor-pointer select-none
-        ${disabled ? "opacity-50 cursor-not-allowed" : ""}  ${className}`} style={style} onClick={toggle}
-        >
-            <div className={`flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-l-lg transition
-          ${isYes ? "bg-indigo-500 text-white" : "bg-gray-100 text-gray-600"} `}
-            >
-                <Check size={14} />
-                {yesLabel}
-            </div>
-
+        <>
+            {label && (
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                    {label}
+                    {required && <span className="ml-1 text-red-500">*</span>}
+                </label>
+            )}
             <div
-                className={`flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-r-lg transition
-          ${!isYes ? "bg-red-500 text-white" : "bg-gray-100 text-gray-600"}`}
+                className={`inline-flex items-center rounded-lg border cursor-pointer select-none
+        ${disabled ? "opacity-50 cursor-not-allowed" : ""}  ${className}`} style={style} onClick={toggle}
             >
-                <X size={14} />
-                {noLabel}
+                <div className={`flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-l-lg transition
+          ${isYes ? "bg-indigo-500 text-white" : "bg-gray-100 text-gray-600"} `}
+                >
+                    <Check size={14} />
+                    {yesLabel}
+                </div>
+
+                <div
+                    className={`flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-r-lg transition
+          ${!isYes ? "bg-red-500 text-white" : "bg-gray-100 text-gray-600"}`}
+                >
+                    <X size={14} />
+                    {noLabel}
+                </div>
             </div>
-        </div>
+        </>
     )
 }
 

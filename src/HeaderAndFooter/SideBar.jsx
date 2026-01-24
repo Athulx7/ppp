@@ -102,7 +102,7 @@ function SideBar({ isCollapsed, isMobileOpen, isMobile, handleToggle, setIsMobil
                     </button>
                 </div>
 
-                <div className="flex flex-col justify-between h-[calc(100%-4rem)] px-2 py-3 overflow-y-auto">
+                <div className="flex flex-col justify-between h-[calc(100%-4rem)] px-2 py-3 overflow-y-auto hide-scrollbar">
                     <div>
                         {!isCollapsed && (
                             <div className="text-xs font-semibold text-gray-500 uppercase mb-2 px-2">

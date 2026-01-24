@@ -2,6 +2,8 @@ import React, { useState } from "react"
 import { ChevronDown, ChevronUp, X } from "lucide-react"
 import './basicCss/comCss.css'
 function CommonMultiSelectionDropdown({
+    label = "",
+    required = false,
     options = [],
     value = [],
     onChange = () => { },
@@ -55,8 +57,14 @@ function CommonMultiSelectionDropdown({
 
     return (
         <div className={`relative ${className}`} style={style}>
-            <div className={`flex items-center p-3 rounded-lg cursor-pointer ${disabled ? "bg-gray-100 text-gray-400 border border-gray-200"
-                        : "bg-white border border-indigo-500 hover:border-indigo-400"}
+            {label && (
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                    {label}
+                    {required && <span className="ml-1 text-red-500">*</span>}
+                </label>
+            )}
+            <div className={`flex items-center p-2 rounded-lg cursor-pointer ${disabled ? "bg-gray-100 text-gray-400 border border-gray-200"
+                : "bg-white border border-indigo-500 hover:border-indigo-400"}
           ${isOpen ? "ring-1 ring-indigo-500" : ""} `}
                 onClick={() => !disabled && setIsOpen(!isOpen)}
             >

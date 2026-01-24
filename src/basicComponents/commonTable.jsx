@@ -23,7 +23,7 @@ function CommonTable({ columns, data, tableControls, customHeader }) {
     const totalPages = Math.ceil(filteredData.length / entriesPerPage)
 
     return (
-        <div className="mx-2 md:mx-3 my-6 border bg-white border-gray-200 shadow-lg rounded-lg overflow-hidden">
+        <div className="my-6 border bg-white border-gray-200 shadow-lg rounded-lg overflow-hidden">
             {customHeader && (
                 <div className="p-2 border-b border-gray-200">
                     {customHeader}
@@ -65,7 +65,7 @@ function CommonTable({ columns, data, tableControls, customHeader }) {
                             {columns.map((col, i) => (
                                 <th
                                     key={i}
-                                    className="px-4 py-2 sticky top-0 text-black border-2 border-gray-200 font-medium whitespace-nowrap"
+                                    className="px-4 py-2 sticky top-0 text-left text-black border-2 border-gray-200 font-medium whitespace-nowrap"
                                 >
                                     {col.header}
                                 </th>
@@ -90,7 +90,11 @@ function CommonTable({ columns, data, tableControls, customHeader }) {
                                 >
                                     {columns.map((col, ci) => (
                                         <td key={ci} className="px-4 py-3 border-b border-gray-200 whitespace-nowrap">
-                                            {row[col.accessor]}
+                                            {col.cell
+                                                ? col.cell(row)
+                                                : col.accessor
+                                                    ? row[col.accessor]
+                                                    : null}
                                         </td>
                                     ))}
                                 </tr>

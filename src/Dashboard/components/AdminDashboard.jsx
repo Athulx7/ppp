@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Calendar, Users, DollarSign, Clock, TrendingUp, Bell, Gift, CalendarDays, Download, MoreVertical, ChevronLeft, ChevronRight, Plus, Moon, Sun, Cloud } from 'lucide-react';
 import LoadingSpinner from '../../basicComponents/LoadingSpinner';
 
@@ -119,7 +119,7 @@ function AdminDashboard() {
 
     return (
         <div className=" bg-gray-50 min-h-screen">
-            {isLoading && <LoadingSpinner fullScreen message="Loading..." />}
+            {isLoading && <LoadingSpinner message="Loading..." />}
             <div className=" bg-gray-50">
                 <div className="">
                     <div className="flex flex-col lg:flex-row gap-6">

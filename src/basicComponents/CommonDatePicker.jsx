@@ -3,6 +3,8 @@ import DatePicker from "react-multi-date-picker";
 import { Calendar } from "lucide-react";
 
 function CommonDatePicker({
+    label = "",
+    required = false,
     value,
     onChange = () => { },
     placeholder = "Select date",
@@ -13,12 +15,18 @@ function CommonDatePicker({
     maxDate = null
 }) {
     return (
-        <div className={`relative ${className}`} style={style}>
-            <div
-                className={`flex items-center justify-between p-3 rounded-lg transition-all duration-200 cursor-pointer
+        <div className={`w-full ${className}`} style={style}>
+            {label && (
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                    {label}
+                    {required && <span className="ml-1 text-red-500">*</span>}
+                </label>
+            )}
+
+            <div className={`flex items-center justify-between p-1.5 rounded-lg transition-all duration-200 cursor-pointer
           ${disabled
                         ? "bg-gray-100 text-gray-400 border border-gray-200"
-                        : "bg-white border border-indigo-500 hover:border-indigo-400 focus:border-indigo-500"}
+                        : "bg-white border border-indigo-500 hover:border-indigo-400 focus-within:ring-1 focus-within:ring-indigo-500"}
         `}
             >
                 <DatePicker
