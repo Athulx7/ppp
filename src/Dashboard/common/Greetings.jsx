@@ -1,8 +1,7 @@
-import { ChevronRight, Cloud, Gift, Moon, Sun } from 'lucide-react';
+import { ChevronRight, Cloud, Gift, Moon, Sun, Building, Users, MapPin, Phone, Mail, Globe, Calendar } from 'lucide-react';
 import React from 'react'
 
 function Greetings() {
-
     const currentTime = new Date();
     const currentHour = currentTime.getHours();
     const userName = "User Name";
@@ -39,8 +38,31 @@ function Greetings() {
         iconBg = "bg-blue-200";
     }
 
-    const upcomingHolidays = [
-        { date: "25 Dec", name: "Christmas", daysToGo: 3 },
+    const companyInfo = {
+        name: "Company Name",
+        employees: "1,247",
+        departments: "14",
+        location: "location, loc",
+        email: "hr@comapany.com",
+        phone: "+1 (555) 123-4567",
+        website: "www.company.com",
+        founded: "2015",
+        industry: "Technology & Software"
+    };
+
+    // Today's Company Stats
+    const todaysStats = [
+        { label: "Employees Present", value: "1,230", icon: Users, color: "bg-green-100 text-green-600" },
+        { label: "On Leave", value: "17", icon: Calendar, color: "bg-amber-100 text-amber-600" },
+        { label: "Departments", value: "14", icon: Building, color: "bg-blue-100 text-blue-600" },
+    ];
+
+    // Quick Company Contacts
+    const companyContacts = [
+        { type: "Location", value: companyInfo.location, icon: MapPin, color: "text-blue-600" },
+        { type: "HR Email", value: companyInfo.email, icon: Mail, color: "text-purple-600" },
+        { type: "Phone", value: companyInfo.phone, icon: Phone, color: "text-green-600" },
+        { type: "Website", value: companyInfo.website, icon: Globe, color: "text-indigo-600" },
     ];
     return (
         <>
@@ -60,45 +82,50 @@ function Greetings() {
                                 Hello, <span className="text-indigo-600">{userName}</span>
                                 <span className="text-2xl md:text-3xl ml-2">👋</span>
                             </h1>
-                            <p className="text-gray-600 text-sm md:text-base">
-                                Welcome back! Here's what's happening today.
+                            <p className="text-gray-600 text-sm md:text-base mb-4">
+                                Welcome to <span className="font-semibold text-indigo-600">{companyInfo.name}</span> HRMS Portal
                             </p>
+                            
+                            <div className="flex items-center gap-4 flex-wrap">
+                                {todaysStats.map((stat, index) => (
+                                    <div key={index} className="flex items-center gap-2">
+                                        <div className={`p-1.5 rounded-lg ${stat.color.split(' ')[0]}`}>
+                                            <stat.icon className={`w-4 h-4 ${stat.color.split(' ')[1]}`} />
+                                        </div>
+                                        <div>
+                                            <span className="text-sm font-semibold text-gray-900">{stat.value}</span>
+                                            <span className="text-xs text-gray-500 ml-1">{stat.label}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
+                        <div className="absolute bottom-0 right-0 w-24 h-24 bg-gradient-to-tl from-white/20 to-transparent rounded-full -mr-6 -mb-6"></div>
                     </div>
                 </div>
 
                 <div className="flex-1">
-                    <div className="rounded-xl shadow-sm p-4 md:p-5 h-full">
-                        <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2">
-                                <div className="p-2 rounded-full bg-amber-100 text-amber-600">
-                                    <Gift className="w-4 h-4" />
-                                </div>
-                                <h3 className="font-bold text-gray-900">Upcoming Holidays</h3>
-                            </div>
-                            <span className="text-xs text-gray-500">
-                                {upcomingHolidays.length} days
-                            </span>
-                        </div>
+                    <div className="rounded-xl shadow-sm p-4 md:p-5 h-full border border-gray-100">
 
-                        <div className="">
-                            {upcomingHolidays.map((holiday, index) => (
-                                <div key={index} className="flex items-center justify-between group hover:bg-gray-50 p-2 rounded-lg transition-colors">
-                                    <div className="flex items-center gap-3">
-                                        <div className="text-center min-w-[45px]">
-                                            <div className="text-sm font-bold text-gray-900">{holiday.date.split(' ')[0]}</div>
-                                            <div className="text-xs text-gray-500">{holiday.date.split(' ')[1]}</div>
+                        <div className="space-y-3 mb-4">
+                            <div>
+                                <h4 className="text-lg font-bold text-gray-900">{companyInfo.name}</h4>
+                                <p className="text-sm text-gray-600">{companyInfo.industry}</p>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-2">
+                                {companyContacts.map((contact, index) => (
+                                    <div key={index} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded-lg transition-colors">
+                                        <div className={`p-1.5 rounded ${contact.color.replace('text', 'bg').replace('-600', '-100')}`}>
+                                            <contact.icon className={`w-3.5 h-3.5 ${contact.color}`} />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="font-medium text-gray-900 text-sm truncate">{holiday.name}</p>
-                                            <p className="text-xs text-gray-500 truncate">
-                                                {holiday.daysToGo} {holiday.daysToGo === 1 ? 'day' : 'days'} to go
-                                            </p>
+                                            <p className="text-xs text-gray-500">{contact.type}</p>
+                                            <p className="text-sm font-medium text-gray-900 truncate">{contact.value}</p>
                                         </div>
                                     </div>
-                                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>

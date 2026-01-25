@@ -1,6 +1,7 @@
-import React from "react";
-import { Home, Rows3, ChevronRight, ChevronLeft, X, LayoutDashboard, Users, CalendarDays, FileText, Wallet, Settings, MessageCircle, HelpCircle, Building2, LogOut, } from "lucide-react";
+import React, { useState } from "react";
+import { Home, Rows3, ChevronRight, ChevronLeft, X, LayoutDashboard, Users, CalendarDays, FileText, Wallet, Settings, MessageCircle, HelpCircle, Building2, LogOut, Grid3X3, } from "lucide-react";
 import { NavLink, Link } from "react-router-dom";
+import MainMenu from "./MainMenu";
 
 function SideBar({ isCollapsed, isMobileOpen, isMobile, handleToggle, setIsMobileOpen, }) {
 
@@ -64,6 +65,7 @@ function SideBar({ isCollapsed, isMobileOpen, isMobile, handleToggle, setIsMobil
     const handleLogout = () => {
         console.log("Logging out...")
     }
+    const [openMenu, setOpenMenu] = useState(false)
 
     return (
         <>
@@ -72,9 +74,10 @@ function SideBar({ isCollapsed, isMobileOpen, isMobile, handleToggle, setIsMobil
                     <Home className="text-indigo-500" />
                     <span className="ml-2 font-bold">PPP</span>
                 </Link>
-                <button onClick={handleToggle}>
+                {/* <button onClick={handleToggle}>
                     <Rows3 />
-                </button>
+                </button> */}
+                <Grid3X3 size={30} onClick={() => setOpenMenu(true)} className='cursor-pointer' />
             </div>
 
             <div
@@ -204,6 +207,9 @@ function SideBar({ isCollapsed, isMobileOpen, isMobile, handleToggle, setIsMobil
                     className="fixed inset-0 bg-black/40 z-30 lg:hidden"
                     onClick={() => setIsMobileOpen(false)}
                 />
+            )}
+            {openMenu && (
+                <MainMenu onClose={() => setOpenMenu(false)} />
             )}
         </>
     );
