@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Calendar, Users, DollarSign, Clock, TrendingUp, Bell, Gift, CalendarDays, Download, MoreVertical, ChevronLeft, ChevronRight, Plus, Moon, Sun, Cloud } from 'lucide-react';
 import LoadingSpinner from '../../basicComponents/LoadingSpinner';
+import Greetings from '../common/Greetings';
+import CalendarSection from '../common/CalendarSection';
 
 function AdminDashboard() {
-    const [currentDate, setCurrentDate] = useState(new Date());
-    const [selectedDate, setSelectedDate] = useState(new Date());
 
     const hrMetrics = [
         { title: "Total Employees", value: "124", icon: Users, color: "bg-blue-500", change: "+5.2%" },
@@ -34,80 +34,6 @@ function AdminDashboard() {
         { action: "Performance review completed", person: "David Lee", time: "2 days ago" },
     ];
 
-    const monthNames = ["January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December"
-    ];
-
-    const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
-    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
-
-    const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-
-    const prevMonth = () => {
-        setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
-    };
-
-    const nextMonth = () => {
-        setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
-    };
-
-    const goToToday = () => {
-        const today = new Date()
-        setCurrentDate(today)
-        setSelectedDate(today)
-    }
-
-    const getDayEvents = (day) => {
-        const events = [];
-        // const dateStr = `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${day}`;
-
-        if (day === 15 || day === 25) {
-            events.push({ type: 'birthday', count: day === 15 ? 2 : 1 });
-        }
-
-        if (day === 5 || day === 20) {
-            events.push({ type: 'deadline', count: 1 });
-        }
-
-        return events;
-    };
-
-    const currentTime = new Date();
-    const currentHour = currentTime.getHours();
-    const userName = "User Name";
-
-    let greeting = "";
-    let greetingIcon = null;
-    let bgGradient = "";
-    let textColor = "";
-    let iconBg = "";
-
-    if (currentHour < 12) {
-        greeting = "Good Morning";
-        greetingIcon = <Sun className="w-5 h-5" />;
-        bgGradient = "from-amber-100 to-orange-50";
-        textColor = "text-amber-800";
-        iconBg = "bg-amber-200";
-    } else if (currentHour < 17) {
-        greeting = "Good Afternoon";
-        greetingIcon = <Sun className="w-5 h-5" />;
-        bgGradient = "from-orange-100 to-yellow-50";
-        textColor = "text-orange-800";
-        iconBg = "bg-orange-200";
-    } else if (currentHour < 20) {
-        greeting = "Good Evening";
-        greetingIcon = <Cloud className="w-5 h-5" />;
-        bgGradient = "from-indigo-100 to-purple-50";
-        textColor = "text-indigo-800";
-        iconBg = "bg-indigo-200";
-    } else {
-        greeting = "Good Night";
-        greetingIcon = <Moon className="w-5 h-5" />;
-        bgGradient = "from-blue-100 to-indigo-50";
-        textColor = "text-blue-800";
-        iconBg = "bg-blue-200";
-    }
-
     // const upcomingHoliday = {
     //     date: "17 Jul Mon",
     //     name: "Ashura",
@@ -116,35 +42,11 @@ function AdminDashboard() {
 
     const [isLoading, setIsLoading] = useState(false);
 
-
     return (
         <div className=" bg-gray-50 min-h-screen">
             {isLoading && <LoadingSpinner message="Loading..." />}
-            <div className=" bg-gray-50">
-                <div className="">
-                    <div className="flex flex-col lg:flex-row gap-6">
-                        <div className={`flex-1 rounded-2xl ${bgGradient} p-3 relative overflow-hidden`}>
-                            <div className="relative z-10">
-                                <div className="flex items-center gap-3 mb-3">
-                                    <div className={`${iconBg} p-2 rounded-full`}>
-                                        {greetingIcon}
-                                    </div>
-                                    <span className={`${textColor} font-medium`}>
-                                        {greeting}
-                                    </span>
-                                </div>
-                                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-                                    Hello, <span className="text-indigo-600">{userName}</span>
-                                    <span className="text-3xl md:text-4xl ml-2">👋</span>
-                                </h1>
-                                <p className="text-gray-600">
-                                    Welcome back! Here's what's happening today.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
+            <Greetings />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {hrMetrics.map((metric, index) => (
@@ -167,105 +69,7 @@ function AdminDashboard() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-white rounded-xl shadow-sm p-5">
-                        <div className="flex justify-between items-center mb-6">
-                            <div className="flex items-center gap-4">
-                                <button
-                                    onClick={prevMonth}
-                                    className="p-2 hover:bg-gray-100 rounded-lg"
-                                >
-                                    <ChevronLeft size={20} />
-                                </button>
-                                <h2 className="text-xl font-bold text-gray-900">
-                                    {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-                                </h2>
-                                <button
-                                    onClick={nextMonth}
-                                    className="p-2 hover:bg-gray-100 rounded-lg"
-                                >
-                                    <ChevronRight size={20} />
-                                </button>
-                            </div>
-                            <button
-                                onClick={goToToday}
-                                className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 text-sm font-medium"
-                            >
-                                Today
-                            </button>
-                        </div>
-
-                        <div className="mb-6">
-                            <div className="grid grid-cols-7 gap-1 mb-2">
-                                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                                    <div key={day} className="text-center text-sm font-medium text-gray-500 py-2">
-                                        {day}
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="grid grid-cols-7 gap-1">
-                                {Array.from({ length: firstDayOfMonth }).map((_, index) => (
-                                    <div key={`empty-${index}`} className="h-20"></div>
-                                ))}
-                                {daysArray.map(day => {
-                                    const events = getDayEvents(day);
-                                    const isToday = day === new Date().getDate() &&
-                                        currentDate.getMonth() === new Date().getMonth() &&
-                                        currentDate.getFullYear() === new Date().getFullYear();
-                                    const isSelected = day === selectedDate.getDate() &&
-                                        currentDate.getMonth() === selectedDate.getMonth() &&
-                                        currentDate.getFullYear() === selectedDate.getFullYear();
-
-                                    return (
-                                        <button
-                                            key={day}
-                                            onClick={() => setSelectedDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), day))}
-                                            className={`h-20 p-2 border rounded-lg text-left transition-colors hover:bg-gray-50
-                        ${isToday ? 'bg-blue-50 border-blue-200' : 'border-gray-200'}
-                        ${isSelected ? 'bg-indigo-50 border-indigo-300' : ''}
-                      `}
-                                        >
-                                            <div className="flex justify-between items-start">
-                                                <span className={`text-sm font-medium ${isToday ? 'text-blue-600' : isSelected ? 'text-indigo-600' : 'text-gray-900'
-                                                    }`}>
-                                                    {day}
-                                                </span>
-                                                <div className="flex gap-1">
-                                                    {events.map((event, idx) => (
-                                                        <div key={idx} className={`w-2 h-2 rounded-full ${event.type === 'birthday' ? 'bg-pink-500' : 'bg-orange-500'
-                                                            }`}></div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            <div className="mt-1 space-y-1">
-                                                {events.map((event, idx) => (
-                                                    <div key={idx} className="text-xs truncate">
-                                                        <span className={`inline-block w-2 h-2 rounded-full mr-1 ${event.type === 'birthday' ? 'bg-pink-500' : 'bg-orange-500'
-                                                            }`}></span>
-                                                        {event.count} {event.type === 'birthday' ? 'Birthday' : 'Deadline'}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                            <div className="flex items-center gap-2">
-                                <div className="w-3 h-3 rounded-full bg-pink-500"></div>
-                                <span>Birthdays & Anniversaries</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-                                <span>Important Deadlines</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                                <span>Today</span>
-                            </div>
-                        </div>
-                    </div>
+                    <CalendarSection />
 
                     <div className="bg-white rounded-xl shadow-sm p-5">
                         <div className="flex justify-between items-center mb-4">
