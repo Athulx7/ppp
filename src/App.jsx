@@ -7,20 +7,22 @@ import MasterFormPage from './Master/containers/MasterFormPage'
 import EmployeeDashboard from './Dashboard/components/EmployeeDashboard'
 import HRDashboard from './Dashboard/components/HrDashboard'
 import PayrollManagerDashboard from './Dashboard/components/PayRollManagerDashboard'
+import LoginPage from './LandingPages/LoginPage/LoginPage'
 
 function App() {
   return (
     <>
       <Routes>
-        <Route path='/' element={<Dashboard />}>
+        <Route path='/' element={<LoginPage />} />
+        <Route path='/admin' element={<Dashboard />}>
           <Route index element={<AdminDashboard />} />
-          <Route path='/master/:menuId' element={<MasterMain />} />
-          <Route path="/master/:menuId/add" element={<MasterFormPage />} />
-          <Route path="/master/:menuId/edit/:rowId" element={<MasterFormPage />} />
+          <Route path='master/:menuId' element={<MasterMain />} />
+          <Route path="master/:menuId/add" element={<MasterFormPage />} />
+          <Route path="master/:menuId/edit/:rowId" element={<MasterFormPage />} />
 
-          <Route path='/empDash' element={<EmployeeDashboard />} />
-          <Route path= '/hrDash' element={<HRDashboard />} />
-          <Route path='/payrollDash' element={<PayrollManagerDashboard />} />
+          <Route path='empDash' element={<EmployeeDashboard />} />
+          <Route path= 'hrDash' element={<HRDashboard />} />
+          <Route path='payrollDash' element={<PayrollManagerDashboard />} />
         </Route>
       </Routes>
     </>

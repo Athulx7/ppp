@@ -7,6 +7,7 @@ function Dashboard() {
     const [isCollapsed, setIsCollapsed] = useState(true);
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+    const [openMenu, setOpenMenu] = useState(false)
 
     useEffect(() => {
         const handleResize = () => {
@@ -34,11 +35,13 @@ function Dashboard() {
                     isMobile={isMobile}
                     handleToggle={handleToggle}
                     setIsMobileOpen={setIsMobileOpen}
+                    openMenu={openMenu}
+                    setOpenMenu={setOpenMenu}
                 />
 
                 <div className={`flex-1 flex flex-col transition-all duration-300 ${isMobile ? "ml-0" : isCollapsed ? "ml-20" : "ml-64" }`}>
                     <div className="hidden lg:block sticky top-0 z-30 bg-white border-b border-gray-200">
-                        <TopHeader />
+                        <TopHeader openMenu={openMenu} setOpenMenu={setOpenMenu} />
                     </div>
 
                     <main className="flex-1 p-4 overflow-y-auto">

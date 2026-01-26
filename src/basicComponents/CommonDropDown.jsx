@@ -71,7 +71,7 @@ function CommonDropDown({
 
             {isOpen && (
                 <div className="absolute z-20 w-full mt-1 bg-white rounded-lg shadow-xl border">
-                    <div className="max-h-60 overflow-y-auto">
+                    <div className="max-h-60 overflow-y-auto scrollbar">
                         {filteredOptions.length === 0 ? (
                             <div className="p-3 text-sm text-center text-gray-500">
                                 No options found

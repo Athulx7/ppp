@@ -344,7 +344,24 @@ export const getDropdownOptions = async (source, params = {}) => {
             { value: 1, label: "South" },
             { value: 2, label: "North" },
             { value: 3, label: "East" },
-            { value: 4, label: "West" }
+            { value: 4, label: "West" },
+            { value: 5, label: "Central" },
+            { value: 6, label: "HQ" },
+            { value: 7, label: "Remote" },
+            { value: 8, label: "International" },
+            { value: 9, label: "Others" },
+            { value: 10, label: "Unassigned" },
+            { value: 11, label: "Special Zone" },
+            { value: 12, label: "New Region" },
+            { value: 13, label: "Test Region" },
+            { value: 14, label: "Demo Region" },
+            { value: 15, label: "Sample Region" },
+            { value: 16, label: "Temporary Region" },
+            { value: 17, label: "Virtual Region" },
+            { value: 18, label: "Experimental Region" },
+            { value: 19, label: "Pilot Region" },
+            { value: 20, label: "Beta Region" }
+            
         ];
     }
 

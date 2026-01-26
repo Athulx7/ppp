@@ -3,7 +3,7 @@ import { Home, Rows3, ChevronRight, ChevronLeft, X, LayoutDashboard, Users, Cale
 import { NavLink, Link } from "react-router-dom";
 import MainMenu from "./MainMenu";
 
-function SideBar({ isCollapsed, isMobileOpen, isMobile, handleToggle, setIsMobileOpen, }) {
+function SideBar({ isCollapsed, isMobileOpen, isMobile, handleToggle, setIsMobileOpen,openMenu,setOpenMenu }) {
 
     const menuItems = [
         {
@@ -65,7 +65,6 @@ function SideBar({ isCollapsed, isMobileOpen, isMobile, handleToggle, setIsMobil
     const handleLogout = () => {
         console.log("Logging out...")
     }
-    const [openMenu, setOpenMenu] = useState(false)
 
     return (
         <>
