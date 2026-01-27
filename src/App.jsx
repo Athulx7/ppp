@@ -8,6 +8,7 @@ import EmployeeDashboard from './Dashboard/components/EmployeeDashboard'
 import HRDashboard from './Dashboard/components/HrDashboard'
 import PayrollManagerDashboard from './Dashboard/components/PayRollManagerDashboard'
 import LoginPage from './LandingPages/LoginPage/LoginPage'
+import MyCalendarEntry from './MyCalendar/container/MyCalendarEntry'
 
 function App() {
   return (
@@ -23,6 +24,8 @@ function App() {
           <Route path='empDash' element={<EmployeeDashboard />} />
           <Route path= 'hrDash' element={<HRDashboard />} />
           <Route path='payrollDash' element={<PayrollManagerDashboard />} />
+
+          <Route path='mycalendar' element={<MyCalendarEntry />} />
         </Route>
       </Routes>
     </>
