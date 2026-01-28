@@ -9,6 +9,9 @@ import HRDashboard from './Dashboard/components/HrDashboard'
 import PayrollManagerDashboard from './Dashboard/components/PayRollManagerDashboard'
 import LoginPage from './LandingPages/LoginPage/LoginPage'
 import MyCalendarEntry from './MyCalendar/container/MyCalendarEntry'
+import SalaryComponentEntry from './SalaryComponents/container/SalaryComponentEntry'
+import SalaryStructureEntry from './SalaryStructure/container/SalaryStructureEntry'
+import SalaryStructureAddEditEntry from './SalaryStructure/container/SalaryStructureAddEditEntry'
 
 function App() {
   return (
@@ -26,6 +29,13 @@ function App() {
           <Route path='payrollDash' element={<PayrollManagerDashboard />} />
 
           <Route path='mycalendar' element={<MyCalendarEntry />} />
+
+          <Route path='salary_components' element={<SalaryComponentEntry />} />
+
+          <Route path='salary_structure' element={<SalaryStructureEntry />} />
+          <Route path='salary_structure/create' element={<SalaryStructureAddEditEntry />} />
+          <Route path='salary_structure/edit/:id' element={<SalaryStructureAddEditEntry />} />
+          
         </Route>
       </Routes>
     </>

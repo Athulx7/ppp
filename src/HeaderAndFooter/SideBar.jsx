@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Home, Rows3, ChevronRight, ChevronLeft, X, LayoutDashboard, Users, CalendarDays, FileText, Wallet, Settings, MessageCircle, HelpCircle, Building2, LogOut, Grid3X3, } from "lucide-react";
+import { Home, Rows3, Layers, ChevronRight, ChevronLeft, X, LayoutDashboard, Users, CalendarDays, FileText, Wallet, Settings, MessageCircle, HelpCircle, Building2, LogOut, Grid3X3, } from "lucide-react";
 import { NavLink, Link } from "react-router-dom";
 import MainMenu from "./MainMenu";
 
@@ -12,18 +12,18 @@ function SideBar({ isCollapsed, isMobileOpen, isMobile, handleToggle, setIsMobil
             icon: LayoutDashboard,
         },
         {
-            name: "Employees",
-            url: "/hr/employees",
-            icon: Users,
-        },
-        {
-            name: "Attendance",
-            url: "/hr/attendance",
+            name: "My Calendar",
+            url: "/admin/mycalendar",
             icon: CalendarDays,
         },
         {
-            name: "Leave Management",
-            url: "/hr/leaves",
+            name: "Salary Components",
+            url: "/admin/salary_components",
+            icon: Layers,
+        },
+        {
+            name: "Salary Structure",
+            url: "/admin/salary_structure",
             icon: FileText,
         },
         {
