@@ -1,24 +1,40 @@
 import axios from "axios"
 
-const url = 'http://localhost:3000/api'
-
 const api = axios.create({
-    baseURL: url,
-    headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${sessionStorage.getItem('token')}`
-    }
+    baseURL: "http://localhost:3000/api",
+    headers: { "Content-Type": "application/json" }
 })
-export const ApiCall = async (endpoint, payload) => {
+
+api.interceptors.request.use(
+    (config) => {
+        const token = sessionStorage.getItem("token");
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+)
+
+export const ApiCall = async (method, endpoint, payload = null) => {
     try {
-        const responce = await api.post(endpoint, payload)
-        return responce
-    }
-    catch (error) {
-        console.error("API Call Error:", error);
-        return error;
+        const response = await api({
+            method,
+            url: endpoint,
+            data: payload
+        })
+        return response
+    } catch (error) {
+        console.error("API Call Error:", error)
+
+        if (error.response) {
+            throw error.response
+        } else {
+            throw { message: "Network error" }
+        }
     }
 }
+
 
 export function getTokenData() {
     try {
@@ -34,10 +50,3 @@ export function getTokenData() {
         return null
     }
 }
-
-export const roleRoutes = {
-    'ADMIN': "/admin",
-    'EMPLOYEE': "/employee",
-    'HR': "/hr",
-    'PAYROLL_MANAGER': "/payroll",
-};

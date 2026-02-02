@@ -29,7 +29,7 @@ function CommonTable({ columns, data, tableControls, customHeader }) {
                     {customHeader}
                 </div>
             )}
-            <div className="flex flex-wrap justify-between items-center gap-4 p-4">
+            <div className="flex flex-wrap justify-between items-center gap-4 p-2">
                 <div className="flex items-center gap-2">
                     <label className="text-sm text-gray-700">Show</label>
                     <select
@@ -50,10 +50,10 @@ function CommonTable({ columns, data, tableControls, customHeader }) {
                     {tableControls && tableControls}
                     <input
                         type="text"
-                        placeholder="Search Anything"
+                        placeholder="Search"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-gray-700"
+                        className="p-1 border border-gray-300 rounded shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-gray-700"
                     />
                 </div>
             </div>
@@ -65,7 +65,7 @@ function CommonTable({ columns, data, tableControls, customHeader }) {
                             {columns.map((col, i) => (
                                 <th
                                     key={i}
-                                    className="px-4 py-2 sticky top-0 text-left text-black border-2 border-gray-200 font-medium whitespace-nowrap"
+                                    className="px-2 py-2 sticky top-0 text-left text-black border-2 border-gray-200 font-medium whitespace-nowrap"
                                 >
                                     {col.header}
                                 </th>
@@ -89,7 +89,7 @@ function CommonTable({ columns, data, tableControls, customHeader }) {
                                     className={`text-sm text-gray-700 ${ri % 2 === 0 ? 'bg-white' : 'bg-indigo-50'}`}
                                 >
                                     {columns.map((col, ci) => (
-                                        <td key={ci} className="px-4 py-3 border-b border-gray-200 whitespace-nowrap">
+                                        <td key={ci} className="px-2 py-2 border-b border-gray-200 whitespace-nowrap">
                                             {col.cell
                                                 ? col.cell(row)
                                                 : col.accessor
@@ -104,7 +104,7 @@ function CommonTable({ columns, data, tableControls, customHeader }) {
                 </table>
             </div>
 
-            <div className="flex flex-wrap justify-between items-center p-4 bg-white text-sm text-gray-700">
+            <div className="flex flex-wrap justify-between items-center p-2 bg-white text-sm text-gray-700">
                 <div>
                     Showing{" "}
                     {filteredData.length === 0 ? 0 : startIndex + 1} to{" "}

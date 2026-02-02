@@ -1,5 +1,6 @@
 import React from 'react'
-import { Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
+import ProtectedRoute from './MProtectedRoute'
 import Dashboard from './Dashboard/container/Dashboard'
 import AdminDashboard from './Dashboard/components/AdminDashboard'
 import MasterMain from './Master/containers/MasterMain'
@@ -12,34 +13,71 @@ import MyCalendarEntry from './MyCalendar/container/MyCalendarEntry'
 import SalaryComponentEntry from './SalaryComponents/container/SalaryComponentEntry'
 import SalaryStructureEntry from './SalaryStructure/container/SalaryStructureEntry'
 import SalaryStructureAddEditEntry from './SalaryStructure/container/SalaryStructureAddEditEntry'
+import NotFoundPage from './NotFoundPage'
 
 function App() {
   return (
     <>
       <Routes>
         <Route path='/' element={<LoginPage />} />
-        <Route path='/admin' element={<Dashboard />}>
+
+        <Route path='/admin' element={<ProtectedRoute allowedRoles={['ADMIN']}> <Dashboard /> </ProtectedRoute>}>
           <Route index element={<AdminDashboard />} />
           <Route path='master/:menuId' element={<MasterMain />} />
           <Route path="master/:menuId/add" element={<MasterFormPage />} />
           <Route path="master/:menuId/edit/:rowId" element={<MasterFormPage />} />
-
-          <Route path='empDash' element={<EmployeeDashboard />} />
-          <Route path= 'hrDash' element={<HRDashboard />} />
-          <Route path='payrollDash' element={<PayrollManagerDashboard />} />
-
           <Route path='mycalendar' element={<MyCalendarEntry />} />
-
           <Route path='salary_components' element={<SalaryComponentEntry />} />
-
           <Route path='salary_structure' element={<SalaryStructureEntry />} />
           <Route path='salary_structure/create' element={<SalaryStructureAddEditEntry />} />
           <Route path='salary_structure/edit/:id' element={<SalaryStructureAddEditEntry />} />
-          
         </Route>
+
+        <Route path='/employee' element={<ProtectedRoute allowedRoles={['EMPLOYEE']}><Dashboard /></ProtectedRoute>}>
+          <Route index element={<EmployeeDashboard />} />
+          <Route path='mycalendar' element={<MyCalendarEntry />} />
+        </Route>
+
+        <Route path='/hr' element={<ProtectedRoute allowedRoles={['HR']}><Dashboard /> </ProtectedRoute>}>
+          <Route index element={<HRDashboard />} />
+          <Route path='master/:menuId' element={<MasterMain />} />
+          <Route path="master/:menuId/add" element={<MasterFormPage />} />
+          <Route path="master/:menuId/edit/:rowId" element={<MasterFormPage />} />
+          <Route path='salary_components' element={<SalaryComponentEntry />} />
+          <Route path='salary_structure' element={<SalaryStructureEntry />} />
+          <Route path='salary_structure/create' element={<SalaryStructureAddEditEntry />} />
+          <Route path='salary_structure/edit/:id' element={<SalaryStructureAddEditEntry />} />
+          <Route path='mycalendar' element={<MyCalendarEntry />} />
+        </Route>
+
+        <Route path='/payroll' element={<ProtectedRoute allowedRoles={['PAYROLL_MANAGER']}> <Dashboard /> </ProtectedRoute>}>
+          <Route index element={<PayrollManagerDashboard />} />
+          <Route path='mycalendar' element={<MyCalendarEntry />} />
+        </Route>
+
+        <Route path='/dashboard' element={<RoleBasedRedirect />} />
+
+        <Route path='*' element={<NotFoundPage />} />
       </Routes>
     </>
   )
+}
+
+const RoleBasedRedirect = () => {
+  const user = JSON.parse(sessionStorage.getItem('user') || '{}')
+
+  switch (user.role_code) {
+    case 'ADMIN':
+      return <Navigate to="/admin" replace />
+    case 'HR':
+      return <Navigate to="/hr" replace />
+    case 'PAYROLL_MANAGER':
+      return <Navigate to="/payroll" replace />
+    case 'EMPLOYEE':
+      return <Navigate to="/employee" replace />
+    default:
+      return <Navigate to="/" replace />
+  }
 }
 
 export default App

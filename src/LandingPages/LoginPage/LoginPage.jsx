@@ -68,18 +68,35 @@ function LoginPage() {
 
         try {
             const url = 'http://localhost:3000/api/login' //Express
-            const payload = {company_code: formData.companyCode, email: formData.email, password: formData.password }
-            const responce = await axios.post(url,payload, {headers : 'Content-Type: application/json'})
+            const payload = { company_code: formData.companyCode, email: formData.email, password: formData.password }
+            const responce = await axios.post(url, payload, { headers: 'Content-Type: application/json' })
             console.log('Login successful:', responce);
-            if(responce.data.success) { 
+            if (responce.data.success) {
                 console.log(responce.data.token)
                 console.log(responce.data.company)
                 console.log(responce.data.user)
                 sessionStorage.setItem('token', responce.data.token)
                 sessionStorage.setItem('company', JSON.stringify(responce.data.company))
                 sessionStorage.setItem('user', JSON.stringify(responce.data.user))
+                const userRole = responce.data.user.role_code.toUpperCase()
+                switch (userRole) {
+                    case 'ADMIN':
+                        navigate('/admin')
+                        break;
+                    case 'HR':
+                        navigate('/hr')
+                        break;
+                    case 'PAYROLL_MANAGER':
+                        navigate('/payroll')
+                        break;
+                    case 'EMPLOYEE':
+                        navigate('/employee')
+                        break;
+                    default:
+                        setLoginError('Unknown user role')
+                }
             }
-            else{
+            else {
                 setLoginError(responce.data.message || 'Login failed. Please try again.');
                 return;
             }

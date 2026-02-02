@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import hrmsIllustration from '../assets/hrmsillustatrion.png';
+import { Link, useNavigate } from 'react-router-dom';
 
 function MainMenu({ onClose }) {
 
+    const navigate = useNavigate()
     useEffect(() => {
         document.body.style.overflow = "hidden";
         return () => {
@@ -15,7 +17,8 @@ function MainMenu({ onClose }) {
     const HRMS_MENU = [
         {
             category: "All Master",
-            items: ["Employee Master", "Division Master", "Designation Master", "Department Master", "Location Master"]
+            items: ["Hierarchy Master", "Division Master", "Designation Master", "Department Master", "Location Master"],
+            url : "/admin/master/101"
         },
         {
             category: "HR Module",
@@ -115,7 +118,7 @@ function MainMenu({ onClose }) {
                                     >
                                         <div className="flex items-start">
                                             <div className="shrink-0 w-2 h-2 bg-white/50 rounded-full mr-3 mt-2"></div>
-                                            <div className="flex-1">
+                                            <Link to={'/admin/master/101'} className="flex-1">
                                                 <div className="flex items-center justify-between">
                                                     <span className="text-lg transition-colors">{item}</span>
                                                     <span className="text-white/50  transition-colors opacity-0 group-hover:opacity-100">
@@ -125,7 +128,7 @@ function MainMenu({ onClose }) {
                                                 <div className="mt-2 text-sm opacity-70">
                                                     Manage {item.toLowerCase()} and related settings
                                                 </div>
-                                            </div>
+                                            </Link>
                                         </div>
                                     </div>
                                 ))}
