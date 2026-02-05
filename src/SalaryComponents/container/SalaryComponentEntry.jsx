@@ -10,6 +10,7 @@ import CommonTable from '../../basicComponents/commonTable';
 import CommonDropDown from '../../basicComponents/CommonDropDown';
 import CommonInputField from '../../basicComponents/CommonInputField';
 import CommonToggleButton from '../../basicComponents/CommonToggleButton';
+import BreadCrumb from '../../basicComponents/BreadCrumb';
 
 function SalaryComponentEntry() {
     const [activeTab, setActiveTab] = useState('earnings');
@@ -372,22 +373,20 @@ function SalaryComponentEntry() {
     };
 
     return (
-        <div className="bg-gray-50 min-h-screen p-4 md:p-6">
+        <div className="bg-gray-50 min-h-screen p-4 md:p-2">
             {/* Header */}
             <div className="mb-6">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Salary Components Management</h1>
-                        <p className="text-gray-600">Create and manage salary components, earnings, deductions, and employer contributions</p>
-                    </div>
-                    <button
+                <BreadCrumb
+                    headerName="Salary Components"
+                    buttonContent={<button
                         onClick={() => setShowCreateModal(true)}
                         className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2"
                     >
                         <Plus size={16} />
                         Create New Component
-                    </button>
-                </div>
+                    </button>}
+                    subcontent="Create and manage salary components, earnings, deductions, and employer contributions"
+                />
 
                 {/* Tabs */}
                 <div className="flex border-b border-gray-200">

@@ -1,10 +1,14 @@
-import { ChevronRight, Cloud, Gift, Moon, Sun, Building, Users, MapPin, Phone, Mail, Globe, Calendar } from 'lucide-react';
+import { ChevronRight, Cloud, Gift, Moon, Sun, Building, Users, MapPin, Phone, Mail, Globe, Calendar, Clock, CheckCircle, UserCheck } from 'lucide-react';
 import React from 'react'
+import { Link } from 'react-router-dom'; // or use your routing method
 
 function Greetings() {
     const currentTime = new Date();
     const currentHour = currentTime.getHours();
     const userName = "User Name";
+
+    // Get user role from localStorage or auth context
+    const userRole = localStorage.getItem('userRole') || 'employee'; // Default to employee
 
     let greeting = "";
     let greetingIcon = null;
@@ -40,30 +44,65 @@ function Greetings() {
 
     const companyInfo = {
         name: "Company Name",
-        employees: "1,247",
-        departments: "14",
-        location: "location, loc",
-        email: "hr@comapany.com",
-        phone: "+1 (555) 123-4567",
-        website: "www.company.com",
-        founded: "2015",
-        industry: "Technology & Software"
+        location: "Location,locat",
+        hremail: "hr@company.com",
+        companyInfo: "www.company.com",
+        companyMobile: "+1234567890"
     };
 
-    // Today's Company Stats
+    // Different greeting messages based on role
+    const getWelcomeMessage = () => {
+        switch (userRole) {
+            case 'admin':
+                return `Welcome to Admin Portal of ${companyInfo.name} HRMS System`;
+            case 'hr':
+                return `Welcome to HR Portal of ${companyInfo.name} HRMS System`;
+            case 'payroll_manager':
+                return `Welcome to Payroll Portal of ${companyInfo.name} HRMS System`;
+            default: // employee
+                return `Welcome to ${companyInfo.name} HRMS Portal`;
+        }
+    };
+
     const todaysStats = [
-        { label: "Employees Present", value: "1,230", icon: Users, color: "bg-green-100 text-green-600" },
-        { label: "On Leave", value: "17", icon: Calendar, color: "bg-amber-100 text-amber-600" },
-        { label: "Departments", value: "14", icon: Building, color: "bg-blue-100 text-blue-600" },
+        {
+            label: "Attendance Today",
+            value: userRole === 'admin' ? "Total: 320" : "92%", // Admin sees total count
+            icon: UserCheck,
+            color: "bg-green-100 text-green-600",
+            action: userRole !== 'admin' ? "markAttendance" : null // No action for admin
+        },
+        {
+            label: userRole === 'admin' ? "Avg. On Time" : "On Time",
+            value: userRole === 'admin' ? "89%" : "87%",
+            icon: Clock,
+            color: "bg-blue-100 text-blue-600"
+        },
+        {
+            label: userRole === 'admin' ? "Total On Leave" : "On Leave",
+            value: userRole === 'admin' ? "16" : "5%",
+            icon: Calendar,
+            color: "bg-amber-100 text-amber-600"
+        },
     ];
 
-    // Quick Company Contacts
-    const companyContacts = [
-        { type: "Location", value: companyInfo.location, icon: MapPin, color: "text-blue-600" },
-        { type: "HR Email", value: companyInfo.email, icon: Mail, color: "text-purple-600" },
-        { type: "Phone", value: companyInfo.phone, icon: Phone, color: "text-green-600" },
-        { type: "Website", value: companyInfo.website, icon: Globe, color: "text-indigo-600" },
-    ];
+    const isAttendanceMarked = localStorage.getItem('attendanceMarkedToday') === 'true';
+
+    const handleMarkAttendance = () => {
+        const currentDate = new Date().toDateString();
+        const lastMarkedDate = localStorage.getItem('lastAttendanceDate');
+
+        if (lastMarkedDate !== currentDate) {
+            localStorage.setItem('attendanceMarkedToday', 'true');
+            localStorage.setItem('lastAttendanceDate', currentDate);
+
+            alert('Attendance marked successfully for today!');
+            window.location.reload()
+        } else {
+            alert('Attendance already marked for today!');
+        }
+    };
+
     return (
         <>
             <div className="flex flex-col lg:flex-row justify-between gap-4 md:gap-6 mb-6">
@@ -83,21 +122,48 @@ function Greetings() {
                                 <span className="text-2xl md:text-3xl ml-2">👋</span>
                             </h1>
                             <p className="text-gray-600 text-sm md:text-base mb-4">
-                                Welcome to <span className="font-semibold text-indigo-600">{companyInfo.name}</span> HRMS Portal
+                                {getWelcomeMessage()}
                             </p>
-                            
-                            <div className="flex items-center gap-4 flex-wrap">
-                                {todaysStats.map((stat, index) => (
-                                    <div key={index} className="flex items-center gap-2">
-                                        <div className={`p-1.5 rounded-lg ${stat.color.split(' ')[0]}`}>
-                                            <stat.icon className={`w-4 h-4 ${stat.color.split(' ')[1]}`} />
+
+                            <div className="flex items-center justify-between flex-wrap gap-4">
+                                <div className="flex items-center gap-4">
+                                    {todaysStats.map((stat, index) => (
+                                        <div key={index} className="flex items-center gap-2">
+                                            <div className={`p-1.5 rounded-lg ${stat.color.split(' ')[0]}`}>
+                                                <stat.icon className={`w-4 h-4 ${stat.color.split(' ')[1]}`} />
+                                            </div>
+                                            <div>
+                                                <span className="text-sm font-semibold text-gray-900">{stat.value}</span>
+                                                <span className="text-xs text-gray-500 ml-1">{stat.label}</span>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <span className="text-sm font-semibold text-gray-900">{stat.value}</span>
-                                            <span className="text-xs text-gray-500 ml-1">{stat.label}</span>
-                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Attendance Marking Button - Only for non-admin roles */}
+                                {userRole !== 'admin' && todaysStats[0]?.action && (
+                                    <div className="flex-shrink-0">
+                                        <button
+                                            onClick={handleMarkAttendance}
+                                            disabled={isAttendanceMarked}
+                                            className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 ${isAttendanceMarked
+                                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                                : 'bg-indigo-600 text-white hover:bg-indigo-700 transition-colors'}`}
+                                        >
+                                            {isAttendanceMarked ? (
+                                                <>
+                                                    <CheckCircle className="w-4 h-4" />
+                                                    <span>Marked Today</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <UserCheck className="w-4 h-4" />
+                                                    <span>Mark Attendance</span>
+                                                </>
+                                            )}
+                                        </button>
                                     </div>
-                                ))}
+                                )}
                             </div>
                         </div>
                         <div className="absolute bottom-0 right-0 w-24 h-24 bg-gradient-to-tl from-white/20 to-transparent rounded-full -mr-6 -mb-6"></div>
@@ -105,28 +171,43 @@ function Greetings() {
                 </div>
 
                 <div className="flex-1">
-                    <div className="rounded-xl shadow-sm p-4 md:p-5 h-full border border-gray-100">
-
-                        <div className="space-y-3 mb-4">
+                    <div className="rounded-xl shadow-sm p-4 md:p-5 h-full border border-gray-100 flex flex-col">
+                        <div className="space-y-3 mb-4 flex-1">
                             <div>
-                                <h4 className="text-lg font-bold text-gray-900">{companyInfo.name}</h4>
-                                <p className="text-sm text-gray-600">{companyInfo.industry}</p>
-                            </div>
-                            
-                            <div className="grid grid-cols-2 gap-2">
-                                {companyContacts.map((contact, index) => (
-                                    <div key={index} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded-lg transition-colors">
-                                        <div className={`p-1.5 rounded ${contact.color.replace('text', 'bg').replace('-600', '-100')}`}>
-                                            <contact.icon className={`w-3.5 h-3.5 ${contact.color}`} />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-xs text-gray-500">{contact.type}</p>
-                                            <p className="text-sm font-medium text-gray-900 truncate">{contact.value}</p>
-                                        </div>
-                                    </div>
-                                ))}
+                                <div className='flex justify-between'>
+                                    <h4 className="text-lg font-bold text-gray-900">{companyInfo.name}</h4>
+                                    <p className="text-sm text-gray-600">{companyInfo.location}</p>
+                                </div>
+                                <div className='flex justify-between'>
+                                    <p className="text-sm text-gray-600">{companyInfo.companyInfo}</p>
+                                    <p className="text-sm text-gray-600">{companyInfo.hremail}</p>
+                                </div>
+
+                                <p className="text-sm text-gray-600">{companyInfo.companyMobile}</p>
                             </div>
                         </div>
+
+                        <Link
+                            to="/attendance"
+                            className="flex items-center justify-between p-3 bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 rounded-lg transition-all group border border-indigo-100"
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-indigo-100 rounded-lg">
+                                    <Clock className="w-5 h-5 text-indigo-600" />
+                                </div>
+                                <div>
+                                    <h5 className="font-semibold text-gray-900">
+                                        {userRole === 'admin' ? 'Attendance Dashboard' : 'Attendance Tracking'}
+                                    </h5>
+                                    <p className="text-xs text-gray-600">
+                                        {userRole === 'admin'
+                                            ? 'View company-wide attendance analytics'
+                                            : 'View detailed attendance records'}
+                                    </p>
+                                </div>
+                            </div>
+                            <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition-transform" />
+                        </Link>
                     </div>
                 </div>
             </div>
