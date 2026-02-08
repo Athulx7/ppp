@@ -1,10 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import hrmsIllustration from '../assets/hrmsillustatrion.png';
 import { Link, useNavigate } from 'react-router-dom';
+import { ApiCall, getRoleBasePath } from '../library/constants';
 
 function MainMenu({ onClose }) {
 
     const navigate = useNavigate()
+    const [isLoading, setIsLoading] = useState(false)
+    const [menuData, setMenuData] = useState([]);
+    const [activeCategory, setActiveCategory] = useState("");
+
     useEffect(() => {
         document.body.style.overflow = "hidden";
         return () => {
@@ -12,64 +17,31 @@ function MainMenu({ onClose }) {
         };
     }, []);
 
-    const [activeCategory, setActiveCategory] = useState("All Master");
+    useEffect(() => {
+        loadMenuList()
+    }, [])
 
-    const HRMS_MENU = [
-        {
-            category: "All Master",
-            items: ["Hierarchy Master", "Division Master", "Designation Master", "Department Master", "Location Master"],
-            url : "/admin/master/101"
-        },
-        {
-            category: "HR Module",
-            items: ["Employee Onboarding", "Leave Application", "Attendance", "Recruitment", "Training"]
-        },
-        {
-            category: "Leave Management",
-            items: [
-                "Leave Applications",
-                "Leave Approval",
-                "Leave Balance",
-                "Leave Policy",
-                "Leave Calendar",
-                "Leave Reports"
-            ]
-        },
-        {
-            category: "Payroll Management",
-            items: [
-                "Salary Processing",
-                "Salary Components",
-                "Salary Structure",
-                "Payroll Run",
-                "Payslip Generation",
-                "Statutory Compliance"
-            ]
-        },
-        {
-            category: "Claims & Advances",
-            items: [
-                "Advance Requests",
-                "Reimbursements",
-                "Loan Management",
-                "Claim Approval",
-                "Expense Claims"
-            ]
-        },
-        {
-            category: "Reports",
-            items: ["HR Reports", "Payroll Reports", "Attendance Reports", "CTC Reports", "Compliance Reports"]
-        },
-        {
-            category: "Operational",
-            items: [
-                "TP Template",
-                "RPS Submission",
-                "Doctor Request Entry",
-                "Candidate Request Entry"
-            ]
+    const loadMenuList = async () => {
+        setIsLoading(true)
+        try {
+            const result = await ApiCall('GET', '/mainMenu')
+            if (result?.data?.success) {
+                setMenuData(result.data.data);
+                setActiveCategory(result.data.data[0]?.category || "");
+            }
         }
-    ];
+        catch (err) {
+            console.log('eroor in getting menus', err)
+        }
+        setIsLoading(false)
+    }
+
+    const handleNavigate = routePath => {
+        console.log('routepath',menuData.find(m => m.category === activeCategory).items)
+        const basePath = getRoleBasePath();
+        navigate(`${basePath}${routePath}`);
+        onClose && onClose();
+    };
 
     return (
         <div
@@ -86,7 +58,7 @@ function MainMenu({ onClose }) {
                 <div className="w-full lg:w-1/4 lg:pr-8 mb-6 lg:mb-0">
                     <h2 className="text-2xl md:text-3xl font-bold mb-6 text-white">{/* {activeCategory} */} </h2>
                     <div className="space-y-2">
-                        {HRMS_MENU.map(menu => (
+                        {menuData.map(menu => (
                             <button
                                 key={menu.category}
                                 className={`w-full text-left px-4 py-3 rounded-lg transition-all ${activeCategory === menu.category
@@ -105,30 +77,33 @@ function MainMenu({ onClose }) {
                 </div>
 
                 <div className="w-full lg:w-1/2 lg:px-8">
-                    <h2 className="text-2xl md:text-3xl font-bold mb-6 text-white"> {/* {activeCategory} */}</h2>
+                    <h2 className="text-2xl md:text-3xl font-bold mb-6 text-white"> </h2>
                     <div className="max-h-[60vh] overflow-y-auto scrollbar  pr-2">
                         <div className="space-y-3">
-                            {HRMS_MENU
+                            {menuData
                                 .find(m => m.category === activeCategory)
-                                ?.items.map((item, index) => (
+                                ?.items.map((item) => (
                                     <div
-                                        key={item}
+                                        key={item.routes}
                                         className="group cursor-pointer bg-white/5 rounded-lg p-4 transition-all hover:translate-x-1"
-                                        onClick={() => console.log(`Navigating to: ${item}`)}
+                                        onClick={() => handleNavigate(item.routes)}
                                     >
                                         <div className="flex items-start">
                                             <div className="shrink-0 w-2 h-2 bg-white/50 rounded-full mr-3 mt-2"></div>
-                                            <Link to={'/admin/master/101'} className="flex-1">
+
+                                            <div className="flex-1">
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-lg transition-colors">{item}</span>
-                                                    <span className="text-white/50  transition-colors opacity-0 group-hover:opacity-100">
+                                                    <span className="text-lg transition-colors">
+                                                        {item.label}
+                                                    </span>
+                                                    <span className="text-white/50 transition-colors opacity-0 group-hover:opacity-100">
                                                         →
                                                     </span>
                                                 </div>
                                                 <div className="mt-2 text-sm opacity-70">
-                                                    Manage {item.toLowerCase()} and related settings
+                                                    Manage {item.label.toLowerCase()} and related settings
                                                 </div>
-                                            </Link>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
@@ -155,11 +130,6 @@ function MainMenu({ onClose }) {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-indigo-800 to-transparent"></div>
             </div>
-
-            {/* <div className="absolute bottom-4 left-4 right-4 lg:left-auto lg:right-8 lg:bottom-8 text-center lg:text-right">
-                <p className="text-sm opacity-70">HR Management System • v2.0</p>
-                <p className="text-xs opacity-50 mt-1">Navigate through all HR modules</p>
-            </div> */}
         </div>
     );
 }

@@ -37,7 +37,7 @@ function CommonDropDown({
             <div
                 className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all
           ${disabled
-                        ? "bg-gray-100 text-gray-400 border border-gray-200"
+                        ? "bg-gray-100 text-gray-900 border border-indigo-500"
                         : "bg-white border border-indigo-500 hover:border-indigo-400"}
           ${isOpen ? "ring-1 ring-indigo-500" : ""}
         `}

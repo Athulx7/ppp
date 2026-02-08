@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Grid3X3, Search } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
+import { ApiCall, getRoleBasePath } from '../library/constants';
 
 function TopHeader({ openMenu, setOpenMenu }) {
     const [showMobileSearch, setShowMobileSearch] = useState(false)
@@ -9,34 +10,32 @@ function TopHeader({ openMenu, setOpenMenu }) {
     const [showResults, setShowResults] = useState(false)
     const searchRef = useRef(null)
     const navigate = useNavigate()
-    
-    // Dummy search data with URLs
-    const dummyData = [
-        { id: 1, title: "Employee Dashboard", url: "/empDash", category: "Dashboard" },
-        { id: 2, title: "HR Dashboard", url: "/hrdash", category: "Dashboard" },
-        { id: 3, title: "Payroll Dashboard", url: "/payrolldash", category: "Dashboard" },,
-    ];
 
-    const handleSearch = (query) => {
+    const handleSearch = async (query) => {
         setSearchQuery(query)
         if (query.trim() === '') {
             setSearchResults([])
             setShowResults(false)
             return
         }
-        
-        const filteredResults = dummyData.filter(item =>
-            item.title.toLowerCase().includes(query.toLowerCase()) ||
-            item.category.toLowerCase().includes(query.toLowerCase())
-        )
-        
-        setSearchResults(filteredResults.slice(0, 8))
-        setShowResults(true)
+
+        try {
+            const res = await ApiCall("GET", `/searchMenu?q=${encodeURIComponent(query)}`)
+
+            if (res?.data?.success) {
+                setSearchResults(res.data.data.slice(0, 8))
+                setShowResults(true)
+            }
+        }
+        catch (err) {
+            console.log(err)
+        }
     }
 
-    const handleResultClick = (url) => {
-        navigate(url);
-        setSearchQuery('');
+    const handleResultClick = (routePath) => {
+        const basePath = getRoleBasePath()
+        navigate(`${basePath}${routePath}`)
+        setSearchQuery("")
         setSearchResults([]);
         setShowResults(false);
         setShowMobileSearch(false);
@@ -57,7 +56,7 @@ function TopHeader({ openMenu, setOpenMenu }) {
 
     const handleKeyPress = (e) => {
         if (e.key === 'Enter' && searchQuery.trim() !== '' && searchResults.length > 0) {
-            handleResultClick(searchResults[0].url);
+            handleResultClick(searchResults[0].route);
         }
     };
 
@@ -78,7 +77,7 @@ function TopHeader({ openMenu, setOpenMenu }) {
                     </div>
                     
                     {showResults && searchResults.length > 0 && (
-                        <div style={{marginTop:'-5px'}} className="absolute top-full left-0 w-full max-w-md bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-96 overflow-y-auto scrollbar">
+                        <div style={{marginTop:'-5px'}} className="absolute top-full left-0 w-full max-w-md bg-white rounded-lg shadow-lg border border-gray-600 z-50 max-h-96 overflow-y-auto scrollbar">
                             <div className="p-2">
                                 <div className="text-xs font-semibold text-gray-500 px-3 py-2">
                                     {searchResults.length} results found
@@ -87,8 +86,8 @@ function TopHeader({ openMenu, setOpenMenu }) {
                                     {searchResults.map((result) => (
                                         <button
                                             key={result.id}
-                                            className="w-full text-left px-3 py-2.5 hover:bg-gray-50 rounded-md transition-colors"
-                                            onClick={() => handleResultClick(result.url)}
+                                            className="w-full text-left px-3 py-2.5 hover:bg-indigo-50 rounded-md transition-colors"
+                                            onClick={() => handleResultClick(result.route)}
                                         >
                                             <div className="flex items-center justify-between cursor-pointer">
                                                     <div className="font-medium text-gray-900">{result.title}</div>
@@ -140,7 +139,7 @@ function TopHeader({ openMenu, setOpenMenu }) {
                                             <button
                                                 key={result.id}
                                                 className="w-full text-left px-3 py-2.5 hover:bg-gray-50 rounded-md transition-colors"
-                                                onClick={() => handleResultClick(result.url)}
+                                                onClick={() => handleResultClick(result.route)}
                                             >
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex-1">

@@ -128,7 +128,7 @@ function SideBar({
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
         ${isCollapsed && !isMobile ? "w-20" : "w-64"} lg:translate-x-0`}
             >
-                <div className="flex items-center justify-between px-4 py-3 border-b">
+                <div className="flex items-center justify-between p-4 border-b">
                     <div className="flex items-center">
                         <Building2 className="text-indigo-500" />
                         {!isCollapsed && <span className="ml-2 font-bold">PPP</span>}

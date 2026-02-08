@@ -15,11 +15,33 @@ import SalaryStructureEntry from './SalaryStructure/container/SalaryStructureEnt
 import SalaryStructureAddEditEntry from './SalaryStructure/container/SalaryStructureAddEditEntry'
 import NotFoundPage from './NotFoundPage'
 
+const PublicRoute = ({ children }) => {
+    const token = sessionStorage.getItem('token')
+    const user = JSON.parse(sessionStorage.getItem('user') || '{}')
+
+    if (token) {
+        switch (user.role_code) {
+            case 'ADMIN':
+                return <Navigate to="/admin" replace />
+            case 'HR':
+                return <Navigate to="/hr" replace />
+            case 'PAYROLL_MANAGER':
+                return <Navigate to="/payroll" replace />
+            case 'EMPLOYEE':
+                return <Navigate to="/employee" replace />
+            default:
+                return <Navigate to="/" replace />
+        }
+    }
+
+    return children
+}
+
 function App() {
   return (
     <>
       <Routes>
-        <Route path='/' element={<LoginPage />} />
+        <Route path='/' element={ <PublicRoute><LoginPage /></PublicRoute>} />
 
         <Route path='/admin' element={<ProtectedRoute allowedRoles={['ADMIN']}> <Dashboard /> </ProtectedRoute>}>
           <Route index element={<AdminDashboard />} />

@@ -66,7 +66,7 @@ function CommonInputField({
                 min="0"
                 className={`w-full px-3 py-2 rounded-lg text-sm transition-all
           ${disabled
-                        ? "bg-gray-100 text-gray-400 border border-gray-200"
+                        ? "bg-gray-100 text-gray-900 border border-indigo-500"
                         : "bg-white border border-indigo-500 hover:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"}
           ${errorMessage ? "border-red-500 focus:ring-red-500" : ""}
         `}

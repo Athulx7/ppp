@@ -25,7 +25,7 @@ function CommonDatePicker({
 
             <div className={`flex items-center justify-between p-1.5 rounded-lg transition-all duration-200 cursor-pointer
           ${disabled
-                        ? "bg-gray-100 text-gray-400 border border-gray-200"
+                        ? "bg-gray-100 text-gray-900 border border-indigo-500"
                         : "bg-white border border-indigo-500 hover:border-indigo-400 focus-within:ring-1 focus-within:ring-indigo-500"}
         `}
             >

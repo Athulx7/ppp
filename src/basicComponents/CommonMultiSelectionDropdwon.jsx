@@ -63,7 +63,7 @@ function CommonMultiSelectionDropdown({
                     {required && <span className="ml-1 text-red-500">*</span>}
                 </label>
             )}
-            <div className={`flex items-center p-2 rounded-lg cursor-pointer ${disabled ? "bg-gray-100 text-gray-400 border border-gray-200"
+            <div className={`flex items-center p-2 rounded-lg cursor-pointer ${disabled ? "bg-gray-100 text-gray-900 border border-indigo-500"
                 : "bg-white border border-indigo-500 hover:border-indigo-400"}
           ${isOpen ? "ring-1 ring-indigo-500" : ""} `}
                 onClick={() => !disabled && setIsOpen(!isOpen)}

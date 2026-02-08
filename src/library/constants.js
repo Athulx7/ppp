@@ -50,3 +50,15 @@ export function getTokenData() {
         return null
     }
 }
+
+export const getRoleBasePath = () => {
+    const user = JSON.parse(sessionStorage.getItem("user") || "{}")
+
+    switch (user.role_code) {
+        case "ADMIN": return "/admin"
+        case "HR": return "/hr"
+        case "PAYROLL_MANAGER": return "/payroll"
+        case "EMPLOYEE": return "/employee"
+        default: return "/"
+    }
+}

@@ -13,6 +13,7 @@ import CommonTable from '../../basicComponents/commonTable';
 import CommonDropDown from '../../basicComponents/CommonDropDown';
 import CommonInputField from '../../basicComponents/CommonInputField';
 import { useNavigate } from 'react-router-dom';
+import { getRoleBasePath } from '../../library/constants';
 
 function SalaryStructureEntry() {
     const navigate = useNavigate();
@@ -81,17 +82,17 @@ function SalaryStructureEntry() {
 
     // Navigation functions
     const handleCreateStructure = () => {
-        navigate('/admin/salary_structure/create');
+        navigate(`${getRoleBasePath()}/salary_structure/create`);
     };
 
     const handleEditStructure = (structure) => {
-        navigate(`/admin/salary_structure/edit/${structure.id}`);
+        navigate(`${getRoleBasePath()}/salary_structure/edit/${structure.id}`);
     };
 
     const handleAssignStructure = (structure) => {
         // You can keep this as a modal or create separate page for assignment
         // For now, navigate to assignment page
-        navigate(`/admin/salary_structure/assign/${structure.id}`);
+        navigate(`${getRoleBasePath()}/salary_structure/assign/${structure.id}`);
     };
 
     // Sample data - Designations

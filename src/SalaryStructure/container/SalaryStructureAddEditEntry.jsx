@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import CommonInputField from '../../basicComponents/CommonInputField';
 import CommonDropDown from '../../basicComponents/CommonDropDown';
+import { getRoleBasePath } from '../../library/constants';
 
 function SalaryStructureAddEditEntry() {
     const { id } = useParams(); // Get structure ID from URL for edit mode
@@ -155,14 +156,14 @@ function SalaryStructureAddEditEntry() {
 
             // Show success message and redirect
             alert(isEditMode ? 'Structure updated successfully!' : 'Structure created successfully!');
-            navigate('/salary-structures');
+            navigate(`${getRoleBasePath()}/salary_structure`);
         }, 1500);
     };
 
     // Handle cancel
     const handleCancel = () => {
         if (window.confirm('Are you sure you want to cancel? Any unsaved changes will be lost.')) {
-            navigate('/salary-structures');
+            navigate(`${getRoleBasePath()}/salary_structure`);
         }
     };
 
@@ -199,7 +200,7 @@ function SalaryStructureAddEditEntry() {
                     <div className="flex items-center justify-between py-6">
                         <div className="flex items-center">
                             <button
-                                onClick={() => navigate('/salary-structures')}
+                                onClick={() => navigate(`${getRoleBasePath()}/salary_structure`)}
                                 className="mr-4 p-2 hover:bg-gray-100 rounded-lg transition-colors"
                             >
                                 <ArrowLeft className="w-5 h-5 text-gray-600" />

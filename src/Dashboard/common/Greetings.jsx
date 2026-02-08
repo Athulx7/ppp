@@ -1,14 +1,13 @@
 import { ChevronRight, Cloud, Gift, Moon, Sun, Building, Users, MapPin, Phone, Mail, Globe, Calendar, Clock, CheckCircle, UserCheck } from 'lucide-react';
 import React from 'react'
-import { Link } from 'react-router-dom'; // or use your routing method
+import { Link } from 'react-router-dom';
 
 function Greetings() {
     const currentTime = new Date();
     const currentHour = currentTime.getHours();
     const userName = "User Name";
 
-    // Get user role from localStorage or auth context
-    const userRole = localStorage.getItem('userRole') || 'employee'; // Default to employee
+    const userRole = JSON.parse(sessionStorage.getItem('user')).role_code || 'employee'
 
     let greeting = "";
     let greetingIcon = null;
@@ -50,16 +49,15 @@ function Greetings() {
         companyMobile: "+1234567890"
     };
 
-    // Different greeting messages based on role
     const getWelcomeMessage = () => {
         switch (userRole) {
-            case 'admin':
+            case 'ADMIN':
                 return `Welcome to Admin Portal of ${companyInfo.name} HRMS System`;
-            case 'hr':
+            case 'HR':
                 return `Welcome to HR Portal of ${companyInfo.name} HRMS System`;
-            case 'payroll_manager':
+            case 'PAYROLL_MANAGER':
                 return `Welcome to Payroll Portal of ${companyInfo.name} HRMS System`;
-            default: // employee
+            default:
                 return `Welcome to ${companyInfo.name} HRMS Portal`;
         }
     };
@@ -67,20 +65,20 @@ function Greetings() {
     const todaysStats = [
         {
             label: "Attendance Today",
-            value: userRole === 'admin' ? "Total: 320" : "92%", // Admin sees total count
+            value: userRole === 'ADMIN' ? "Total: 320" : "92%",
             icon: UserCheck,
             color: "bg-green-100 text-green-600",
-            action: userRole !== 'admin' ? "markAttendance" : null // No action for admin
+            action: userRole !== 'ADMIN' ? "markAttendance" : null
         },
         {
-            label: userRole === 'admin' ? "Avg. On Time" : "On Time",
-            value: userRole === 'admin' ? "89%" : "87%",
+            label: userRole === 'ADMIN' ? "Avg. On Time" : "On Time",
+            value: userRole === 'ADMIN' ? "89%" : "87%",
             icon: Clock,
             color: "bg-blue-100 text-blue-600"
         },
         {
-            label: userRole === 'admin' ? "Total On Leave" : "On Leave",
-            value: userRole === 'admin' ? "16" : "5%",
+            label: userRole === 'ADMIN' ? "Total On Leave" : "On Leave",
+            value: userRole === 'ADMIN' ? "16" : "5%",
             icon: Calendar,
             color: "bg-amber-100 text-amber-600"
         },
@@ -140,8 +138,7 @@ function Greetings() {
                                     ))}
                                 </div>
 
-                                {/* Attendance Marking Button - Only for non-admin roles */}
-                                {userRole !== 'admin' && todaysStats[0]?.action && (
+                                {userRole !== 'ADMIN' && todaysStats[0]?.action && (
                                     <div className="flex-shrink-0">
                                         <button
                                             onClick={handleMarkAttendance}
@@ -183,7 +180,7 @@ function Greetings() {
                                     <p className="text-sm text-gray-600">{companyInfo.hremail}</p>
                                 </div>
 
-                                <p className="text-sm text-gray-600">{companyInfo.companyMobile}</p>
+                                <p className="text-sm text-end text-gray-600">{companyInfo.companyMobile}</p>
                             </div>
                         </div>
 
@@ -197,10 +194,10 @@ function Greetings() {
                                 </div>
                                 <div>
                                     <h5 className="font-semibold text-gray-900">
-                                        {userRole === 'admin' ? 'Attendance Dashboard' : 'Attendance Tracking'}
+                                        {userRole === 'ADMIN' ? 'Attendance Dashboard' : 'Attendance Tracking'}
                                     </h5>
                                     <p className="text-xs text-gray-600">
-                                        {userRole === 'admin'
+                                        {userRole === 'ADMIN'
                                             ? 'View company-wide attendance analytics'
                                             : 'View detailed attendance records'}
                                     </p>

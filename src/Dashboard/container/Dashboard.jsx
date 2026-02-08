@@ -44,7 +44,7 @@ function Dashboard() {
                         <TopHeader openMenu={openMenu} setOpenMenu={setOpenMenu} />
                     </div>
 
-                    <main className="flex-1 p-4 overflow-y-auto">
+                    <main className="flex-1 p-4">
                         <Outlet />
                     </main>
                 </div>

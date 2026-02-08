@@ -1,5 +1,5 @@
 import React from "react";
-import { Pencil } from "lucide-react";
+import { Edit } from "lucide-react";
 
 export function buildMasterTableColumns(fields, onEdit) {
     const columns = [];
@@ -8,10 +8,10 @@ export function buildMasterTableColumns(fields, onEdit) {
         header: "Actions",
         cell: (row) => (
             <button
-                className="text-indigo-600 font-medium flex items-center gap-1"
+                className="text-indigo-600 font-medium flex items-center gap-1 cursor-pointer"
                 onClick={() => onEdit(row)}
             >
-                Edit <Pencil size={14} />
+                Edit <Edit size={14} />
             </button>
         )
     });
