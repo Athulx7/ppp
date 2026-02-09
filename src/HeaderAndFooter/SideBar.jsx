@@ -117,7 +117,7 @@ function SideBar({
         <>
             <div className="lg:hidden flex items-center justify-between p-4 bg-white border-b sticky top-0 z-50">
                 <Link to={basePath} className="flex items-center">
-                    <Home className="text-indigo-500" />
+                    <Building2 className="text-indigo-500" />
                     <span className="ml-2 font-bold">PPP</span>
                 </Link>
                 <Grid3X3 size={30} onClick={() => setOpenMenu(true)} />

@@ -14,6 +14,9 @@ import SalaryComponentEntry from './SalaryComponents/container/SalaryComponentEn
 import SalaryStructureEntry from './SalaryStructure/container/SalaryStructureEntry'
 import SalaryStructureAddEditEntry from './SalaryStructure/container/SalaryStructureAddEditEntry'
 import NotFoundPage from './NotFoundPage'
+import UserProfileEntry from './UserProfile/container/UserProfileEntry'
+import CompanySettingsEntry from './Company_settings/container/CompanySettingsEntry'
+import ZCursorTracker from './ZCursorTracker'
 
 const PublicRoute = ({ children }) => {
     const token = sessionStorage.getItem('token')
@@ -33,7 +36,6 @@ const PublicRoute = ({ children }) => {
                 return <Navigate to="/" replace />
         }
     }
-
     return children
 }
 
@@ -53,6 +55,9 @@ function App() {
           <Route path='salary_structure' element={<SalaryStructureEntry />} />
           <Route path='salary_structure/create' element={<SalaryStructureAddEditEntry />} />
           <Route path='salary_structure/edit/:id' element={<SalaryStructureAddEditEntry />} />
+
+          <Route path='profile' element = {<UserProfileEntry />} />
+          <Route path='companysettings' element = {<CompanySettingsEntry />} />
         </Route>
 
         <Route path='/employee' element={<ProtectedRoute allowedRoles={['EMPLOYEE']}><Dashboard /></ProtectedRoute>}>
@@ -81,6 +86,7 @@ function App() {
 
         <Route path='*' element={<NotFoundPage />} />
       </Routes>
+      <ZCursorTracker />
     </>
   )
 }
