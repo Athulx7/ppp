@@ -50,11 +50,11 @@ function ZCursorTracker() {
     return (
         <div style={{
             position: "fixed", top: renderPos.y, left: renderPos.x, transform: "translate(-50%, -50%)",
-            width: 35, height: 35, borderRadius: "50%", border: "2px solid #4f39f6", pointerEvents: "none", zIndex: 9999,
+            width: 30, height: 30, borderRadius: "50%", border: "2px solid #4f39f6", pointerEvents: "none", zIndex: 9999,
         }}
         >
             <div style={{
-                position: "absolute", top: "50%", left: "50%", width: 10, height: 10,
+                position: "absolute", top: "50%", left: "50%", width: 8, height: 8,
                 borderRadius: "50%", background: "#322f4b", transform: `translate(${inner.x}px, ${inner.y}px) translate(-50%, -50%)`,
                 transition: "transform 0.06s ease-out",
             }}

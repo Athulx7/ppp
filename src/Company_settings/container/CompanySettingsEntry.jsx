@@ -4,6 +4,10 @@ import {
     Edit2, Save, X, Upload, Eye, Download,
     Banknote, FileText, Users, Shield, Calendar
 } from 'lucide-react';
+import BreadCrumb from '../../basicComponents/BreadCrumb';
+import CommonInputField from '../../basicComponents/CommonInputField';
+import CommonDatePicker from '../../basicComponents/CommonDatePicker';
+import CommonDropDown from '../../basicComponents/CommonDropDown';
 
 function CompanySettingsEntry() {
     // Initial company data
@@ -70,6 +74,51 @@ function CompanySettingsEntry() {
     const [logoPreview, setLogoPreview] = useState(null);
     const [newBranch, setNewBranch] = useState('');
 
+    // Dropdown options
+    const industryOptions = [
+        { label: 'Information Technology', value: 'Information Technology' },
+        { label: 'Healthcare', value: 'Healthcare' },
+        { label: 'Finance', value: 'Finance' },
+        { label: 'Manufacturing', value: 'Manufacturing' },
+        { label: 'Retail', value: 'Retail' },
+        { label: 'Education', value: 'Education' },
+        { label: 'Other', value: 'Other' }
+    ];
+
+    const companySizeOptions = [
+        { label: '1-10 Employees', value: '1-10' },
+        { label: '11-50 Employees', value: '11-50' },
+        { label: '51-200 Employees', value: '51-200' },
+        { label: '200-500 Employees', value: '200-500' },
+        { label: '500-1000 Employees', value: '500-1000' },
+        { label: '1000+ Employees', value: '1000+' }
+    ];
+
+    const currencyOptions = [
+        { label: 'USD - US Dollar', value: 'USD - US Dollar' },
+        { label: 'EUR - Euro', value: 'EUR - Euro' },
+        { label: 'GBP - British Pound', value: 'GBP - British Pound' },
+        { label: 'INR - Indian Rupee', value: 'INR - Indian Rupee' },
+        { label: 'JPY - Japanese Yen', value: 'JPY - Japanese Yen' },
+        { label: 'CAD - Canadian Dollar', value: 'CAD - Canadian Dollar' },
+        { label: 'AUD - Australian Dollar', value: 'AUD - Australian Dollar' }
+    ];
+
+    const monthOptions = [
+        { label: 'January', value: 'January' },
+        { label: 'February', value: 'February' },
+        { label: 'March', value: 'March' },
+        { label: 'April', value: 'April' },
+        { label: 'May', value: 'May' },
+        { label: 'June', value: 'June' },
+        { label: 'July', value: 'July' },
+        { label: 'August', value: 'August' },
+        { label: 'September', value: 'September' },
+        { label: 'October', value: 'October' },
+        { label: 'November', value: 'November' },
+        { label: 'December', value: 'December' }
+    ];
+
     // Load data from localStorage on component mount
     useEffect(() => {
         const savedData = localStorage.getItem('companySettings');
@@ -93,19 +142,6 @@ function CompanySettingsEntry() {
         }));
     };
 
-    const handleNestedInputChange = (section, subSection, field, value) => {
-        setCompanyData(prev => ({
-            ...prev,
-            [section]: {
-                ...prev[section],
-                [subSection]: {
-                    ...prev[section][subSection],
-                    [field]: value
-                }
-            }
-        }));
-    };
-
     const handleSave = () => {
         saveToLocalStorage();
         setIsEditing(false);
@@ -125,7 +161,6 @@ function CompanySettingsEntry() {
             const reader = new FileReader();
             reader.onloadend = () => {
                 setLogoPreview(reader.result);
-                // Save logo to localStorage
                 localStorage.setItem('companyLogo', reader.result);
             };
             reader.readAsDataURL(file);
@@ -165,11 +200,6 @@ function CompanySettingsEntry() {
         document.body.removeChild(element);
     };
 
-    const exportToPDF = () => {
-        // In a real application, you would use a library like jsPDF or html2pdf
-        alert('PDF export functionality would be implemented with a PDF library');
-    };
-
     const tabs = [
         { id: 'basic', label: 'Basic Info', icon: <Building className="w-4 h-4" /> },
         { id: 'contact', label: 'Contact', icon: <Phone className="w-4 h-4" /> },
@@ -182,117 +212,57 @@ function CompanySettingsEntry() {
     const renderBasicInfo = () => (
         <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Company Name *
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border">{companyData.basicInfo.companyName}</div>
-                    ) : (
-                        <input
-                            type="text"
-                            value={companyData.basicInfo.companyName}
-                            onChange={(e) => handleInputChange('basicInfo', 'companyName', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Enter company name"
-                        />
-                    )}
-                </div>
+                <CommonInputField
+                    label="Company Name"
+                    value={companyData.basicInfo.companyName}
+                    disabled={isViewMode}
+                    onChange={(e) => handleInputChange('basicInfo', 'companyName', e.target.value)}
+                    placeholder="Enter company name"
+                    required={true}
+                />
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Legal Name *
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border">{companyData.basicInfo.legalName}</div>
-                    ) : (
-                        <input
-                            type="text"
-                            value={companyData.basicInfo.legalName}
-                            onChange={(e) => handleInputChange('basicInfo', 'legalName', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Enter legal name"
-                        />
-                    )}
-                </div>
+                <CommonInputField
+                    label="Legal Name"
+                    value={companyData.basicInfo.legalName}
+                    disabled={isViewMode}
+                    onChange={(e) => handleInputChange('basicInfo', 'legalName', e.target.value)}
+                    placeholder="Enter legal name"
+                    required={true}
+                />
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Registration Number *
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border">{companyData.basicInfo.registrationNumber}</div>
-                    ) : (
-                        <input
-                            type="text"
-                            value={companyData.basicInfo.registrationNumber}
-                            onChange={(e) => handleInputChange('basicInfo', 'registrationNumber', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="GST/Tax registration number"
-                        />
-                    )}
-                </div>
+                <CommonInputField
+                    label="Registration Number"
+                    value={companyData.basicInfo.registrationNumber}
+                    disabled={isViewMode}
+                    onChange={(e) => handleInputChange('basicInfo', 'registrationNumber', e.target.value)}
+                    placeholder="GST/Tax registration number"
+                    required={true}
+                />
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Founded Date
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border">{companyData.basicInfo.foundedDate}</div>
-                    ) : (
-                        <input
-                            type="date"
-                            value={companyData.basicInfo.foundedDate}
-                            onChange={(e) => handleInputChange('basicInfo', 'foundedDate', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                    )}
-                </div>
+                <CommonDatePicker
+                    label="Founded Date"
+                    value={companyData.basicInfo.foundedDate}
+                    onChange={(value) => handleInputChange('basicInfo', 'foundedDate', value)}
+                    disabled={isViewMode}
+                />
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Industry Type
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border">{companyData.basicInfo.industryType}</div>
-                    ) : (
-                        <select
-                            value={companyData.basicInfo.industryType}
-                            onChange={(e) => handleInputChange('basicInfo', 'industryType', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                            <option value="Information Technology">Information Technology</option>
-                            <option value="Healthcare">Healthcare</option>
-                            <option value="Finance">Finance</option>
-                            <option value="Manufacturing">Manufacturing</option>
-                            <option value="Retail">Retail</option>
-                            <option value="Education">Education</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    )}
-                </div>
+                <CommonDropDown
+                    label="Industry Type"
+                    value={companyData.basicInfo.industryType}
+                    options={industryOptions}
+                    disabled={isViewMode}
+                    onChange={(value) => handleInputChange('basicInfo', 'industryType', value)}
+                    placeholder="Select industry type"
+                />
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Company Size
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border">{companyData.basicInfo.companySize}</div>
-                    ) : (
-                        <select
-                            value={companyData.basicInfo.companySize}
-                            onChange={(e) => handleInputChange('basicInfo', 'companySize', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                            <option value="1-10">1-10 Employees</option>
-                            <option value="11-50">11-50 Employees</option>
-                            <option value="51-200">51-200 Employees</option>
-                            <option value="200-500">200-500 Employees</option>
-                            <option value="500-1000">500-1000 Employees</option>
-                            <option value="1000+">1000+ Employees</option>
-                        </select>
-                    )}
-                </div>
+                <CommonDropDown
+                    label="Company Size"
+                    value={companyData.basicInfo.companySize}
+                    options={companySizeOptions}
+                    disabled={isViewMode}
+                    onChange={(value) => handleInputChange('basicInfo', 'companySize', value)}
+                    placeholder="Select company size"
+                />
             </div>
 
             <div>
@@ -300,12 +270,14 @@ function CompanySettingsEntry() {
                     Company Description
                 </label>
                 {isViewMode ? (
-                    <div className="p-3 bg-gray-50 rounded-lg border min-h-[100px]">{companyData.basicInfo.description}</div>
+                    <div className="p-3 bg-gray-100 rounded-lg border border-indigo-600 min-h-[100px]">
+                        {companyData.basicInfo.description}
+                    </div>
                 ) : (
                     <textarea
                         value={companyData.basicInfo.description}
                         onChange={(e) => handleInputChange('basicInfo', 'description', e.target.value)}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full p-3 border border-indigo-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         rows="4"
                         placeholder="Brief description about the company"
                     />
@@ -317,105 +289,57 @@ function CompanySettingsEntry() {
     const renderContactDetails = () => (
         <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Primary Email *
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border flex items-center gap-2">
-                            <Mail className="w-4 h-4 text-gray-400" />
-                            {companyData.contactDetails.primaryEmail}
-                        </div>
-                    ) : (
-                        <input
-                            type="email"
-                            value={companyData.contactDetails.primaryEmail}
-                            onChange={(e) => handleInputChange('contactDetails', 'primaryEmail', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="primary@company.com"
-                        />
-                    )}
-                </div>
+                <CommonInputField
+                    label="Primary Email"
+                    type="email"
+                    value={companyData.contactDetails.primaryEmail}
+                    disabled={isViewMode}
+                    onChange={(e) => handleInputChange('contactDetails', 'primaryEmail', e.target.value)}
+                    placeholder="primary@company.com"
+                    icon={<Mail className="w-4 h-4 text-gray-400" />}
+                    required={true}
+                />
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Secondary Email (HR)
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border flex items-center gap-2">
-                            <Mail className="w-4 h-4 text-gray-400" />
-                            {companyData.contactDetails.secondaryEmail}
-                        </div>
-                    ) : (
-                        <input
-                            type="email"
-                            value={companyData.contactDetails.secondaryEmail}
-                            onChange={(e) => handleInputChange('contactDetails', 'secondaryEmail', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="hr@company.com"
-                        />
-                    )}
-                </div>
+                <CommonInputField
+                    label="Secondary Email (HR)"
+                    type="email"
+                    value={companyData.contactDetails.secondaryEmail}
+                    disabled={isViewMode}
+                    onChange={(e) => handleInputChange('contactDetails', 'secondaryEmail', e.target.value)}
+                    placeholder="hr@company.com"
+                    icon={<Mail className="w-4 h-4 text-gray-400" />}
+                />
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Phone Number *
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border flex items-center gap-2">
-                            <Phone className="w-4 h-4 text-gray-400" />
-                            {companyData.contactDetails.phoneNumber}
-                        </div>
-                    ) : (
-                        <input
-                            type="tel"
-                            value={companyData.contactDetails.phoneNumber}
-                            onChange={(e) => handleInputChange('contactDetails', 'phoneNumber', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="+1 (555) 123-4567"
-                        />
-                    )}
-                </div>
+                <CommonInputField
+                    label="Phone Number"
+                    type="tel"
+                    value={companyData.contactDetails.phoneNumber}
+                    disabled={isViewMode}
+                    onChange={(e) => handleInputChange('contactDetails', 'phoneNumber', e.target.value)}
+                    placeholder="+1 (555) 123-4567"
+                    icon={<Phone className="w-4 h-4 text-gray-400" />}
+                    required={true}
+                />
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Mobile Number
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border flex items-center gap-2">
-                            <Phone className="w-4 h-4 text-gray-400" />
-                            {companyData.contactDetails.mobileNumber}
-                        </div>
-                    ) : (
-                        <input
-                            type="tel"
-                            value={companyData.contactDetails.mobileNumber}
-                            onChange={(e) => handleInputChange('contactDetails', 'mobileNumber', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="+1 (555) 987-6543"
-                        />
-                    )}
-                </div>
+                <CommonInputField
+                    label="Mobile Number"
+                    type="tel"
+                    value={companyData.contactDetails.mobileNumber}
+                    disabled={isViewMode}
+                    onChange={(e) => handleInputChange('contactDetails', 'mobileNumber', e.target.value)}
+                    placeholder="+1 (555) 987-6543"
+                    icon={<Phone className="w-4 h-4 text-gray-400" />}
+                />
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Fax Number
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border flex items-center gap-2">
-                            <Phone className="w-4 h-4 text-gray-400" />
-                            {companyData.contactDetails.faxNumber}
-                        </div>
-                    ) : (
-                        <input
-                            type="tel"
-                            value={companyData.contactDetails.faxNumber}
-                            onChange={(e) => handleInputChange('contactDetails', 'faxNumber', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="+1 (555) 456-7890"
-                        />
-                    )}
-                </div>
+                <CommonInputField
+                    label="Fax Number"
+                    type="tel"
+                    value={companyData.contactDetails.faxNumber}
+                    disabled={isViewMode}
+                    onChange={(e) => handleInputChange('contactDetails', 'faxNumber', e.target.value)}
+                    placeholder="+1 (555) 456-7890"
+                    icon={<Phone className="w-4 h-4 text-gray-400" />}
+                />
             </div>
         </div>
     );
@@ -425,10 +349,10 @@ function CompanySettingsEntry() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Head Office Address *
+                        Head Office Address <span className='ml-1 text-red-500'>*</span>
                     </label>
                     {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border flex items-start gap-2">
+                        <div className="p-3 bg-gray-100 rounded-lg border border-indigo-600 flex items-start gap-2">
                             <MapPin className="w-4 h-4 text-gray-400 mt-1" />
                             {companyData.address.headOffice}
                         </div>
@@ -436,80 +360,48 @@ function CompanySettingsEntry() {
                         <textarea
                             value={companyData.address.headOffice}
                             onChange={(e) => handleInputChange('address', 'headOffice', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full p-3 border border-indigo-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                             rows="2"
                             placeholder="Full address of head office"
                         />
                     )}
                 </div>
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        City *
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border">{companyData.address.city}</div>
-                    ) : (
-                        <input
-                            type="text"
-                            value={companyData.address.city}
-                            onChange={(e) => handleInputChange('address', 'city', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="City"
-                        />
-                    )}
-                </div>
+                <CommonInputField
+                    label="City"
+                    value={companyData.address.city}
+                    disabled={isViewMode}
+                    onChange={(e) => handleInputChange('address', 'city', e.target.value)}
+                    placeholder="City"
+                    required={true}
+                />
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        State *
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border">{companyData.address.state}</div>
-                    ) : (
-                        <input
-                            type="text"
-                            value={companyData.address.state}
-                            onChange={(e) => handleInputChange('address', 'state', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="State/Province"
-                        />
-                    )}
-                </div>
+                <CommonInputField
+                    label="State"
+                    value={companyData.address.state}
+                    disabled={isViewMode}
+                    onChange={(e) => handleInputChange('address', 'state', e.target.value)}
+                    placeholder="State/Province"
+                    required={true}
+                />
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Country *
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border">{companyData.address.country}</div>
-                    ) : (
-                        <input
-                            type="text"
-                            value={companyData.address.country}
-                            onChange={(e) => handleInputChange('address', 'country', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Country"
-                        />
-                    )}
-                </div>
+                <CommonInputField
+                    label="Country"
+                    value={companyData.address.country}
+                    disabled={isViewMode}
+                    onChange={(e) => handleInputChange('address', 'country', e.target.value)}
+                    placeholder="Country"
+                    required={true}
+                />
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Postal Code *
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border">{companyData.address.postalCode}</div>
-                    ) : (
-                        <input
-                            type="text"
-                            value={companyData.address.postalCode}
-                            onChange={(e) => handleInputChange('address', 'postalCode', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Postal/ZIP code"
-                        />
-                    )}
-                </div>
+                <CommonInputField
+                    label="Postal Code"
+                    value={companyData.address.postalCode}
+                    disabled={isViewMode}
+                    onChange={(e) => handleInputChange('address', 'postalCode', e.target.value)}
+                    placeholder="Postal/ZIP code"
+                    required={true}
+                />
             </div>
 
             <div>
@@ -519,7 +411,7 @@ function CompanySettingsEntry() {
                 {isViewMode ? (
                     <div className="space-y-2">
                         {companyData.address.additionalBranches.map((branch, index) => (
-                            <div key={index} className="p-3 bg-gray-50 rounded-lg border flex items-start gap-2">
+                            <div key={index} className="p-3 bg-gray-100 rounded-lg border border-indigo-600 flex items-start gap-2">
                                 <MapPin className="w-4 h-4 text-gray-400 mt-1" />
                                 {branch}
                             </div>
@@ -532,20 +424,20 @@ function CompanySettingsEntry() {
                                 type="text"
                                 value={newBranch}
                                 onChange={(e) => setNewBranch(e.target.value)}
-                                className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className="flex-1 p-3 border border-indigo-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                 placeholder="Enter branch address"
                                 onKeyPress={(e) => e.key === 'Enter' && handleAddBranch()}
                             />
                             <button
                                 onClick={handleAddBranch}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2"
                             >
                                 <span>Add</span>
                             </button>
                         </div>
                         <div className="space-y-2">
                             {companyData.address.additionalBranches.map((branch, index) => (
-                                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                                <div key={index} className="flex items-center justify-between p-3 bg-gray-100 border border-indigo-600 rounded-lg border">
                                     <div className="flex items-center gap-2">
                                         <MapPin className="w-4 h-4 text-gray-400" />
                                         {branch}
@@ -568,173 +460,86 @@ function CompanySettingsEntry() {
     const renderFinancialDetails = () => (
         <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Default Currency *
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border flex items-center gap-2">
-                            <Banknote className="w-4 h-4 text-gray-400" />
-                            {companyData.financialDetails.defaultCurrency}
-                        </div>
-                    ) : (
-                        <select
-                            value={companyData.financialDetails.defaultCurrency}
-                            onChange={(e) => handleInputChange('financialDetails', 'defaultCurrency', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                            <option value="USD - US Dollar">USD - US Dollar</option>
-                            <option value="EUR - Euro">EUR - Euro</option>
-                            <option value="GBP - British Pound">GBP - British Pound</option>
-                            <option value="INR - Indian Rupee">INR - Indian Rupee</option>
-                            <option value="JPY - Japanese Yen">JPY - Japanese Yen</option>
-                            <option value="CAD - Canadian Dollar">CAD - Canadian Dollar</option>
-                            <option value="AUD - Australian Dollar">AUD - Australian Dollar</option>
-                        </select>
-                    )}
-                </div>
+                <CommonDropDown
+                    label="Default Currency"
+                    value={companyData.financialDetails.defaultCurrency}
+                    options={currencyOptions}
+                    disabled={isViewMode}
+                    onChange={(value) => handleInputChange('financialDetails', 'defaultCurrency', value)}
+                    placeholder="Select currency"
+                    icon={<Banknote className="w-4 h-4 text-gray-400" />}
+                    required={true}
+                />
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Tax ID *
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border">{companyData.financialDetails.taxId}</div>
-                    ) : (
-                        <input
-                            type="text"
-                            value={companyData.financialDetails.taxId}
-                            onChange={(e) => handleInputChange('financialDetails', 'taxId', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Tax identification number"
-                        />
-                    )}
-                </div>
+                <CommonInputField
+                    label="Tax ID"
+                    value={companyData.financialDetails.taxId}
+                    disabled={isViewMode}
+                    onChange={(e) => handleInputChange('financialDetails', 'taxId', e.target.value)}
+                    placeholder="Tax identification number"
+                    required={true}
+                />
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Bank Name *
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border">{companyData.financialDetails.bankName}</div>
-                    ) : (
-                        <input
-                            type="text"
-                            value={companyData.financialDetails.bankName}
-                            onChange={(e) => handleInputChange('financialDetails', 'bankName', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Bank name"
-                        />
-                    )}
-                </div>
+                <CommonInputField
+                    label="Bank Name"
+                    value={companyData.financialDetails.bankName}
+                    disabled={isViewMode}
+                    onChange={(e) => handleInputChange('financialDetails', 'bankName', e.target.value)}
+                    placeholder="Bank name"
+                    required={true}
+                />
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Account Number *
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border">{companyData.financialDetails.bankAccountNumber}</div>
-                    ) : (
-                        <input
-                            type="text"
-                            value={companyData.financialDetails.bankAccountNumber}
-                            onChange={(e) => handleInputChange('financialDetails', 'bankAccountNumber', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Bank account number"
-                        />
-                    )}
-                </div>
+                <CommonInputField
+                    label="Account Number"
+                    value={companyData.financialDetails.bankAccountNumber}
+                    disabled={isViewMode}
+                    onChange={(e) => handleInputChange('financialDetails', 'bankAccountNumber', e.target.value)}
+                    placeholder="Bank account number"
+                    required={true}
+                />
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Bank Branch
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border">{companyData.financialDetails.bankBranch}</div>
-                    ) : (
-                        <input
-                            type="text"
-                            value={companyData.financialDetails.bankBranch}
-                            onChange={(e) => handleInputChange('financialDetails', 'bankBranch', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Bank branch name"
-                        />
-                    )}
-                </div>
+                <CommonInputField
+                    label="Bank Branch"
+                    value={companyData.financialDetails.bankBranch}
+                    disabled={isViewMode}
+                    onChange={(e) => handleInputChange('financialDetails', 'bankBranch', e.target.value)}
+                    placeholder="Bank branch name"
+                />
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        IFSC Code
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border">{companyData.financialDetails.bankIfscCode}</div>
-                    ) : (
-                        <input
-                            type="text"
-                            value={companyData.financialDetails.bankIfscCode}
-                            onChange={(e) => handleInputChange('financialDetails', 'bankIfscCode', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Bank IFSC code"
-                        />
-                    )}
-                </div>
+                <CommonInputField
+                    label="IFSC Code"
+                    value={companyData.financialDetails.bankIfscCode}
+                    disabled={isViewMode}
+                    onChange={(e) => handleInputChange('financialDetails', 'bankIfscCode', e.target.value)}
+                    placeholder="Bank IFSC code"
+                />
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        SWIFT Code
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border">{companyData.financialDetails.swiftCode}</div>
-                    ) : (
-                        <input
-                            type="text"
-                            value={companyData.financialDetails.swiftCode}
-                            onChange={(e) => handleInputChange('financialDetails', 'swiftCode', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="SWIFT/BIC code"
-                        />
-                    )}
-                </div>
+                <CommonInputField
+                    label="SWIFT Code"
+                    value={companyData.financialDetails.swiftCode}
+                    disabled={isViewMode}
+                    onChange={(e) => handleInputChange('financialDetails', 'swiftCode', e.target.value)}
+                    placeholder="SWIFT/BIC code"
+                />
 
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Financial Year Start
-                        </label>
-                        {isViewMode ? (
-                            <div className="p-3 bg-gray-50 rounded-lg border">{companyData.financialDetails.financialYearStart}</div>
-                        ) : (
-                            <select
-                                value={companyData.financialDetails.financialYearStart}
-                                onChange={(e) => handleInputChange('financialDetails', 'financialYearStart', e.target.value)}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            >
-                                <option value="January">January</option>
-                                <option value="April">April</option>
-                                <option value="July">July</option>
-                                <option value="October">October</option>
-                            </select>
-                        )}
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Financial Year End
-                        </label>
-                        {isViewMode ? (
-                            <div className="p-3 bg-gray-50 rounded-lg border">{companyData.financialDetails.financialYearEnd}</div>
-                        ) : (
-                            <select
-                                value={companyData.financialDetails.financialYearEnd}
-                                onChange={(e) => handleInputChange('financialDetails', 'financialYearEnd', e.target.value)}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            >
-                                <option value="December">December</option>
-                                <option value="March">March</option>
-                                <option value="June">June</option>
-                                <option value="September">September</option>
-                            </select>
-                        )}
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <CommonDropDown
+                        label="Financial Year Start"
+                        value={companyData.financialDetails.financialYearStart}
+                        options={monthOptions}
+                        disabled={isViewMode}
+                        onChange={(value) => handleInputChange('financialDetails', 'financialYearStart', value)}
+                        placeholder="Select month"
+                    />
+
+                    <CommonDropDown
+                        label="Financial Year End"
+                        value={companyData.financialDetails.financialYearEnd}
+                        options={monthOptions}
+                        disabled={isViewMode}
+                        onChange={(value) => handleInputChange('financialDetails', 'financialYearEnd', value)}
+                        placeholder="Select month"
+                    />
                 </div>
             </div>
         </div>
@@ -743,109 +548,57 @@ function CompanySettingsEntry() {
     const renderDigitalPresence = () => (
         <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Website *
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border flex items-center gap-2">
-                            <Globe className="w-4 h-4 text-gray-400" />
-                            <a href={`https://${companyData.digitalPresence.website}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                                {companyData.digitalPresence.website}
-                            </a>
-                        </div>
-                    ) : (
-                        <input
-                            type="url"
-                            value={companyData.digitalPresence.website}
-                            onChange={(e) => handleInputChange('digitalPresence', 'website', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="www.company.com"
-                        />
-                    )}
-                </div>
+                <CommonInputField
+                    label="Website"
+                    type="url"
+                    value={companyData.digitalPresence.website}
+                    disabled={isViewMode}
+                    onChange={(e) => handleInputChange('digitalPresence', 'website', e.target.value)}
+                    placeholder="www.company.com"
+                    icon={<Globe className="w-4 h-4 text-gray-400" />}
+                    required={true}
+                />
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Company Domain *
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border">{companyData.digitalPresence.domain}</div>
-                    ) : (
-                        <input
-                            type="text"
-                            value={companyData.digitalPresence.domain}
-                            onChange={(e) => handleInputChange('digitalPresence', 'domain', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="company.com"
-                        />
-                    )}
-                </div>
+                <CommonInputField
+                    label="Company Domain"
+                    value={companyData.digitalPresence.domain}
+                    disabled={isViewMode}
+                    onChange={(e) => handleInputChange('digitalPresence', 'domain', e.target.value)}
+                    placeholder="company.com"
+                    required={true}
+                />
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        LinkedIn
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border flex items-center gap-2">
-                            <Globe className="w-4 h-4 text-gray-400" />
-                            <a href={`https://${companyData.digitalPresence.linkedin}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                                {companyData.digitalPresence.linkedin}
-                            </a>
-                        </div>
-                    ) : (
-                        <input
-                            type="url"
-                            value={companyData.digitalPresence.linkedin}
-                            onChange={(e) => handleInputChange('digitalPresence', 'linkedin', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="linkedin.com/company/company-name"
-                        />
-                    )}
-                </div>
+                <CommonInputField
+                    label="LinkedIn"
+                    type="url"
+                    value={companyData.digitalPresence.linkedin}
+                    disabled={isViewMode}
+                    onChange={(e) => handleInputChange('digitalPresence', 'linkedin', e.target.value)}
+                    placeholder="linkedin.com/company/company-name"
+                    icon={<Globe className="w-4 h-4 text-gray-400" />}
+                />
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Twitter
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border flex items-center gap-2">
-                            <Globe className="w-4 h-4 text-gray-400" />
-                            <a href={`https://${companyData.digitalPresence.twitter}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                                {companyData.digitalPresence.twitter}
-                            </a>
-                        </div>
-                    ) : (
-                        <input
-                            type="url"
-                            value={companyData.digitalPresence.twitter}
-                            onChange={(e) => handleInputChange('digitalPresence', 'twitter', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="twitter.com/company"
-                        />
-                    )}
-                </div>
+                <CommonInputField
+                    label="Twitter"
+                    type="url"
+                    value={companyData.digitalPresence.twitter}
+                    disabled={isViewMode}
+                    onChange={(e) => handleInputChange('digitalPresence', 'twitter', e.target.value)}
+                    placeholder="twitter.com/company"
+                    icon={<Globe className="w-4 h-4 text-gray-400" />}
+                />
 
                 <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Employee Portal URL *
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border flex items-center gap-2">
-                            <Globe className="w-4 h-4 text-gray-400" />
-                            <a href={`https://${companyData.digitalPresence.employeePortalUrl}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                                {companyData.digitalPresence.employeePortalUrl}
-                            </a>
-                        </div>
-                    ) : (
-                        <input
-                            type="url"
-                            value={companyData.digitalPresence.employeePortalUrl}
-                            onChange={(e) => handleInputChange('digitalPresence', 'employeePortalUrl', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="portal.company.com"
-                        />
-                    )}
+                    <CommonInputField
+                        label="Employee Portal URL"
+                        type="url"
+                        value={companyData.digitalPresence.employeePortalUrl}
+                        disabled={isViewMode}
+                        onChange={(e) => handleInputChange('digitalPresence', 'employeePortalUrl', e.target.value)}
+                        placeholder="portal.company.com"
+                        icon={<Globe className="w-4 h-4 text-gray-400" />}
+                        required={true}
+                    />
                 </div>
             </div>
         </div>
@@ -859,12 +612,12 @@ function CompanySettingsEntry() {
                         Registration Certificate
                     </label>
                     {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border flex items-center justify-between">
+                        <div className="p-3 bg-gray-100 rounded-lg border border-indigo-600 flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <FileText className="w-4 h-4 text-gray-400" />
                                 {companyData.compliance.registrationCertificate}
                             </div>
-                            <button className="text-blue-600 hover:text-blue-800">
+                            <button className="text-indigo-600 hover:text-indigo-800">
                                 <Eye className="w-4 h-4" />
                             </button>
                         </div>
@@ -874,10 +627,10 @@ function CompanySettingsEntry() {
                                 type="text"
                                 value={companyData.compliance.registrationCertificate}
                                 onChange={(e) => handleInputChange('compliance', 'registrationCertificate', e.target.value)}
-                                className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                 placeholder="certificate.pdf"
                             />
-                            <label className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 cursor-pointer">
+                            <label className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2 cursor-pointer">
                                 <Upload className="w-4 h-4" />
                                 <span>Upload</span>
                                 <input type="file" className="hidden" />
@@ -891,12 +644,12 @@ function CompanySettingsEntry() {
                         Tax Certificate
                     </label>
                     {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border flex items-center justify-between">
+                        <div className="p-3 bg-gray-100 rounded-lg border border-indigo-600 flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <FileText className="w-4 h-4 text-gray-400" />
                                 {companyData.compliance.taxCertificate}
                             </div>
-                            <button className="text-blue-600 hover:text-blue-800">
+                            <button className="text-indigo-600 hover:text-indigo-800">
                                 <Eye className="w-4 h-4" />
                             </button>
                         </div>
@@ -906,10 +659,10 @@ function CompanySettingsEntry() {
                                 type="text"
                                 value={companyData.compliance.taxCertificate}
                                 onChange={(e) => handleInputChange('compliance', 'taxCertificate', e.target.value)}
-                                className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                 placeholder="tax-certificate.pdf"
                             />
-                            <label className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 cursor-pointer">
+                            <label className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2 cursor-pointer">
                                 <Upload className="w-4 h-4" />
                                 <span>Upload</span>
                                 <input type="file" className="hidden" />
@@ -918,71 +671,35 @@ function CompanySettingsEntry() {
                     )}
                 </div>
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        License Number
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border">{companyData.compliance.licenseNumber}</div>
-                    ) : (
-                        <input
-                            type="text"
-                            value={companyData.compliance.licenseNumber}
-                            onChange={(e) => handleInputChange('compliance', 'licenseNumber', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Business license number"
-                        />
-                    )}
-                </div>
+                <CommonInputField
+                    label="License Number"
+                    value={companyData.compliance.licenseNumber}
+                    disabled={isViewMode}
+                    onChange={(e) => handleInputChange('compliance', 'licenseNumber', e.target.value)}
+                    placeholder="Business license number"
+                />
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        License Expiry Date
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border">{companyData.compliance.licenseExpiry}</div>
-                    ) : (
-                        <input
-                            type="date"
-                            value={companyData.compliance.licenseExpiry}
-                            onChange={(e) => handleInputChange('compliance', 'licenseExpiry', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                    )}
-                </div>
+                <CommonDatePicker
+                    label="License Expiry Date"
+                    value={companyData.compliance.licenseExpiry}
+                    onChange={(value) => handleInputChange('compliance', 'licenseExpiry', value)}
+                    disabled={isViewMode}
+                />
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Insurance Policy
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border">{companyData.compliance.insurancePolicy}</div>
-                    ) : (
-                        <input
-                            type="text"
-                            value={companyData.compliance.insurancePolicy}
-                            onChange={(e) => handleInputChange('compliance', 'insurancePolicy', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Insurance policy number"
-                        />
-                    )}
-                </div>
+                <CommonInputField
+                    label="Insurance Policy"
+                    value={companyData.compliance.insurancePolicy}
+                    disabled={isViewMode}
+                    onChange={(e) => handleInputChange('compliance', 'insurancePolicy', e.target.value)}
+                    placeholder="Insurance policy number"
+                />
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Insurance Expiry Date
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-50 rounded-lg border">{companyData.compliance.insuranceExpiry}</div>
-                    ) : (
-                        <input
-                            type="date"
-                            value={companyData.compliance.insuranceExpiry}
-                            onChange={(e) => handleInputChange('compliance', 'insuranceExpiry', e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                    )}
-                </div>
+                <CommonDatePicker
+                    label="Insurance Expiry Date"
+                    value={companyData.compliance.insuranceExpiry}
+                    onChange={(value) => handleInputChange('compliance', 'insuranceExpiry', value)}
+                    disabled={isViewMode}
+                />
             </div>
         </div>
     );
@@ -1000,57 +717,48 @@ function CompanySettingsEntry() {
     };
 
     return (
-        <div className="p-4 md:p-6">
-            <div className="max-w-7xl mx-auto">
-                {/* Header */}
+        <div className="p-3">
+            <div className="mx-auto">
                 <div className="mb-8">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                        <div>
-                            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Company Settings</h1>
-                            <p className="text-gray-600 mt-2">Manage your company profile and settings</p>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                            {isViewMode ? (
-                                <>
-                                    <button
-                                        onClick={() => {
-                                            setIsViewMode(false);
-                                            setIsEditing(true);
-                                        }}
-                                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
-                                    >
-                                        <Edit2 className="w-4 h-4" />
-                                        Edit Settings
-                                    </button>
-                                    <button
-                                        onClick={exportToPDF}
-                                        className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
-                                    >
-                                        <Download className="w-4 h-4" />
-                                        Export PDF
-                                    </button>
-                                </>
-                            ) : (
-                                <>
-                                    <button
-                                        onClick={handleSave}
-                                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
-                                    >
-                                        <Save className="w-4 h-4" />
-                                        Save Changes
-                                    </button>
-                                    <button
-                                        onClick={handleCancel}
-                                        className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
-                                    >
-                                        <X className="w-4 h-4" />
-                                        Cancel
-                                    </button>
-                                </>
-                            )}
-                        </div>
-                    </div>
+                    <BreadCrumb
+                        headerName="Company Settings"
+                        buttonContent={
+                            <div className="flex items-center gap-3">
+                                {isViewMode ? (
+                                    <>
+                                        <button
+                                            onClick={() => {
+                                                setIsViewMode(false);
+                                                setIsEditing(true);
+                                            }}
+                                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2"
+                                        >
+                                            <Edit2 className="w-4 h-4" />
+                                            Edit Settings
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <button
+                                            onClick={handleSave}
+                                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+                                        >
+                                            <Save className="w-4 h-4" />
+                                            Save Changes
+                                        </button>
+                                        <button
+                                            onClick={handleCancel}
+                                            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+                                        >
+                                            <X className="w-4 h-4" />
+                                            Cancel
+                                        </button>
+                                    </>
+                                )}
+                            </div>
+                        }
+                        subcontent="Manage your company profile and settings"
+                    />
 
                     {/* Logo Upload Section */}
                     <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
@@ -1069,7 +777,7 @@ function CompanySettingsEntry() {
                                 </div>
                             </div>
                             <div className="flex gap-3">
-                                <label className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 cursor-pointer">
+                                <label className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2 cursor-pointer">
                                     <Upload className="w-4 h-4" />
                                     <span>Upload Logo</span>
                                     <input
@@ -1097,13 +805,13 @@ function CompanySettingsEntry() {
                 <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                     {/* Tabs */}
                     <div className="border-b border-gray-200">
-                        <div className="flex overflow-x-auto">
+                        <div className="flex overflow-x-auto scrollbar">
                             {tabs.map((tab) => (
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`flex items-center gap-2 px-6 py-4 font-medium text-sm transition-colors ${activeTab === tab.id
-                                        ? 'text-blue-600 border-b-2 border-blue-600'
+                                    className={`flex pt-3 items-center gap-2 px-6 py-4 font-medium text-sm transition-colors ${activeTab === tab.id
+                                        ? 'text-indigo-600 border-b-2 border-indigo-600'
                                         : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                                         }`}
                                 >

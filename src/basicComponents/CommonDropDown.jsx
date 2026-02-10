@@ -1,5 +1,6 @@
-import React, { useState } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import { ChevronDown, ChevronUp } from "lucide-react"
+import ReactDOM from 'react-dom'
 
 function CommonDropDown({
     label = "",
@@ -15,10 +16,57 @@ function CommonDropDown({
 }) {
     const [searchTerm, setSearchTerm] = useState('')
     const [isOpen, setIsOpen] = useState(false)
+    const [dropdownStyle, setDropdownStyle] = useState({})
+    const containerRef = useRef(null)
+    const dropdownRef = useRef(null)
 
     const filteredOptions = options.filter(option =>
         option.label.toLowerCase().includes(searchTerm.toLowerCase())
     )
+
+    useEffect(() => {
+        if (isOpen && containerRef.current) {
+            const containerRect = containerRef.current.getBoundingClientRect()
+            const spaceBelow = window.innerHeight - containerRect.bottom
+            const spaceAbove = containerRect.top
+            const dropdownHeight = 240
+
+            let top, left, position
+
+            if (spaceBelow >= dropdownHeight || spaceBelow >= spaceAbove) {
+                top = containerRect.bottom + window.scrollY + 4
+                left = containerRect.left + window.scrollX
+            } else {
+                top = containerRect.top + window.scrollY - dropdownHeight - 4
+                left = containerRect.left + window.scrollX
+            }
+
+            setDropdownStyle({
+                position: 'absolute',
+                top: top,
+                left: left,
+                width: containerRect.width,
+                zIndex: 9999
+            })
+        }
+    }, [isOpen])
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (containerRef.current && !containerRef.current.contains(event.target)) {
+                setIsOpen(false)
+                setSearchTerm('')
+            }
+        }
+
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside)
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside)
+        }
+    }, [isOpen])
 
     const handleSelect = (selectedValue) => {
         onChange(selectedValue)
@@ -27,7 +75,7 @@ function CommonDropDown({
     }
 
     return (
-        <div className={`relative ${className}`} style={style}>
+        <div className={`relative ${className}`} style={style} ref={containerRef}>
             {label && (
                 <label className="block mb-1 text-sm font-medium text-gray-700">
                     {label}
@@ -36,11 +84,11 @@ function CommonDropDown({
             )}
             <div
                 className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all
-          ${disabled
+                    ${disabled
                         ? "bg-gray-100 text-gray-900 border border-indigo-500"
                         : "bg-white border border-indigo-500 hover:border-indigo-400"}
-          ${isOpen ? "ring-1 ring-indigo-500" : ""}
-        `}
+                    ${isOpen ? "ring-1 ring-indigo-500" : ""}
+                `}
                 onClick={() => !disabled && setIsOpen(!isOpen)}
             >
                 {isOpen && showSearch ? (
@@ -51,6 +99,7 @@ function CommonDropDown({
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full text-sm bg-transparent outline-none"
                         autoFocus
+                        onClick={(e) => e.stopPropagation()}
                     />
                 ) : (
                     <span className={`truncate text-sm ${value ? "text-gray-800" : "text-gray-400"}`}>
@@ -69,8 +118,12 @@ function CommonDropDown({
                 </div>
             </div>
 
-            {isOpen && (
-                <div className="absolute z-20 w-full mt-1 bg-white rounded-lg shadow-xl border">
+            {isOpen && ReactDOM.createPortal(
+                <div
+                    ref={dropdownRef}
+                    className="fixed bg-white rounded-lg shadow-xl border"
+                    style={dropdownStyle}
+                >
                     <div className="max-h-60 overflow-y-auto scrollbar">
                         {filteredOptions.length === 0 ? (
                             <div className="p-3 text-sm text-center text-gray-500">
@@ -81,10 +134,10 @@ function CommonDropDown({
                                 <div
                                     key={option.value}
                                     className={`p-3 text-sm cursor-pointer hover:bg-indigo-50 border-b last:border-b-0
-                    ${value === option.value
+                                        ${value === option.value
                                             ? "bg-indigo-100 text-indigo-700 font-medium"
                                             : "text-gray-700"}
-                  `}
+                                    `}
                                     onClick={() => handleSelect(option.value)}
                                 >
                                     {option.label}
@@ -92,7 +145,8 @@ function CommonDropDown({
                             ))
                         )}
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     )

@@ -139,7 +139,7 @@ function LoginPage() {
                                 onChange={handleInputChange}
                                 className={`w-full px-4 py-2 border ${errors.companyCode ? 'border-red-500' : 'border-gray-300'
                                     } rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500`}
-                                placeholder="e.g., HRMS01"
+                                placeholder="e.g., CMP01"
                                 disabled={loading}
                             />
                             {errors.companyCode && <p className="text-red-500 text-sm mt-1">{errors.companyCode}</p>}
