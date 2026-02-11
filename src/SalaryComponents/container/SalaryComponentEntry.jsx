@@ -377,15 +377,16 @@ function SalaryComponentEntry() {
             {/* Header */}
             <div className="mb-6">
                 <BreadCrumb
-                    headerName="Salary Components"
-                    buttonContent={<button
+                    items={[ { label: "Salary Components", to: "/salary_components" }]}
+                    title="Salary Components"
+                    description="Create and manage salary components, earnings, deductions, and employer contributions"
+                    actions={<button
                         onClick={() => setShowCreateModal(true)}
                         className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2"
                     >
                         <Plus size={16} />
                         Create New Component
                     </button>}
-                    subcontent="Create and manage salary components, earnings, deductions, and employer contributions"
                 />
 
                 {/* Tabs */}

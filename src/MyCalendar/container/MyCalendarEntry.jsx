@@ -302,9 +302,10 @@ function MyCalendarEntry() {
         <div className="bg-gray-50 min-h-screen p-4">
             <div className="mb-6">
                 <BreadCrumb
-                    headerName="My Calendar"
-                    subcontent="Important dates, leaves, celebrations, reminders and company events"
-                    buttonContent={reminderSettings ? (
+                    items={[{ label: "My Calendar", }]}
+                    title="My Calendar"
+                    description="Important dates, leaves, celebrations, reminders and company events"
+                    actions={reminderSettings ? (
                         <button
                             onClick={() => setShowAddReminderPopup(true)}
                             className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2"

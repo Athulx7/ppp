@@ -721,8 +721,10 @@ function CompanySettingsEntry() {
             <div className="mx-auto">
                 <div className="mb-8">
                     <BreadCrumb
-                        headerName="Company Settings"
-                        buttonContent={
+                        items={[{ label: "Company Settings", }]}
+                        title="Company Settings"
+                        description="Manage your company profile and settings"
+                        actions={
                             <div className="flex items-center gap-3">
                                 {isViewMode ? (
                                     <>
@@ -757,7 +759,6 @@ function CompanySettingsEntry() {
                                 )}
                             </div>
                         }
-                        subcontent="Manage your company profile and settings"
                     />
 
                     {/* Logo Upload Section */}

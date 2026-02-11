@@ -616,8 +616,10 @@ function UserProfileEntry() {
             <div className="mx-auto">
                 <div className="mb-8">
                     <BreadCrumb
-                        headerName="User Profile"
-                        buttonContent={
+                        items={[{ label: "User Profile", }]}
+                        title="User Profile"
+                        description="Manage your personal and professional information"
+                        actions={
                             <div className="flex items-center gap-3">
                                 {isEditing ? (
                                     <>
@@ -650,7 +652,6 @@ function UserProfileEntry() {
                                 )}
                             </div>
                         }
-                        subcontent="Manage your personal and professional information"
                     />
                 </div>
 
