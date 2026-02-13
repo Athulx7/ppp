@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"
 import './basicCss/comCss.css'
-function CommonTable({ columns, data, tableControls, customHeader }) {
+function CommonTable({ columns, data, tableControls, customHeader, customClass }) {
     const [searchTerm, setSearchTerm] = useState("")
     const [entriesPerPage, setEntriesPerPage] = useState(10)
     const [currentPage, setCurrentPage] = useState(1)
@@ -23,7 +23,7 @@ function CommonTable({ columns, data, tableControls, customHeader }) {
     const totalPages = Math.ceil(filteredData.length / entriesPerPage)
 
     return (
-        <div className="my-6 border bg-white border-gray-200 shadow-lg rounded-lg overflow-hidden">
+        <div className={`border bg-white border-gray-200 shadow-lg rounded-lg overflow-hidden ${customClass || "my-6"} `}>
             {customHeader && (
                 <div className="p-2 border-b border-gray-200">
                     {customHeader}
