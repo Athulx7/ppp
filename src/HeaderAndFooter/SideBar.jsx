@@ -115,7 +115,7 @@ function SideBar({
     const userInitial = userData?.name?.charAt(0)?.toUpperCase() || "U"
     return (
         <>
-            <div className="lg:hidden flex items-center justify-between p-4 bg-white border-b sticky top-0 z-50">
+            <div className="lg:hidden flex items-center justify-between p-4 bg-white border-b border-gray-300 sticky top-0 z-50">
                 <Link to={basePath} className="flex items-center">
                     <Building2 className="text-indigo-500" />
                     <span className="ml-2 font-bold">PPP</span>
@@ -124,11 +124,11 @@ function SideBar({
             </div>
 
             <div
-                className={`fixed top-0 left-0 h-full bg-white border-r shadow-md z-40 transition-all duration-300
+                className={`fixed top-0 left-0 h-full bg-white border-r border-gray-300 shadow-md z-40 transition-all duration-300
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
         ${isCollapsed && !isMobile ? "w-20" : "w-64"} lg:translate-x-0`}
             >
-                <div className="flex items-center justify-between p-4 border-b">
+                <div className="flex items-center justify-between p-4 border-b border-gray-300">
                     <div className="flex items-center">
                         <Building2 className="text-indigo-500" />
                         {!isCollapsed && <span className="ml-2 font-bold">PPP</span>}
@@ -209,7 +209,7 @@ function SideBar({
                         </div>
                     </div>
 
-                    <div className="border-t pt-3">
+                    <div className="border-t border-gray-400 pt-3">
                         <button
                             onClick={handleLogout}
                             className={`flex items-center w-full ${isCollapsed ? "justify-center p-3" : "px-3 py-2.5"}

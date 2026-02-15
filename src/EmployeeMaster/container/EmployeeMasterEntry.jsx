@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Edit, Trash2, RefreshCw } from 'lucide-react';
 import BreadCrumb from '../../basicComponents/BreadCrumb';
-import CommonTable from '../../basicComponents/CommonTable';
 import CommonInputField from '../../basicComponents/CommonInputField';
 import CommonDropDown from '../../basicComponents/CommonDropDown';
+import CommonTable from '../../basicComponents/commonTable';
+import { getRoleBasePath } from '../../library/constants';
 
 function EmployeeMasterEntry() {
     const navigate = useNavigate();
@@ -80,12 +81,8 @@ function EmployeeMasterEntry() {
         setEmployees(employeesData);
     }, []);
 
-    const handleAddNew = () => {
-        navigate('/admin/employeemaster/edit/add');
-    };
-
     const handleEdit = (row) => {
-        navigate(`/admin/employeemaster/edit/${row.employee_id}`, { state: { employee: row, mode: 'edit' } });
+        navigate(`${getRoleBasePath()}/employee_master_entry/edit/${row.employee_id}`, { state: { employee: row, mode: 'edit' } });
     };
 
     const handleDelete = (id) => {
@@ -175,7 +172,7 @@ function EmployeeMasterEntry() {
             cell: row => {
                 const statusColors = {
                     'Active': 'bg-green-100 text-green-800',
-                    'Inactive': 'bg-gray-100 text-gray-800',
+                    'Inactive': 'bg-red-100 text-red-800',
                     'Probation': 'bg-yellow-100 text-yellow-800',
                     'Terminated': 'bg-red-100 text-red-800'
                 };
@@ -205,21 +202,19 @@ function EmployeeMasterEntry() {
     const departments = [...new Set(employees.map(emp => emp.department))]
 
     return (
-        <div className="min-h-screen bg-gray-50 p-3">
-            <div className="mb-6">
-                <BreadCrumb
-                    items={[{ label: "Employee Master", }]}
-                    title="Employee Master"
-                    description="Manage employee profiles and information"
-                    actions={<button
-                        onClick={handleAddNew}
-                        className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors flex items-center gap-2"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Add New Employee
-                    </button>}
-                />
-            </div>
+        <div className="p-2">
+            <BreadCrumb
+                items={[{ label: "Employee Master", }]}
+                title="Employee Master"
+                description="Manage employee profiles and information"
+                actions={<button
+                    onClick={() => navigate(`${getRoleBasePath()}/employee_master_entry/edit/add`)}
+                    className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors flex items-center gap-2"
+                >
+                    <Plus className="w-4 h-4" />
+                    Add New Employee
+                </button>}
+            />
 
             <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -228,7 +223,7 @@ function EmployeeMasterEntry() {
                         value={''}
                         disabled={''}
                         onChange={''}
-                        placeholder="Employee code"
+                        placeholder="Enter Employee code"
                     />
 
                     <CommonInputField
@@ -236,7 +231,7 @@ function EmployeeMasterEntry() {
                         value={''}
                         disabled={''}
                         onChange={''}
-                        placeholder="Employee code"
+                        placeholder="Enter Employee Name"
                     />
                     <CommonDropDown
                         label="Department"
@@ -277,10 +272,10 @@ function EmployeeMasterEntry() {
                         placeholder="Filter by Status"
                     />
                     <div className='flex mt-6'>
-                        <button className="px-10 font-bold  text-white bg-indigo-500 rounded-md hover:bg-indigo-600 cursor-pointer h-10">
-                            View
+                        <button className="px-6   text-white bg-indigo-500 rounded-md hover:bg-indigo-600 cursor-pointer h-10">
+                            Search
                         </button>
-                        <button className="p-3 border-1 flex items-center ml-3 hover:border-indigo-600 hover:text-indigo-600 border-indigo-500 rounded-md text-indigo-500 cursor-pointer h-10">
+                        <button className="p-3 border-1 flex items-center ml-3 hover:border-gray-600 hover:text-gray-600 border-gray-700 rounded-md text-gray-700 cursor-pointer h-10">
                             <RefreshCw />
                         </button>
                     </div>

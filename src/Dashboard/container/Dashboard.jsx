@@ -27,7 +27,7 @@ function Dashboard() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 overflow-hidden flex flex-col">
+        <div className="min-h-screen bg-gray-50 flex flex-col">
             <div className="flex-1">
                 <SideBar
                     isCollapsed={isCollapsed}
@@ -40,7 +40,7 @@ function Dashboard() {
                 />
 
                 <div className={`flex-1 flex flex-col transition-all duration-300 ${isMobile ? "ml-0" : isCollapsed ? "ml-20" : "ml-64" }`}>
-                    <div className="hidden lg:block sticky top-0 z-30 bg-white border-b border-gray-200">
+                    <div className="hidden lg:block sticky top-0 z-30 bg-white border-b border-gray-300">
                         <TopHeader openMenu={openMenu} setOpenMenu={setOpenMenu} />
                     </div>
 

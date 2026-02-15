@@ -17,6 +17,8 @@ import NotFoundPage from './NotFoundPage'
 import UserProfileEntry from './UserProfile/container/UserProfileEntry'
 import CompanySettingsEntry from './Company_settings/container/CompanySettingsEntry'
 import ZCursorTracker from './ZCursorTracker'
+import EmployeeMasterEntry from './EmployeeMaster/container/EmployeeMasterEntry'
+import EmpMstAddEditEntry from './EmployeeMaster/container/EmpMstAddEditEntry'
 
 const PublicRoute = ({ children }) => {
     const token = sessionStorage.getItem('token')
@@ -47,9 +49,17 @@ function App() {
 
         <Route path='/admin' element={<ProtectedRoute allowedRoles={['ADMIN']}> <Dashboard /> </ProtectedRoute>}>
           <Route index element={<AdminDashboard />} />
-          <Route path='master/:menuId' element={<MasterMain />} />
+
+          {/* Done fe be */}
+          <Route path='master/:menuId' element={<MasterMain />} /> 
           <Route path="master/:menuId/add" element={<MasterFormPage />} />
           <Route path="master/:menuId/edit/:rowId" element={<MasterFormPage />} />
+          <Route path='companysettings' element = {<CompanySettingsEntry />} />
+
+          <Route path='employee_master_entry' element={<EmployeeMasterEntry />} />
+          <Route path='employee_master_entry/edit/add' element={<EmpMstAddEditEntry /> } />
+          <Route path='employee_master_entry/edit/:id' element={<EmpMstAddEditEntry /> } />
+
           <Route path='mycalendar' element={<MyCalendarEntry />} />
           <Route path='salary_components' element={<SalaryComponentEntry />} />
           <Route path='salary_structure' element={<SalaryStructureEntry />} />
@@ -57,7 +67,7 @@ function App() {
           <Route path='salary_structure/edit/:id' element={<SalaryStructureAddEditEntry />} />
 
           <Route path='profile' element = {<UserProfileEntry />} />
-          <Route path='companysettings' element = {<CompanySettingsEntry />} />
+         
         </Route>
 
         <Route path='/employee' element={<ProtectedRoute allowedRoles={['EMPLOYEE']}><Dashboard /></ProtectedRoute>}>
@@ -74,6 +84,9 @@ function App() {
           <Route path='salary_structure' element={<SalaryStructureEntry />} />
           <Route path='salary_structure/create' element={<SalaryStructureAddEditEntry />} />
           <Route path='salary_structure/edit/:id' element={<SalaryStructureAddEditEntry />} />
+          <Route path='employee_master_entry' element={<EmployeeMasterEntry />} />
+          <Route path='employee_master_entry/edit/add' element={<EmpMstAddEditEntry /> } />
+          <Route path='employee_master_entry/edit/:id' element={<EmpMstAddEditEntry /> } />
           <Route path='mycalendar' element={<MyCalendarEntry />} />
         </Route>
 
@@ -86,7 +99,7 @@ function App() {
 
         <Route path='*' element={<NotFoundPage />} />
       </Routes>
-      <ZCursorTracker />
+      {/* <ZCursorTracker /> */}
     </>
   )
 }

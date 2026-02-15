@@ -29,10 +29,10 @@ function CommonToggleButton({
                 </label>
             )}
             <div
-                className={`inline-flex items-center rounded-lg border cursor-pointer select-none
+                className={`inline-flex items-center rounded-lg cursor-pointer select-none
         ${disabled ? "opacity-50 cursor-not-allowed" : ""}  ${className}`} style={style} onClick={toggle}
             >
-                <div className={`flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-l-lg transition
+                <div className={`flex items-center gap-1 px-3 py-1.5 text-sm font-medium border border-indigo-500 rounded-l-lg transition
           ${isYes ? "bg-indigo-500 text-white" : "bg-gray-100 text-gray-600"} `}
                 >
                     <Check size={14} />
@@ -40,8 +40,8 @@ function CommonToggleButton({
                 </div>
 
                 <div
-                    className={`flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-r-lg transition
-          ${!isYes ? "bg-red-500 text-white" : "bg-gray-100 text-gray-600"}`}
+                    className={`flex items-center gap-1 px-3 py-1.5 text-sm font-medium border border-red-500  rounded-r-lg transition
+          ${!isYes ? "bg-red-500 text-white" : "bg-red-200 text-gray-600"}`}
                 >
                     <X size={14} />
                     {noLabel}

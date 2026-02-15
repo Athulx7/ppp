@@ -1,73 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import {
-    Building, MapPin, Phone, Mail, Globe, CreditCard,
-    Edit2, Save, X, Upload, Eye, Download,
-    Banknote, FileText, Users, Shield, Calendar
-} from 'lucide-react';
+import { Building, MapPin, Phone, Globe, CreditCard, Edit2, Save, X, Download, Banknote, } from 'lucide-react';
 import BreadCrumb from '../../basicComponents/BreadCrumb';
 import CommonInputField from '../../basicComponents/CommonInputField';
 import CommonDatePicker from '../../basicComponents/CommonDatePicker';
 import CommonDropDown from '../../basicComponents/CommonDropDown';
+import { ApiCall } from '../../library/constants';
+import moment from 'moment';
+import LoadingSpinner from '../../basicComponents/LoadingSpinner';
+import CommonStatusPopUp from '../../basicComponents/CommonStatusPopUp';
 
 function CompanySettingsEntry() {
-    // Initial company data
-    const initialCompanyData = {
-        basicInfo: {
-            companyName: "TechCorp Solutions",
-            legalName: "TechCorp Solutions Pvt. Ltd.",
-            registrationNumber: "GST1234567890",
-            foundedDate: "2015-01-15",
-            industryType: "Information Technology",
-            companySize: "200-500",
-            description: "Leading provider of innovative software solutions"
-        },
-        contactDetails: {
-            primaryEmail: "info@techcorp.com",
-            secondaryEmail: "hr@techcorp.com",
-            phoneNumber: "+1 (555) 123-4567",
-            mobileNumber: "+1 (555) 987-6543",
-            faxNumber: "+1 (555) 456-7890"
-        },
-        address: {
-            headOffice: "123 Tech Park, Silicon Valley",
-            city: "San Francisco",
-            state: "California",
-            country: "United States",
-            postalCode: "94105",
-            additionalBranches: [
-                "456 Innovation Drive, New York",
-                "789 Tech Street, Austin"
-            ]
-        },
-        financialDetails: {
-            defaultCurrency: "USD - US Dollar",
-            taxId: "TAX-987654321",
-            bankName: "Global Bank Inc.",
-            bankAccountNumber: "123456789012",
-            bankBranch: "San Francisco Main",
-            bankIfscCode: "GBANK12345",
-            swiftCode: "GBANKUS33",
-            financialYearStart: "January",
-            financialYearEnd: "December"
-        },
-        digitalPresence: {
-            website: "www.techcorp.com",
-            domain: "techcorp.com",
-            linkedin: "linkedin.com/company/techcorp",
-            twitter: "twitter.com/techcorp",
-            employeePortalUrl: "portal.techcorp.com"
-        },
-        compliance: {
-            registrationCertificate: "registered-certificate.pdf",
-            taxCertificate: "tax-certificate.pdf",
-            licenseNumber: "LIC-789012",
-            licenseExpiry: "2025-12-31",
-            insurancePolicy: "INS-456789",
-            insuranceExpiry: "2024-12-31"
-        }
-    };
+    const [isLoading, setIsLoading] = useState(false)
+    const [statusPopup, setStatusPopup] = useState({
+        show: false,
+        type: "default",
+        title: "",
+        message: "",
+        autoClose: false
+    })
 
-    const [companyData, setCompanyData] = useState(initialCompanyData);
+    const [companyData, setCompanyData] = useState({
+        basicInfo: {},
+        contactDetails: {},
+        address: {},
+        financialDetails: {},
+        digitalPresence: {}
+    })
     const [isEditing, setIsEditing] = useState(false);
     const [activeTab, setActiveTab] = useState('basic');
     const [isViewMode, setIsViewMode] = useState(true);
@@ -76,7 +34,7 @@ function CompanySettingsEntry() {
 
     // Dropdown options
     const industryOptions = [
-        { label: 'Information Technology', value: 'Information Technology' },
+        { label: 'Information Technology', value: 'it' },
         { label: 'Healthcare', value: 'Healthcare' },
         { label: 'Finance', value: 'Finance' },
         { label: 'Manufacturing', value: 'Manufacturing' },
@@ -86,22 +44,22 @@ function CompanySettingsEntry() {
     ];
 
     const companySizeOptions = [
-        { label: '1-10 Employees', value: '1-10' },
-        { label: '11-50 Employees', value: '11-50' },
-        { label: '51-200 Employees', value: '51-200' },
-        { label: '200-500 Employees', value: '200-500' },
-        { label: '500-1000 Employees', value: '500-1000' },
-        { label: '1000+ Employees', value: '1000+' }
+        { label: '1-10 Employees', value: 'emp1_10' },
+        { label: '11-50 Employees', value: 'emp11_50' },
+        { label: '51-200 Employees', value: 'emp51_200' },
+        { label: '200-500 Employees', value: 'emp200_500' },
+        { label: '500-1000 Employees', value: 'emp500_1000' },
+        { label: '1000+ Employees', value: 'emp_1000' }
     ];
 
     const currencyOptions = [
-        { label: 'USD - US Dollar', value: 'USD - US Dollar' },
-        { label: 'EUR - Euro', value: 'EUR - Euro' },
-        { label: 'GBP - British Pound', value: 'GBP - British Pound' },
-        { label: 'INR - Indian Rupee', value: 'INR - Indian Rupee' },
-        { label: 'JPY - Japanese Yen', value: 'JPY - Japanese Yen' },
-        { label: 'CAD - Canadian Dollar', value: 'CAD - Canadian Dollar' },
-        { label: 'AUD - Australian Dollar', value: 'AUD - Australian Dollar' }
+        { label: 'USD - US Dollar', value: 'USD' },
+        { label: 'EUR - Euro', value: 'EUR' },
+        { label: 'GBP - British Pound', value: 'GBP' },
+        { label: 'INR - Indian Rupee', value: 'INR' },
+        { label: 'JPY - Japanese Yen', value: 'JPY' },
+        { label: 'CAD - Canadian Dollar', value: 'CAD' },
+        { label: 'AUD - Australian Dollar', value: 'AUD' }
     ];
 
     const monthOptions = [
@@ -119,18 +77,68 @@ function CompanySettingsEntry() {
         { label: 'December', value: 'December' }
     ];
 
-    // Load data from localStorage on component mount
     useEffect(() => {
-        const savedData = localStorage.getItem('companySettings');
-        if (savedData) {
-            setCompanyData(JSON.parse(savedData));
-        }
+        getSavedcompanyinfo()
     }, []);
 
-    // Save data to localStorage
-    const saveToLocalStorage = () => {
-        localStorage.setItem('companySettings', JSON.stringify(companyData));
-    };
+    async function getSavedcompanyinfo() {
+        setIsLoading(true)
+        try {
+            const result = await ApiCall('get', 'getcompanyinfo')
+            const data = result?.data?.data?.data
+
+            if (!data) return
+
+            setCompanyData({
+                basicInfo: {
+                    companyName: data.company_name || "",
+                    legalName: data.legal_name || "",
+                    registrationNumber: data.registration_number || "",
+                    foundedDate: data.founded_date ? moment(data.founded_date).format("DD/MM/YYYY") : "",
+                    industryType: data.industry_type || "",
+                    companySize: data.company_size || "",
+                    description: data.company_description || ""
+                },
+                contactDetails: {
+                    primaryEmail: data.primary_email || "",
+                    secondaryEmail: data.secondary_email_hr || "",
+                    phoneNumber: data.phone_number || "",
+                    mobileNumber: data.mobile_number || "",
+                    faxNumber: data.fax_number || ""
+                },
+                address: {
+                    headOffice: data.head_office_address || "",
+                    city: data.city || "",
+                    state: data.state || "",
+                    country: data.country || "",
+                    postalCode: data.postal_code || "",
+                    additionalBranches: []
+                },
+                financialDetails: {
+                    defaultCurrency: data.default_currency || "",
+                    taxId: data.tax_id || "",
+                    bankName: data.bank_name || "",
+                    bankAccountNumber: data.account_number || "",
+                    bankBranch: data.bank_branch || "",
+                    bankIfscCode: data.ifsc_code || "",
+                    swiftCode: data.swift_code || "",
+                    financialYearStart: data.fy_start_month || "",
+                    financialYearEnd: data.fy_end_month || ""
+                },
+                digitalPresence: {
+                    website: data.website || "",
+                    domain: data.company_domain || "",
+                    linkedin: data.linkedin_url || "",
+                    twitter: data.twitter_url || "",
+                    employeePortalUrl: ""
+                }
+            })
+
+        } catch (err) {
+            console.log(err)
+        }
+        setIsLoading(false)
+    }
 
     const handleInputChange = (section, field, value) => {
         setCompanyData(prev => ({
@@ -142,29 +150,88 @@ function CompanySettingsEntry() {
         }));
     };
 
-    const handleSave = () => {
-        saveToLocalStorage();
-        setIsEditing(false);
-        setIsViewMode(true);
-        alert('Company settings saved successfully!');
-    };
+    const handleSave = async () => {
+        setIsLoading(true)
+        try {
+            const payload = {
+                company_name: companyData.basicInfo.companyName,
+                legal_name: companyData.basicInfo.legalName,
+                registration_number: companyData.basicInfo.registrationNumber,
+                founded_date: companyData.basicInfo.foundedDate
+                    ? moment(companyData.basicInfo.foundedDate, "DD/MM/YYYY").format("YYYY-MM-DD")
+                    : null,
+
+                industry_type: companyData.basicInfo.industryType,
+                company_size: companyData.basicInfo.companySize,
+                company_description: companyData.basicInfo.description,
+
+                primary_email: companyData.contactDetails.primaryEmail,
+                secondary_email_hr: companyData.contactDetails.secondaryEmail,
+                phone_number: companyData.contactDetails.phoneNumber,
+                mobile_number: companyData.contactDetails.mobileNumber,
+                fax_number: companyData.contactDetails.faxNumber,
+
+                head_office_address: companyData.address.headOffice,
+                city: companyData.address.city,
+                state: companyData.address.state,
+                country: companyData.address.country,
+                postal_code: companyData.address.postalCode,
+
+                default_currency: companyData.financialDetails.defaultCurrency,
+                tax_id: companyData.financialDetails.taxId,
+                fy_start_month: companyData.financialDetails.financialYearStart,
+                fy_end_month: companyData.financialDetails.financialYearEnd,
+                bank_name: companyData.financialDetails.bankName,
+                account_number: companyData.financialDetails.bankAccountNumber,
+                bank_branch: companyData.financialDetails.bankBranch,
+                ifsc_code: companyData.financialDetails.bankIfscCode,
+                swift_code: companyData.financialDetails.swiftCode,
+
+                website: companyData.digitalPresence.website,
+                company_domain: companyData.digitalPresence.domain,
+                linkedin_url: companyData.digitalPresence.linkedin,
+                twitter_url: companyData.digitalPresence.twitter
+            }
+
+            const res = await ApiCall("POST", "/savecomapnyinfo", payload)
+            console.log('company data sae', res)
+
+            if (res?.data?.success) {
+                setStatusPopup({
+                    show: true,
+                    type: "success",
+                    title: "Success",
+                    message: "Company settings saved successfully!",
+                    autoClose: true
+                })
+                setIsEditing(false);
+                setIsViewMode(true);
+            } else {
+                setStatusPopup({
+                    show: true,
+                    type: "error",
+                    title: "Save Failed",
+                    message: `${res.data.data.message}` || "Something went wrong while saving.",
+                    autoClose: false
+                })
+            }
+        } catch (error) {
+            console.error("Save failed:", error);
+            setStatusPopup({
+                show: true,
+                type: "error",
+                title: "Save Failed",
+                message: "Something went wrong while saving.",
+                autoClose: false
+            })
+
+        }
+        setIsLoading(false)
+    }
 
     const handleCancel = () => {
-        setCompanyData(initialCompanyData);
         setIsEditing(false);
         setIsViewMode(true);
-    };
-
-    const handleLogoUpload = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setLogoPreview(reader.result);
-                localStorage.setItem('companyLogo', reader.result);
-            };
-            reader.readAsDataURL(file);
-        }
     };
 
     const handleAddBranch = () => {
@@ -206,7 +273,6 @@ function CompanySettingsEntry() {
         { id: 'address', label: 'Address', icon: <MapPin className="w-4 h-4" /> },
         { id: 'financial', label: 'Financial', icon: <CreditCard className="w-4 h-4" /> },
         { id: 'digital', label: 'Digital', icon: <Globe className="w-4 h-4" /> },
-        { id: 'compliance', label: 'Compliance', icon: <Shield className="w-4 h-4" /> }
     ];
 
     const renderBasicInfo = () => (
@@ -216,7 +282,7 @@ function CompanySettingsEntry() {
                     label="Company Name"
                     value={companyData.basicInfo.companyName}
                     disabled={isViewMode}
-                    onChange={(e) => handleInputChange('basicInfo', 'companyName', e.target.value)}
+                    onChange={(value) => handleInputChange('basicInfo', 'companyName', value)}
                     placeholder="Enter company name"
                     required={true}
                 />
@@ -225,7 +291,7 @@ function CompanySettingsEntry() {
                     label="Legal Name"
                     value={companyData.basicInfo.legalName}
                     disabled={isViewMode}
-                    onChange={(e) => handleInputChange('basicInfo', 'legalName', e.target.value)}
+                    onChange={(value) => handleInputChange('basicInfo', 'legalName', value)}
                     placeholder="Enter legal name"
                     required={true}
                 />
@@ -234,15 +300,16 @@ function CompanySettingsEntry() {
                     label="Registration Number"
                     value={companyData.basicInfo.registrationNumber}
                     disabled={isViewMode}
-                    onChange={(e) => handleInputChange('basicInfo', 'registrationNumber', e.target.value)}
+                    onChange={(value) => handleInputChange('basicInfo', 'registrationNumber', value)}
                     placeholder="GST/Tax registration number"
-                    required={true}
                 />
 
                 <CommonDatePicker
                     label="Founded Date"
                     value={companyData.basicInfo.foundedDate}
-                    onChange={(value) => handleInputChange('basicInfo', 'foundedDate', value)}
+                    onChange={(value) =>
+                        handleInputChange('basicInfo', 'foundedDate', value)
+                    }
                     disabled={isViewMode}
                 />
 
@@ -252,7 +319,6 @@ function CompanySettingsEntry() {
                     options={industryOptions}
                     disabled={isViewMode}
                     onChange={(value) => handleInputChange('basicInfo', 'industryType', value)}
-                    placeholder="Select industry type"
                 />
 
                 <CommonDropDown
@@ -294,9 +360,8 @@ function CompanySettingsEntry() {
                     type="email"
                     value={companyData.contactDetails.primaryEmail}
                     disabled={isViewMode}
-                    onChange={(e) => handleInputChange('contactDetails', 'primaryEmail', e.target.value)}
+                    onChange={(value) => handleInputChange('contactDetails', 'primaryEmail', value)}
                     placeholder="primary@company.com"
-                    icon={<Mail className="w-4 h-4 text-gray-400" />}
                     required={true}
                 />
 
@@ -305,9 +370,8 @@ function CompanySettingsEntry() {
                     type="email"
                     value={companyData.contactDetails.secondaryEmail}
                     disabled={isViewMode}
-                    onChange={(e) => handleInputChange('contactDetails', 'secondaryEmail', e.target.value)}
+                    onChange={(value) => handleInputChange('contactDetails', 'secondaryEmail', value)}
                     placeholder="hr@company.com"
-                    icon={<Mail className="w-4 h-4 text-gray-400" />}
                 />
 
                 <CommonInputField
@@ -315,9 +379,8 @@ function CompanySettingsEntry() {
                     type="tel"
                     value={companyData.contactDetails.phoneNumber}
                     disabled={isViewMode}
-                    onChange={(e) => handleInputChange('contactDetails', 'phoneNumber', e.target.value)}
+                    onChange={(value) => handleInputChange('contactDetails', 'phoneNumber', value)}
                     placeholder="+1 (555) 123-4567"
-                    icon={<Phone className="w-4 h-4 text-gray-400" />}
                     required={true}
                 />
 
@@ -326,9 +389,8 @@ function CompanySettingsEntry() {
                     type="tel"
                     value={companyData.contactDetails.mobileNumber}
                     disabled={isViewMode}
-                    onChange={(e) => handleInputChange('contactDetails', 'mobileNumber', e.target.value)}
+                    onChange={(value) => handleInputChange('contactDetails', 'mobileNumber', value)}
                     placeholder="+1 (555) 987-6543"
-                    icon={<Phone className="w-4 h-4 text-gray-400" />}
                 />
 
                 <CommonInputField
@@ -336,9 +398,8 @@ function CompanySettingsEntry() {
                     type="tel"
                     value={companyData.contactDetails.faxNumber}
                     disabled={isViewMode}
-                    onChange={(e) => handleInputChange('contactDetails', 'faxNumber', e.target.value)}
+                    onChange={(value) => handleInputChange('contactDetails', 'faxNumber', value)}
                     placeholder="+1 (555) 456-7890"
-                    icon={<Phone className="w-4 h-4 text-gray-400" />}
                 />
             </div>
         </div>
@@ -371,7 +432,7 @@ function CompanySettingsEntry() {
                     label="City"
                     value={companyData.address.city}
                     disabled={isViewMode}
-                    onChange={(e) => handleInputChange('address', 'city', e.target.value)}
+                    onChange={(value) => handleInputChange('address', 'city', value)}
                     placeholder="City"
                     required={true}
                 />
@@ -380,7 +441,7 @@ function CompanySettingsEntry() {
                     label="State"
                     value={companyData.address.state}
                     disabled={isViewMode}
-                    onChange={(e) => handleInputChange('address', 'state', e.target.value)}
+                    onChange={(value) => handleInputChange('address', 'state', value)}
                     placeholder="State/Province"
                     required={true}
                 />
@@ -389,7 +450,7 @@ function CompanySettingsEntry() {
                     label="Country"
                     value={companyData.address.country}
                     disabled={isViewMode}
-                    onChange={(e) => handleInputChange('address', 'country', e.target.value)}
+                    onChange={(value) => handleInputChange('address', 'country', value)}
                     placeholder="Country"
                     required={true}
                 />
@@ -398,7 +459,7 @@ function CompanySettingsEntry() {
                     label="Postal Code"
                     value={companyData.address.postalCode}
                     disabled={isViewMode}
-                    onChange={(e) => handleInputChange('address', 'postalCode', e.target.value)}
+                    onChange={(value) => handleInputChange('address', 'postalCode', value)}
                     placeholder="Postal/ZIP code"
                     required={true}
                 />
@@ -475,7 +536,7 @@ function CompanySettingsEntry() {
                     label="Tax ID"
                     value={companyData.financialDetails.taxId}
                     disabled={isViewMode}
-                    onChange={(e) => handleInputChange('financialDetails', 'taxId', e.target.value)}
+                    onChange={(value) => handleInputChange('financialDetails', 'taxId', value)}
                     placeholder="Tax identification number"
                     required={true}
                 />
@@ -484,7 +545,7 @@ function CompanySettingsEntry() {
                     label="Bank Name"
                     value={companyData.financialDetails.bankName}
                     disabled={isViewMode}
-                    onChange={(e) => handleInputChange('financialDetails', 'bankName', e.target.value)}
+                    onChange={(value) => handleInputChange('financialDetails', 'bankName', value)}
                     placeholder="Bank name"
                     required={true}
                 />
@@ -493,7 +554,7 @@ function CompanySettingsEntry() {
                     label="Account Number"
                     value={companyData.financialDetails.bankAccountNumber}
                     disabled={isViewMode}
-                    onChange={(e) => handleInputChange('financialDetails', 'bankAccountNumber', e.target.value)}
+                    onChange={(value) => handleInputChange('financialDetails', 'bankAccountNumber', value)}
                     placeholder="Bank account number"
                     required={true}
                 />
@@ -502,7 +563,7 @@ function CompanySettingsEntry() {
                     label="Bank Branch"
                     value={companyData.financialDetails.bankBranch}
                     disabled={isViewMode}
-                    onChange={(e) => handleInputChange('financialDetails', 'bankBranch', e.target.value)}
+                    onChange={(value) => handleInputChange('financialDetails', 'bankBranch', value)}
                     placeholder="Bank branch name"
                 />
 
@@ -510,7 +571,7 @@ function CompanySettingsEntry() {
                     label="IFSC Code"
                     value={companyData.financialDetails.bankIfscCode}
                     disabled={isViewMode}
-                    onChange={(e) => handleInputChange('financialDetails', 'bankIfscCode', e.target.value)}
+                    onChange={(value) => handleInputChange('financialDetails', 'bankIfscCode', value)}
                     placeholder="Bank IFSC code"
                 />
 
@@ -518,7 +579,7 @@ function CompanySettingsEntry() {
                     label="SWIFT Code"
                     value={companyData.financialDetails.swiftCode}
                     disabled={isViewMode}
-                    onChange={(e) => handleInputChange('financialDetails', 'swiftCode', e.target.value)}
+                    onChange={(value) => handleInputChange('financialDetails', 'swiftCode', value)}
                     placeholder="SWIFT/BIC code"
                 />
 
@@ -553,19 +614,16 @@ function CompanySettingsEntry() {
                     type="url"
                     value={companyData.digitalPresence.website}
                     disabled={isViewMode}
-                    onChange={(e) => handleInputChange('digitalPresence', 'website', e.target.value)}
+                    onChange={(value) => handleInputChange('digitalPresence', 'website', value)}
                     placeholder="www.company.com"
-                    icon={<Globe className="w-4 h-4 text-gray-400" />}
-                    required={true}
                 />
 
                 <CommonInputField
                     label="Company Domain"
                     value={companyData.digitalPresence.domain}
                     disabled={isViewMode}
-                    onChange={(e) => handleInputChange('digitalPresence', 'domain', e.target.value)}
+                    onChange={(value) => handleInputChange('digitalPresence', 'domain', value)}
                     placeholder="company.com"
-                    required={true}
                 />
 
                 <CommonInputField
@@ -573,9 +631,8 @@ function CompanySettingsEntry() {
                     type="url"
                     value={companyData.digitalPresence.linkedin}
                     disabled={isViewMode}
-                    onChange={(e) => handleInputChange('digitalPresence', 'linkedin', e.target.value)}
+                    onChange={(value) => handleInputChange('digitalPresence', 'linkedin', value)}
                     placeholder="linkedin.com/company/company-name"
-                    icon={<Globe className="w-4 h-4 text-gray-400" />}
                 />
 
                 <CommonInputField
@@ -583,9 +640,8 @@ function CompanySettingsEntry() {
                     type="url"
                     value={companyData.digitalPresence.twitter}
                     disabled={isViewMode}
-                    onChange={(e) => handleInputChange('digitalPresence', 'twitter', e.target.value)}
+                    onChange={(value) => handleInputChange('digitalPresence', 'twitter', value)}
                     placeholder="twitter.com/company"
-                    icon={<Globe className="w-4 h-4 text-gray-400" />}
                 />
 
                 <div className="md:col-span-2">
@@ -594,112 +650,10 @@ function CompanySettingsEntry() {
                         type="url"
                         value={companyData.digitalPresence.employeePortalUrl}
                         disabled={isViewMode}
-                        onChange={(e) => handleInputChange('digitalPresence', 'employeePortalUrl', e.target.value)}
+                        onChange={(value) => handleInputChange('digitalPresence', 'employeePortalUrl', value)}
                         placeholder="portal.company.com"
-                        icon={<Globe className="w-4 h-4 text-gray-400" />}
-                        required={true}
                     />
                 </div>
-            </div>
-        </div>
-    );
-
-    const renderCompliance = () => (
-        <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Registration Certificate
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-100 rounded-lg border border-indigo-600 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <FileText className="w-4 h-4 text-gray-400" />
-                                {companyData.compliance.registrationCertificate}
-                            </div>
-                            <button className="text-indigo-600 hover:text-indigo-800">
-                                <Eye className="w-4 h-4" />
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="flex gap-2">
-                            <input
-                                type="text"
-                                value={companyData.compliance.registrationCertificate}
-                                onChange={(e) => handleInputChange('compliance', 'registrationCertificate', e.target.value)}
-                                className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                placeholder="certificate.pdf"
-                            />
-                            <label className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2 cursor-pointer">
-                                <Upload className="w-4 h-4" />
-                                <span>Upload</span>
-                                <input type="file" className="hidden" />
-                            </label>
-                        </div>
-                    )}
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Tax Certificate
-                    </label>
-                    {isViewMode ? (
-                        <div className="p-3 bg-gray-100 rounded-lg border border-indigo-600 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <FileText className="w-4 h-4 text-gray-400" />
-                                {companyData.compliance.taxCertificate}
-                            </div>
-                            <button className="text-indigo-600 hover:text-indigo-800">
-                                <Eye className="w-4 h-4" />
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="flex gap-2">
-                            <input
-                                type="text"
-                                value={companyData.compliance.taxCertificate}
-                                onChange={(e) => handleInputChange('compliance', 'taxCertificate', e.target.value)}
-                                className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                placeholder="tax-certificate.pdf"
-                            />
-                            <label className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2 cursor-pointer">
-                                <Upload className="w-4 h-4" />
-                                <span>Upload</span>
-                                <input type="file" className="hidden" />
-                            </label>
-                        </div>
-                    )}
-                </div>
-
-                <CommonInputField
-                    label="License Number"
-                    value={companyData.compliance.licenseNumber}
-                    disabled={isViewMode}
-                    onChange={(e) => handleInputChange('compliance', 'licenseNumber', e.target.value)}
-                    placeholder="Business license number"
-                />
-
-                <CommonDatePicker
-                    label="License Expiry Date"
-                    value={companyData.compliance.licenseExpiry}
-                    onChange={(value) => handleInputChange('compliance', 'licenseExpiry', value)}
-                    disabled={isViewMode}
-                />
-
-                <CommonInputField
-                    label="Insurance Policy"
-                    value={companyData.compliance.insurancePolicy}
-                    disabled={isViewMode}
-                    onChange={(e) => handleInputChange('compliance', 'insurancePolicy', e.target.value)}
-                    placeholder="Insurance policy number"
-                />
-
-                <CommonDatePicker
-                    label="Insurance Expiry Date"
-                    value={companyData.compliance.insuranceExpiry}
-                    onChange={(value) => handleInputChange('compliance', 'insuranceExpiry', value)}
-                    disabled={isViewMode}
-                />
             </div>
         </div>
     );
@@ -711,164 +665,125 @@ function CompanySettingsEntry() {
             case 'address': return renderAddressDetails();
             case 'financial': return renderFinancialDetails();
             case 'digital': return renderDigitalPresence();
-            case 'compliance': return renderCompliance();
             default: return renderBasicInfo();
         }
     };
 
     return (
-        <div className="p-3">
-            <div className="mx-auto">
-                <div className="mb-8">
-                    <BreadCrumb
-                        items={[{ label: "Company Settings", }]}
-                        title="Company Settings"
-                        description="Manage your company profile and settings"
-                        actions={
-                            <div className="flex items-center gap-3">
-                                {isViewMode ? (
-                                    <>
-                                        <button
-                                            onClick={() => {
-                                                setIsViewMode(false);
-                                                setIsEditing(true);
-                                            }}
-                                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2"
-                                        >
-                                            <Edit2 className="w-4 h-4" />
-                                            Edit Settings
-                                        </button>
-                                    </>
-                                ) : (
-                                    <>
-                                        <button
-                                            onClick={handleSave}
-                                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
-                                        >
-                                            <Save className="w-4 h-4" />
-                                            Save Changes
-                                        </button>
-                                        <button
-                                            onClick={handleCancel}
-                                            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
-                                        >
-                                            <X className="w-4 h-4" />
-                                            Cancel
-                                        </button>
-                                    </>
-                                )}
-                            </div>
-                        }
-                    />
-
-                    {/* Logo Upload Section */}
-                    <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-                        <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-                            <div className="flex items-center gap-4">
-                                <div className="w-20 h-20 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50">
-                                    {logoPreview ? (
-                                        <img src={logoPreview} alt="Company Logo" className="w-full h-full object-cover" />
-                                    ) : (
-                                        <Building className="w-8 h-8 text-gray-400" />
-                                    )}
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold text-gray-900">Company Logo</h3>
-                                    <p className="text-sm text-gray-500">Upload your company logo (PNG, JPG, max 2MB)</p>
-                                </div>
-                            </div>
-                            <div className="flex gap-3">
-                                <label className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2 cursor-pointer">
-                                    <Upload className="w-4 h-4" />
-                                    <span>Upload Logo</span>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleLogoUpload}
-                                        className="hidden"
-                                    />
-                                </label>
-                                {logoPreview && (
+        <div className="">
+            <div className="mb-5">
+                <BreadCrumb
+                    items={[{ label: "Company Settings", }]}
+                    title="Company Settings"
+                    description="Manage your company profile and settings"
+                    actions={
+                        <div className="flex items-center gap-3">
+                            {isViewMode ? (
+                                <>
                                     <button
-                                        onClick={() => setLogoPreview(null)}
+                                        onClick={() => {
+                                            setIsViewMode(false);
+                                            setIsEditing(true);
+                                        }}
+                                        className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2"
+                                    >
+                                        <Edit2 className="w-4 h-4" />
+                                        Edit Settings
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <button
+                                        onClick={handleSave}
+                                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+                                    >
+                                        <Save className="w-4 h-4" />
+                                        Save Changes
+                                    </button>
+                                    <button
+                                        onClick={handleCancel}
                                         className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
                                     >
                                         <X className="w-4 h-4" />
-                                        Remove
+                                        Cancel
                                     </button>
-                                )}
-                            </div>
+                                </>
+                            )}
                         </div>
-                    </div>
-                </div>
-
-                {/* Main Content */}
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                    {/* Tabs */}
-                    <div className="border-b border-gray-200">
-                        <div className="flex overflow-x-auto scrollbar">
-                            {tabs.map((tab) => (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => setActiveTab(tab.id)}
-                                    className={`flex pt-3 items-center gap-2 px-6 py-4 font-medium text-sm transition-colors ${activeTab === tab.id
-                                        ? 'text-indigo-600 border-b-2 border-indigo-600'
-                                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                                        }`}
-                                >
-                                    {tab.icon}
-                                    {tab.label}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Tab Content */}
-                    <div className="p-6">
-                        {renderContent()}
-                    </div>
-                </div>
-
-                {/* Quick Actions Footer */}
-                <div className="mt-6 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <div className="text-sm text-gray-500">
-                        {isViewMode ? (
-                            <p>Click "Edit Settings" to modify company information</p>
-                        ) : (
-                            <p>Make your changes and click "Save Changes" to update company settings</p>
-                        )}
-                    </div>
-
-                    <div className="flex gap-3">
-                        <button
-                            onClick={downloadCompanyProfile}
-                            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
-                        >
-                            <Download className="w-4 h-4" />
-                            Download Profile
-                        </button>
-
-                        {isViewMode && (
+                    }
+                />
+            </div>
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div className="border-b border-gray-200">
+                    <div className="flex overflow-x-auto scrollbar">
+                        {tabs.map((tab) => (
                             <button
-                                onClick={() => {
-                                    const shouldReset = window.confirm('Are you sure you want to reset to default settings? This will discard all customizations.');
-                                    if (shouldReset) {
-                                        setCompanyData(initialCompanyData);
-                                        localStorage.removeItem('companySettings');
-                                        localStorage.removeItem('companyLogo');
-                                        setLogoPreview(null);
-                                        alert('Settings reset to default!');
-                                    }
-                                }}
-                                className="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 flex items-center gap-2"
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`flex pt-3 items-center gap-2 px-6 py-4 font-medium text-sm transition-colors ${activeTab === tab.id
+                                    ? 'text-indigo-600 border-b-2 border-indigo-600'
+                                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                                    }`}
                             >
-                                <X className="w-4 h-4" />
-                                Reset to Default
+                                {tab.icon}
+                                {tab.label}
                             </button>
-                        )}
+                        ))}
                     </div>
+                </div>
+
+                <div className="p-6 max-h-96 overflow-y-scroll scrollbar">
+                    {renderContent()}
                 </div>
             </div>
+
+            <div className="mt-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div className="text-sm text-gray-500">
+                    {isViewMode ? (
+                        <p>Click "Edit Settings" to modify company information</p>
+                    ) : (
+                        <p>Make your changes and click "Save Changes" to update company settings</p>
+                    )}
+                </div>
+
+                <div className="flex gap-3">
+                    <button
+                        onClick={downloadCompanyProfile}
+                        className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+                    >
+                        <Download className="w-4 h-4" />
+                        Download Profile
+                    </button>
+
+                    {/* {!isViewMode && (
+                        <button
+                            onClick={() => {
+                                const shouldReset = window.confirm('Are you sure you want to reset to default settings? This will discard all customizations.');
+                                if (shouldReset) {
+                                    setLogoPreview(null);
+                                    alert('Settings reset to default!');
+                                }
+                            }}
+                            className="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 flex items-center gap-2"
+                        >
+                            <X className="w-4 h-4" />
+                            Reset to Default
+                        </button>
+                    )} */}
+                </div>
+            </div>
+            {isLoading && <LoadingSpinner />}
+            <CommonStatusPopUp
+                isOpen={statusPopup.show}
+                type={statusPopup.type}
+                title={statusPopup.title}
+                body={statusPopup.message}
+                autoClose={statusPopup.autoClose}
+                onClose={() =>
+                    setStatusPopup(prev => ({ ...prev, show: false }))
+                }
+            />
+
         </div>
     );
 }
