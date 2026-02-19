@@ -199,7 +199,7 @@ function UploadProgress() {
                     { label: `Upload Progress`, },
                 ]}
                 title={`Upload Progress `}
-                description={`Check Upload Progreess of ${batchDetails.upload_name}`}
+                description={`Check Upload Progreess of ${batchDetails?.upload_name || 'Batch Upload'}`}
             />
 
             {batchDetails && (
@@ -210,7 +210,7 @@ function UploadProgress() {
                                 <div className='flex justify-between'>
                                     <div className="flex items-center gap-3 mb-4">
                                         <div>
-                                            <h2 className="text-xl font-semibold text-gray-900">{batchDetails.upload_name}</h2>
+                                            <h2 className="text-xl font-semibold text-gray-900">{batchDetails?.upload_name || 'Unnamed Batch'}</h2>
                                             <p className="text-sm text-gray-500">Uploaded by {batchDetails.uploaded_by} • {batchDetails.uploaded_at}</p>
                                         </div>
                                     </div>

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {
     Save, X, Search, Users, Briefcase, User, Shield,
     ChevronRight, Check, Filter, RefreshCw, FolderTree,
-    Menu as MenuIcon, Layers, Settings, Globe, Database
+    Menu as MenuIcon, Layers, Settings, Globe, Database,
+    Download
 } from 'lucide-react';
 import Breadcrumb from '../basicComponents/BreadCrumb';
 import CommonDropDown from '../basicComponents/CommonDropDown';
@@ -12,6 +13,7 @@ function MenuMappingTest() {
     const [selectedRole, setSelectedRole] = useState('');
     const [selectedDesignation, setSelectedDesignation] = useState('');
     const [selectedEmployee, setSelectedEmployee] = useState('');
+    const [selectedDepartment, setSelectedDepartment] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [activeMainMenu, setActiveMainMenu] = useState('all');
     const [menuData, setMenuData] = useState([]);
@@ -28,6 +30,15 @@ function MenuMappingTest() {
         { role_code: 'EMP', role_name: 'Employee', role_id: 4 },
         { role_code: 'PAYROLL', role_name: 'Payroll Manager', role_id: 5 },
         { role_code: 'SUPERVISOR', role_name: 'Supervisor', role_id: 6 }
+    ];
+
+    const departments = [
+        { dept_code: 'DEPT001', dept_name: 'Engineering' },
+        { dept_code: 'DEPT002', dept_name: 'Human Resources' },
+        { dept_code: 'DEPT003', dept_name: 'Sales' },
+        { dept_code: 'DEPT004', dept_name: 'Marketing' },
+        { dept_code: 'DEPT005', dept_name: 'Finance' },
+        { dept_code: 'DEPT006', dept_name: 'Operations' }
     ];
 
     const designations = [
@@ -49,6 +60,25 @@ function MenuMappingTest() {
         { emp_code: 'EMP005', emp_name: 'David Kumar', designation: 'Accountant', department: 'Finance' },
         { emp_code: 'EMP006', emp_name: 'Priya Patel', designation: 'HR Executive', department: 'HR' }
     ];
+
+    // Filter designations based on selected department
+    const filteredDesignations = selectedDepartment
+        ? designations.filter(d => d.dept === departments.find(dept => dept.dept_code === selectedDepartment)?.dept_name)
+        : designations;
+
+    // Filter employees based on selected department and designation
+    const filteredEmployees = employees.filter(e => {
+        let match = true;
+        if (selectedDepartment) {
+            const deptName = departments.find(d => d.dept_code === selectedDepartment)?.dept_name;
+            match = match && e.department === deptName;
+        }
+        if (selectedDesignation) {
+            const desigName = designations.find(d => d.designation_code === selectedDesignation)?.designation_name;
+            match = match && e.designation === desigName;
+        }
+        return match;
+    });
 
     // Main Menus with Icons
     const mainMenus = [
@@ -180,7 +210,12 @@ function MenuMappingTest() {
         setSelectedRole('');
         setSelectedDesignation('');
         setSelectedEmployee('');
+        setSelectedDepartment('');
         setSelectedSubMenus([]);
+    };
+
+    const handleLoadMapping = () => {
+        loadMenus();
     };
 
     const handleMainMenuToggle = (mainMenuId) => {
@@ -297,7 +332,7 @@ function MenuMappingTest() {
     };
 
     return (
-        <div className="p-3">
+        <div className="p-6">
             <Breadcrumb
                 items={[
                     { label: 'Settings', to: '/settings' },
@@ -308,153 +343,165 @@ function MenuMappingTest() {
             />
 
             <div className="bg-white rounded-xl shadow-sm mb-6">
-                <div className="flex overflow-x-auto">
+                <div className="flex overflow-x-auto border-b">
                     <button
                         onClick={() => handleMappingTypeChange('role')}
-                        className={`px-4 py-3 font-medium text-sm whitespace-nowrap flex items-center gap-2 ${mappingType === 'role'
-                            ? 'text-indigo-600 border-b-2 border-indigo-600'
-                            : 'text-gray-600 hover:text-gray-900'
+                        className={`px-6 py-3 font-medium text-sm whitespace-nowrap flex items-center gap-2 transition-colors ${mappingType === 'role'
+                                ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
+                                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                             }`}
                     >
-                        <Layers className="w-4 h-4" />
+                        <Shield className="w-4 h-4" />
                         Role-wise Mapping
                     </button>
 
                     <button
                         onClick={() => handleMappingTypeChange('designation')}
-                        className={`px-4 py-3 font-medium text-sm whitespace-nowrap flex items-center gap-2 ${mappingType === 'designation'
-                            ? 'text-indigo-600 border-b-2 border-indigo-600'
-                            : 'text-gray-600 hover:text-gray-900'
+                        className={`px-6 py-3 font-medium text-sm whitespace-nowrap flex items-center gap-2 transition-colors ${mappingType === 'designation'
+                                ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
+                                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                             }`}
                     >
-                        <Layers className="w-4 h-4" />
+                        <Briefcase className="w-4 h-4" />
                         Designation-wise Mapping
                     </button>
 
                     <button
                         onClick={() => handleMappingTypeChange('employee')}
-                        className={`px-4 py-3 font-medium text-sm whitespace-nowrap flex items-center gap-2 ${mappingType === 'employee'
-                            ? 'text-indigo-600 border-b-2 border-indigo-600'
-                            : 'text-gray-600 hover:text-gray-900'
+                        className={`px-6 py-3 font-medium text-sm whitespace-nowrap flex items-center gap-2 transition-colors ${mappingType === 'employee'
+                                ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
+                                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                             }`}
                     >
-                        <Layers className="w-4 h-4" />
+                        <User className="w-4 h-4" />
                         Employee-wise Mapping
                     </button>
-
                 </div>
             </div>
 
-            {/* Selection Dropdowns */}
-            <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
-                <div className="flex flex-wrap items-end gap-4">
+            <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {mappingType === 'role' && (
-                        <CommonDropDown
-                            label="Select Role *"
-                            value={selectedRole}
-                            onChange={setSelectedRole}
-                            options={roles.map(r => ({
-                                label: r.role_name,
-                                value: r.role_code,
-                                description: `Role ID: ${r.role_id}`
-                            }))}
-                            placeholder="Choose a role"
-                            required
-                        />
+                        <div className="col-span-1">
+                            <CommonDropDown
+                                label="Select Role"
+                                value={selectedRole}
+                                onChange={setSelectedRole}
+                                options={roles.map(r => ({
+                                    label: r.role_name,
+                                    value: r.role_code,
+                                    description: `Role ID: ${r.role_id}`
+                                }))}
+                                placeholder="Choose a role"
+                                required
+                            />
+                        </div>
                     )}
 
                     {mappingType === 'designation' && (
-                        <div className='flex gap-5'>
-                            <CommonDropDown
-                                label="Select Department"
-                                value={selectedDesignation}
-                                onChange={setSelectedDesignation}
-                                options={designations.map(d => ({
-                                    label: d.designation_name,
-                                    value: d.designation_code,
-                                    description: d.dept
-                                }))}
-                                placeholder="Choose a designation"
-                                required
-                            />
-                            <CommonDropDown
-                                label="Select Designation"
-                                value={selectedDesignation}
-                                onChange={setSelectedDesignation}
-                                options={designations.map(d => ({
-                                    label: d.designation_name,
-                                    value: d.designation_code,
-                                    description: d.dept
-                                }))}
-                                placeholder="Choose a designation"
-                                required
-                            />
-                        </div>
+                        <>
+                            <div className="col-span-1">
+                                <CommonDropDown
+                                    label="Select Department"
+                                    value={selectedDepartment}
+                                    onChange={setSelectedDepartment}
+                                    options={departments.map(d => ({
+                                        label: d.dept_name,
+                                        value: d.dept_code
+                                    }))}
+                                    placeholder="Choose department"
+                                />
+                            </div>
+                            <div className="col-span-1">
+                                <CommonDropDown
+                                    label="Select Designation"
+                                    value={selectedDesignation}
+                                    onChange={setSelectedDesignation}
+                                    options={filteredDesignations.map(d => ({
+                                        label: d.designation_name,
+                                        value: d.designation_code,
+                                        description: d.dept
+                                    }))}
+                                    placeholder="Choose a designation"
+                                    required
+                                />
+                            </div>
+                        </>
                     )}
 
                     {mappingType === 'employee' && (
-                        <div className='flex gap-5'>
-                            <CommonDropDown
-                                label="Select Department"
-                                value={selectedDesignation}
-                                onChange={setSelectedDesignation}
-                                options={designations.map(d => ({
-                                    label: d.designation_name,
-                                    value: d.designation_code,
-                                    description: d.dept
-                                }))}
-                                placeholder="Choose a designation"
-                                required
-                            />
-                            <CommonDropDown
-                                label="Select Designation"
-                                value={selectedDesignation}
-                                onChange={setSelectedDesignation}
-                                options={designations.map(d => ({
-                                    label: d.designation_name,
-                                    value: d.designation_code,
-                                    description: d.dept
-                                }))}
-                                placeholder="Choose a designation"
-                                required
-                            />
-                            <CommonDropDown
-                                label="Select Employee"
-                                value={selectedEmployee}
-                                onChange={setSelectedEmployee}
-                                options={employees.map(e => ({
-                                    label: e.emp_name,
-                                    value: e.emp_code,
-                                    description: `${e.designation} - ${e.department}`
-                                }))}
-                                placeholder="Choose an employee"
-                                required
-                            />
-                        </div>
-
+                        <>
+                            <div className="col-span-1">
+                                <CommonDropDown
+                                    label="Select Department"
+                                    value={selectedDepartment}
+                                    onChange={setSelectedDepartment}
+                                    options={departments.map(d => ({
+                                        label: d.dept_name,
+                                        value: d.dept_code
+                                    }))}
+                                    placeholder="Choose department"
+                                />
+                            </div>
+                            <div className="col-span-1">
+                                <CommonDropDown
+                                    label="Select Designation"
+                                    value={selectedDesignation}
+                                    onChange={setSelectedDesignation}
+                                    options={filteredDesignations.map(d => ({
+                                        label: d.designation_name,
+                                        value: d.designation_code,
+                                        description: d.dept
+                                    }))}
+                                    placeholder="Choose designation"
+                                />
+                            </div>
+                            <div className="col-span-1">
+                                <CommonDropDown
+                                    label="Select Employee"
+                                    value={selectedEmployee}
+                                    onChange={setSelectedEmployee}
+                                    options={filteredEmployees.map(e => ({
+                                        label: e.emp_name,
+                                        value: e.emp_code,
+                                        description: `${e.designation} - ${e.department}`
+                                    }))}
+                                    placeholder="Choose an employee"
+                                    required
+                                />
+                            </div>
+                        </>
                     )}
 
-                    {/* Load Mapping Button */}
-                    <div className="ml-auto">
+                    <div className="flex items-end">
                         <button
-
+                            onClick={handleLoadMapping}
+                            disabled={
+                                (mappingType === 'role' && !selectedRole) ||
+                                (mappingType === 'designation' && !selectedDesignation) ||
+                                (mappingType === 'employee' && !selectedEmployee)
+                            }
+                            className={`w-full px-6 py-2.5 rounded-lg flex items-center justify-center gap-2 transition-all ${(mappingType === 'role' && !selectedRole) ||
+                                    (mappingType === 'designation' && !selectedDesignation) ||
+                                    (mappingType === 'employee' && !selectedEmployee)
+                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                    : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm hover:shadow'
+                                }`}
                         >
+                            <Download className="w-4 h-4" />
                             Load Mapping
                         </button>
                     </div>
-
-
                 </div>
             </div>
 
-            {/* Main Menu Tabs */}
             <div className="bg-white rounded-xl shadow-sm mb-6">
-                <div className="flex overflow-x-auto p-3">
+                <div className="flex overflow-x-auto p-2 gap-1">
                     <button
                         onClick={() => setActiveMainMenu('all')}
-                        className={`px-2 h-8 font-medium text-sm whitespace-nowrap flex items-center gap-2 ${activeMainMenu === 'all'
-                            ? 'text-white border-b-2 border-indigo-600 bg-indigo-500 rounded-md'
-                            : 'text-gray-600 hover:text-gray-900'
+                        className={`px-4 py-2 font-medium text-sm whitespace-nowrap flex items-center gap-2 rounded-lg transition-all ${activeMainMenu === 'all'
+                                ? 'bg-indigo-600 text-white shadow-sm'
+                                : 'text-gray-600 hover:bg-gray-100'
                             }`}
                     >
                         <Layers className="w-4 h-4" />
@@ -464,9 +511,9 @@ function MenuMappingTest() {
                         <button
                             key={menu.main_menu_id}
                             onClick={() => setActiveMainMenu(menu.main_menu_id.toString())}
-                            className={`px-2 h-8 font-medium text-sm whitespace-nowrap flex items-center gap-2 ${activeMainMenu === menu.main_menu_id.toString()
-                                ? 'text-white border-b-2 border-indigo-600 bg-indigo-500 rounded-md'
-                                : 'text-gray-600 hover:text-gray-900'
+                            className={`px-4 py-2 font-medium text-sm whitespace-nowrap flex items-center gap-2 rounded-lg transition-all ${activeMainMenu === menu.main_menu_id.toString()
+                                    ? 'bg-indigo-600 text-white shadow-sm'
+                                    : 'text-gray-600 hover:bg-gray-100'
                                 }`}
                         >
                             <span className={`w-2 h-2 rounded-full ${menu.color}`} />
@@ -476,18 +523,17 @@ function MenuMappingTest() {
                 </div>
             </div>
 
-            {/* Menu Selection Area */}
             <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
-                <div className="p-4 border-b border-b-gray-300 bg-gray-50 flex justify-between items-center ">
-                    <div>
-                        <h2 className="font-semibold text-gray-900">Menu Access Configuration</h2>
-                        <p className="text-sm text-gray-500">
-                            {selectedSubMenus.length} menus selected • {subMenus.length} total menus
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className="">
-                            <div className="">
+                <div className="p-4 border-b border-gray-200 bg-gray-50">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <h2 className="font-semibold text-gray-900">Menu Access Configuration</h2>
+                            <p className="text-sm text-gray-500">
+                                {selectedSubMenus.length} menus selected • {subMenus.length} total menus
+                            </p>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-3">
+                            <div className="relative w-full md:w-64">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                 <input
                                     type="text"
@@ -497,21 +543,21 @@ function MenuMappingTest() {
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
                             </div>
+                            <button
+                                onClick={handleExpandAll}
+                                className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm flex items-center gap-1 whitespace-nowrap"
+                            >
+                                <Layers className="w-4 h-4" />
+                                {expandedMenus.length === mainMenus.length ? 'Collapse All' : 'Expand All'}
+                            </button>
+                            <button
+                                onClick={handleReset}
+                                className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm flex items-center gap-1 whitespace-nowrap"
+                            >
+                                <RefreshCw className="w-4 h-4" />
+                                Reset
+                            </button>
                         </div>
-                        <button
-                            onClick={handleExpandAll}
-                            className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm flex items-center gap-1"
-                        >
-                            <Layers className="w-4 h-4" />
-                            {expandedMenus.length === mainMenus.length ? 'Collapse All' : 'Expand All'}
-                        </button>
-                        <button
-                            onClick={handleReset}
-                            className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm flex items-center gap-1"
-                        >
-                            <RefreshCw className="w-4 h-4" />
-                            Reset
-                        </button>
                     </div>
                 </div>
 
@@ -522,21 +568,17 @@ function MenuMappingTest() {
                     </div>
                 ) : (
                     <div className="p-6">
-
-                        {/* Header Row */}
-                        <div className="flex justify-between items-center mb-4">
+                        <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200">
                             <h3 className="font-semibold text-gray-900">
                                 Menu List
                             </h3>
-
-                            <label className="flex items-center gap-2 cursor-pointer">
+                            <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-3 py-1.5 rounded-lg">
                                 <input
                                     type="checkbox"
                                     className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                    checked={selectedSubMenus.length === getFilteredSubMenus().length}
+                                    checked={selectedSubMenus.length === getFilteredSubMenus().length && getFilteredSubMenus().length > 0}
                                     onChange={() => {
                                         const filteredMenus = getFilteredSubMenus().map(sm => sm.sub_menu_id);
-
                                         if (selectedSubMenus.length === filteredMenus.length) {
                                             setSelectedSubMenus([]);
                                         } else {
@@ -548,27 +590,26 @@ function MenuMappingTest() {
                             </label>
                         </div>
 
-                        <div className="h-[450px] overflow-y-auto scrollbar">
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        <div className="h-[450px] overflow-y-auto scrollbar pr-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                                 {getFilteredSubMenus().map(subMenu => (
                                     <label
                                         key={subMenu.sub_menu_id}
-                                        className="flex items-center gap-3 p-3 bg-white rounded-lg hover:bg-gray-100 cursor-pointer transition"
+                                        className="flex items-start gap-3 p-3 bg-white border border-gray-200 rounded-lg hover:bg-indigo-50 hover:border-indigo-200 cursor-pointer transition-all group"
                                     >
                                         <input
                                             type="checkbox"
-                                            className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                            className="mt-0.5 w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                                             checked={selectedSubMenus.includes(subMenu.sub_menu_id)}
                                             onChange={() => handleSubMenuToggle(subMenu.sub_menu_id)}
                                         />
-                                        <div>
-                                            <div className="text-sm font-medium text-gray-800">
+                                        <div className="flex-1">
+                                            <div className="text-sm font-medium text-gray-800 group-hover:text-indigo-700">
                                                 {subMenu.sub_menu_name}
                                             </div>
-                                            {/* <div className="text-xs text-gray-400">
+                                            <div className="text-xs text-gray-400 group-hover:text-indigo-400 mt-0.5">
                                                 {subMenu.route_path}
-                                            </div> */}
+                                            </div>
                                         </div>
                                     </label>
                                 ))}
@@ -579,23 +620,19 @@ function MenuMappingTest() {
                                     <MenuIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                                     <h3 className="text-lg font-medium text-gray-900 mb-2">No Menus Found</h3>
                                     <p className="text-gray-600">
-                                        Try adjusting your search criteria
+                                        {searchQuery ? 'Try adjusting your search criteria' : 'Select a filter to view menus'}
                                     </p>
                                 </div>
                             )}
-
                         </div>
                     </div>
-
                 )}
-
             </div>
 
-            {/* Action Buttons */}
             <div className="flex justify-end gap-3">
                 <button
                     onClick={handleReset}
-                    className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
+                    className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
                 >
                     <X className="w-4 h-4" />
                     Cancel
@@ -607,10 +644,10 @@ function MenuMappingTest() {
                         (mappingType === 'designation' && !selectedDesignation) ||
                         (mappingType === 'employee' && !selectedEmployee)
                     }
-                    className={`px-6 py-2 rounded-lg flex items-center gap-2 transition-colors ${saveStatus === 'success'
-                        ? 'bg-green-600 text-white'
-                        : 'bg-indigo-600 text-white hover:bg-indigo-700'
-                        } ${(!selectedRole && !selectedDesignation && !selectedEmployee) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`px-6 py-2.5 rounded-lg flex items-center gap-2 transition-all ${saveStatus === 'success'
+                            ? 'bg-green-600 text-white hover:bg-green-700'
+                            : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                        } ${(!selectedRole && !selectedDesignation && !selectedEmployee) ? 'opacity-50 cursor-not-allowed' : 'shadow-sm hover:shadow'}`}
                 >
                     {saveStatus === 'saving' ? (
                         <>

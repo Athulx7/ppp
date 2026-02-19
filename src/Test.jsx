@@ -12,6 +12,13 @@ import CommonDropDown from '../../basicComponents/CommonDropDown';
 import CommonDatePicker from '../../basicComponents/CommonDatePicker';
 import { getRoleBasePath } from '../../library/constants';
 
+
+{/* <Route path='uploadDash' element = {<UploadDashboard />} />
+          <Route path='uploadProgress/:batchId' element= { <UploadProgress />} />
+          <Route path='uploadHistory' element= { <UploadHistory />} />
+          <Route path='menumapping' element={<MenuMappingTest />} />
+          <Route path='ctcreport' element={<CtcReportTest />} /> */}
+
 function EmpMstAddEditEntry() {
     const { id } = useParams();
 
