@@ -17,7 +17,9 @@ import { getRoleBasePath } from '../../library/constants';
           <Route path='uploadProgress/:batchId' element= { <UploadProgress />} />
           <Route path='uploadHistory' element= { <UploadHistory />} />
           <Route path='menumapping' element={<MenuMappingTest />} />
-          <Route path='ctcreport' element={<CtcReportTest />} /> */}
+          <Route path='ctcreport' element={<CtcReportTest />} /> 
+          <Route path='payslip' element={<PayslipsTest />} />
+          */}
 
 function EmpMstAddEditEntry() {
     const { id } = useParams();
