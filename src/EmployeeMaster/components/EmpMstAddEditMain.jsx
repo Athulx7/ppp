@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import EmpMstAddEditInputs from './EmpMstAddEditInputs'
-import { ApiCall } from '../../library/constants';
+import { ApiCall, getRoleBasePath } from '../../library/constants';
 import LoadingSpinner from '../../basicComponents/LoadingSpinner';
 import CommonStatusPopUp from '../../basicComponents/CommonStatusPopUp';
+import { useNavigate } from 'react-router-dom';
 
-function EmpMstAddEditMain() {
+function EmpMstAddEditMain({ employeeId }) {
+    const navigate = useNavigate()
     const [isDisabled, setIsDisabled] = useState(false)
     const [empMstControls, setEmpMstControls] = useState([]);
-    const [autoCode,setAutocode] = useState('')
+    const [autoCode, setAutocode] = useState('')
     const [isLoading, setIsLoading] = useState(false)
     const [statusPopup, setStatusPopup] = useState({
         show: false,
@@ -42,7 +44,8 @@ function EmpMstAddEditMain() {
                 setIsLoading={setIsLoading}
                 statusPopup={statusPopup}
                 setStatusPopup={setStatusPopup}
-                autoCode = {autoCode}
+                autoCode={autoCode}
+                employeeId={employeeId}
             />
 
             {isLoading && <LoadingSpinner />}
@@ -53,9 +56,12 @@ function EmpMstAddEditMain() {
                 title={statusPopup.title}
                 body={statusPopup.message}
                 autoClose={statusPopup.autoClose}
-                onClose={() =>
+                onClose={() => {
                     setStatusPopup(prev => ({ ...prev, show: false }))
-                }
+                    if (statusPopup.type === "success") {
+                        navigate(`${getRoleBasePath()}/employee_master_entry`)
+                    }
+                }}
             />
         </div>
     )

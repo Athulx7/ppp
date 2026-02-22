@@ -29,10 +29,7 @@ function CommonInputField({
     const handleChange = (e) => {
         let inputValue = e.target.value.replaceAll("\\", "")
 
-        if (regex && !regex.test(inputValue)) return
-
         if (onlyNumber && !checkForNumber(inputValue)) return
-
         if (maxLength && inputValue.length > maxLength) return
 
         onChange(inputValue)

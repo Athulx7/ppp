@@ -41,7 +41,7 @@ function CommonToggleButton({
 
                 <div
                     className={`flex items-center gap-1 px-3 py-1.5 text-sm font-medium border border-red-500  rounded-r-lg transition
-          ${!isYes ? "bg-red-500 text-white" : "bg-red-200 text-gray-600"}`}
+          ${!isYes ? "bg-red-500 text-white" : " text-gray-600"}`}
                 >
                     <X size={14} />
                     {noLabel}

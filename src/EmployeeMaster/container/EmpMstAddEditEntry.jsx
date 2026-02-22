@@ -15,7 +15,7 @@ function EmpMstAddEditEntry() {
             />
 
             <div>
-                <EmpMstAddEditMain />
+                <EmpMstAddEditMain employeeId={id}/>
             </div>
 
         </>

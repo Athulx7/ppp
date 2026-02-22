@@ -590,7 +590,7 @@ function MenuMappingTest() {
                             </label>
                         </div>
 
-                        <div className="h-[450px] overflow-y-auto scrollbar pr-2">
+                        <div className="h-112.5 overflow-y-auto scrollbar pr-2">
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                                 {getFilteredSubMenus().map(subMenu => (
                                     <label

@@ -414,24 +414,20 @@ function CtcReportTest() {
 
         return (
             <div className="bg-white rounded-xl shadow-sm p-6">
-                <div className="flex items-center gap-4 mb-6 pb-6 border-b">
-                    <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl font-bold">
-                        {myData.emp_name.split(' ').map(n => n[0]).join('')}
-                    </div>
+                <div className="flex items-center justify-between gap-4 mb-6 pb-6 border-b border-b-gray-300">
                     <div>
                         <h2 className="text-2xl font-bold text-gray-900">{myData.emp_name}</h2>
                         <p className="text-gray-600">{myData.emp_code} | {myData.designation}</p>
                         <p className="text-sm text-gray-500">{myData.department} • {myData.grade}</p>
                     </div>
 
-                    <div className='flex items-end justify-end'>
-                        <button
-                            onClick={handleExportData}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                        >
-                            Export
-                        </button>
-                    </div>
+                    <button
+                        onClick={handleExportData}
+                        className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm flex items-center gap-1"
+                    >
+                        <DownloadCloud className="w-4 h-4" />
+                        Export
+                    </button>
                 </div>
 
                 <div className="mb-8">
@@ -457,8 +453,8 @@ function CtcReportTest() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="border rounded-lg overflow-hidden">
-                        <div className="bg-gray-50 px-4 py-3 border-b">
+                    <div className="border border-gray-300 rounded-lg overflow-hidden">
+                        <div className="bg-gray-50 px-4 py-3 border-b border-b-gray-300">
                             <h4 className="font-semibold text-gray-900">Earnings</h4>
                         </div>
                         <div className="p-4">
@@ -491,7 +487,7 @@ function CtcReportTest() {
                                     <span className="text-gray-600">LTA</span>
                                     <span className="font-medium">₹{myData.lta.toLocaleString()}</span>
                                 </div>
-                                <div className="flex justify-between items-center pt-3 border-t font-semibold">
+                                <div className="flex justify-between items-center pt-3 border-t border-t-gray-300 font-semibold">
                                     <span className="text-gray-900">Total Earnings</span>
                                     <span className="text-gray-900">₹{monthlyGross.toLocaleString()}</span>
                                 </div>
@@ -499,8 +495,8 @@ function CtcReportTest() {
                         </div>
                     </div>
 
-                    <div className="border rounded-lg overflow-hidden">
-                        <div className="bg-gray-50 px-4 py-3 border-b">
+                    <div className="border border-gray-300 rounded-lg overflow-hidden">
+                        <div className="bg-gray-50 px-4 py-3 border-b border-b-gray-300">
                             <h4 className="font-semibold text-gray-900">Deductions</h4>
                         </div>
                         <div className="p-4">
@@ -509,14 +505,14 @@ function CtcReportTest() {
                                     <span className="text-gray-600">PF Employee</span>
                                     <span className="font-medium">₹{myData.pf_employee?.toLocaleString() || '0'}</span>
                                 </div>
-                                <div className="flex justify-between items-center pt-3 border-t font-semibold">
+                                <div className="flex justify-between items-center pt-3 border-t border-t-gray-300 font-semibold">
                                     <span className="text-gray-900">Total Deductions</span>
                                     <span className="text-gray-900">₹{monthlyDeductions.toLocaleString()}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="border-t">
+                        <div className="border-t border-t-gray-300">
                             <div className="bg-gray-50 px-4 py-3">
                                 <h4 className="font-semibold text-gray-900">Employer Contributions</h4>
                                 <p className="text-xs text-gray-500 mt-1">Not shown on payslip, included in CTC</p>
@@ -542,7 +538,7 @@ function CtcReportTest() {
                                                 <span className="font-medium">₹{myData.insurance.toLocaleString()}</span>
                                             </div>
                                         )}
-                                        <div className="flex justify-between items-center pt-3 border-t font-semibold">
+                                        <div className="flex justify-between items-center pt-3 border-t border-t-gray-300 font-semibold">
                                             <span className="text-gray-900">Total Employer Contributions</span>
                                             <span className="text-gray-900">₹{(myData.pf_employer + myData.gratuity + myData.insurance).toLocaleString()}</span>
                                         </div>
@@ -676,30 +672,6 @@ function CtcReportTest() {
 
                     {displayFormat === 'table' && (
                         <div className="">
-                            {/* <div className="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-                                <div>
-                                    <h2 className="font-semibold text-gray-900">CTC Details</h2>
-                                    <p className="text-sm text-gray-500">
-                                        Showing {filteredData.length} employees
-                                    </p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={handleExportData}
-                                        className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm flex items-center gap-1"
-                                    >
-                                        <DownloadCloud className="w-4 h-4" />
-                                        Export
-                                    </button>
-                                    <button
-                                        onClick={handlePrintReport}
-                                        className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm flex items-center gap-1"
-                                    >
-                                        <Printer className="w-4 h-4" />
-                                        Print
-                                    </button>
-                                </div>
-                            </div> */}
                             <CommonTable
                                 columns={ctcColumns}
                                 data={filteredData}
@@ -713,7 +685,7 @@ function CtcReportTest() {
                     {displayFormat === 'card' && (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {filteredData.map(emp => (
-                                <div key={emp.emp_code} className="bg-white rounded-xl shadow-sm border hover:shadow-md transition-all p-4">
+                                <div key={emp.emp_code} className="bg-white rounded-xl shadow-sm border border-gray-300 hover:shadow-md transition-all p-4">
                                     <div className="flex items-start justify-between mb-3">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
@@ -744,7 +716,7 @@ function CtcReportTest() {
                                         </div>
                                     </div>
 
-                                    <div className="border-t pt-3">
+                                    <div className="border-t border-t-gray-300 pt-3">
                                         <div className="flex justify-between items-center mb-2">
                                             <span className="text-sm text-gray-500">Total CTC</span>
                                             <span className="text-lg font-bold text-green-600">₹ {emp.total_ctc.toLocaleString()}</span>
@@ -781,7 +753,7 @@ function CtcReportTest() {
             {showPopup && selectedEmployeeData && (
                 <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto scrollbar">
-                        <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
+                        <div className="sticky top-0 bg-white border-b px-6 py-2 flex justify-between items-center">
                             <h3 className="text-lg font-semibold text-gray-900">Employee CTC Details</h3>
                             <button
                                 onClick={closePopup}
@@ -791,16 +763,23 @@ function CtcReportTest() {
                             </button>
                         </div>
                         <div className="p-6">
-                            <div className="flex items-center gap-4 mb-6 pb-6 border-b">
-                                <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl font-bold">
-                                    {selectedEmployeeData.emp_name.split(' ').map(n => n[0]).join('')}
-                                </div>
-                                <div>
+                            <div className="flex items-center justify-between gap-4 mb-6 pb-6 border-b border-b-gray-300">
+                   <div>
                                     <h2 className="text-2xl font-bold text-gray-900">{selectedEmployeeData.emp_name}</h2>
                                     <p className="text-gray-600">{selectedEmployeeData.emp_code} | {selectedEmployeeData.designation}</p>
                                     <p className="text-sm text-gray-500">{selectedEmployeeData.department} • {selectedEmployeeData.grade}</p>
                                 </div>
-                            </div>
+
+                    <button
+                        onClick={handleExportData}
+                        className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm flex items-center gap-1"
+                    >
+                        <DownloadCloud className="w-4 h-4" />
+                        Export
+                    </button>
+                </div>
+
+                            
 
                             {(() => {
                                 const monthlyGross = selectedEmployeeData.basic_salary + selectedEmployeeData.hra +
@@ -837,8 +816,8 @@ function CtcReportTest() {
                                         </div>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div className="border rounded-lg overflow-hidden">
-                                                <div className="bg-gray-50 px-4 py-3 border-b">
+                                            <div className="border border-gray-300 rounded-lg overflow-hidden">
+                                                <div className="bg-gray-50 px-4 py-3 border-b border-b-gray-300">
                                                     <h4 className="font-semibold text-gray-900">Earnings</h4>
                                                 </div>
                                                 <div className="p-4">
@@ -871,7 +850,7 @@ function CtcReportTest() {
                                                             <span className="text-gray-600">LTA</span>
                                                             <span className="font-medium">₹{selectedEmployeeData.lta.toLocaleString()}</span>
                                                         </div>
-                                                        <div className="flex justify-between items-center pt-3 border-t font-semibold">
+                                                        <div className="flex justify-between items-center pt-3 border-t border-t-gray-300 font-semibold">
                                                             <span className="text-gray-900">Total Earnings</span>
                                                             <span className="text-gray-900">₹{monthlyGross.toLocaleString()}</span>
                                                         </div>
@@ -879,8 +858,8 @@ function CtcReportTest() {
                                                 </div>
                                             </div>
 
-                                            <div className="border rounded-lg overflow-hidden">
-                                                <div className="bg-gray-50 px-4 py-3 border-b">
+                                            <div className="border border-gray-300 rounded-lg overflow-hidden">
+                                                <div className="bg-gray-50 px-4 py-3 border-b border-b-gray-300">
                                                     <h4 className="font-semibold text-gray-900">Deductions</h4>
                                                 </div>
                                                 <div className="p-4">
@@ -889,14 +868,14 @@ function CtcReportTest() {
                                                             <span className="text-gray-600">PF Employee</span>
                                                             <span className="font-medium">₹{selectedEmployeeData.pf_employee?.toLocaleString() || '0'}</span>
                                                         </div>
-                                                        <div className="flex justify-between items-center pt-3 border-t font-semibold">
+                                                        <div className="flex justify-between items-center pt-3 border-t border-t-gray-300 font-semibold">
                                                             <span className="text-gray-900">Total Deductions</span>
                                                             <span className="text-gray-900">₹{monthlyDeductions.toLocaleString()}</span>
                                                         </div>
                                                     </div>
                                                 </div>
 
-                                                <div className="border-t">
+                                                <div className="border-t border-t-gray-300">
                                                     <div className="bg-gray-50 px-4 py-3">
                                                         <h4 className="font-semibold text-gray-900">Employer Contributions</h4>
                                                         <p className="text-xs text-gray-500 mt-1">Not shown on payslip, included in CTC</p>
@@ -922,7 +901,7 @@ function CtcReportTest() {
                                                                         <span className="font-medium">₹{selectedEmployeeData.insurance.toLocaleString()}</span>
                                                                     </div>
                                                                 )}
-                                                                <div className="flex justify-between items-center pt-3 border-t font-semibold">
+                                                                <div className="flex justify-between items-center pt-3 border-t border-t-gray-300 font-semibold">
                                                                     <span className="text-gray-900">Total Employer Contributions</span>
                                                                     <span className="text-gray-900">₹{(selectedEmployeeData.pf_employer + selectedEmployeeData.gratuity + selectedEmployeeData.insurance).toLocaleString()}</span>
                                                                 </div>

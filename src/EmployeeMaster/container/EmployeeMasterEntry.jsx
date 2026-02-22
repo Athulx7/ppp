@@ -5,89 +5,146 @@ import BreadCrumb from '../../basicComponents/BreadCrumb';
 import CommonInputField from '../../basicComponents/CommonInputField';
 import CommonDropDown from '../../basicComponents/CommonDropDown';
 import CommonTable from '../../basicComponents/commonTable';
-import { getRoleBasePath } from '../../library/constants';
+import { ApiCall, getRoleBasePath } from '../../library/constants';
+import LoadingSpinner from '../../basicComponents/LoadingSpinner';
 
 function EmployeeMasterEntry() {
     const navigate = useNavigate();
-    const [searchQuery, setSearchQuery] = useState('');
-    const [departmentFilter, setDepartmentFilter] = useState('all');
-    const [statusFilter, setStatusFilter] = useState('all');
-    const [employees, setEmployees] = useState([]);
+    const [filters, setFilters] = useState({
+        emp_code: '',
+        emp_name: '',
+        department_code: '',
+        designation_code: '',
+        hierarchy_code: '',
+        status: ''
+    })
 
-    const employeesData = [
-        {
-            employee_id: 1,
-            employee_code: "EMP001",
-            first_name: "John",
-            last_name: "Doe",
-            email: "john.doe@company.com",
-            mobile_number: "+91 9876543210",
-            department: "Engineering",
-            designation: "Senior Software Engineer",
-            employee_status: "Active",
-            joining_date: "2022-01-15"
-        },
-        {
-            employee_id: 2,
-            employee_code: "EMP002",
-            first_name: "Sarah",
-            last_name: "Johnson",
-            email: "sarah.j@company.com",
-            mobile_number: "+91 9876543220",
-            department: "HR",
-            designation: "HR Manager",
-            employee_status: "Active",
-            joining_date: "2021-06-01"
-        },
-        {
-            employee_id: 3,
-            employee_code: "EMP003",
-            first_name: "Michael",
-            last_name: "Chen",
-            email: "michael.c@company.com",
-            mobile_number: "+91 9876543230",
-            department: "Sales",
-            designation: "Sales Manager",
-            employee_status: "Probation",
-            joining_date: "2023-11-15"
-        },
-        {
-            employee_id: 4,
-            employee_code: "EMP004",
-            first_name: "Priya",
-            last_name: "Patel",
-            email: "priya.p@company.com",
-            mobile_number: "+91 9876543240",
-            department: "Finance",
-            designation: "Accountant",
-            employee_status: "Inactive",
-            joining_date: "2022-08-20"
-        },
-        {
-            employee_id: 5,
-            employee_code: "EMP005",
-            first_name: "David",
-            last_name: "Kumar",
-            email: "david.k@company.com",
-            mobile_number: "+91 9876543250",
-            department: "Marketing",
-            designation: "Marketing Specialist",
-            employee_status: "Active",
-            joining_date: "2023-01-10"
-        }
-    ];
+    const [employees, setEmployees] = useState([])
+    const [showTable, setShowTable] = useState(false)
+    const [isLoading, setIsLoading] = useState(false)
+
+    const [dropdowns, setDropdowns] = useState({
+        departments: [],
+        designations: [],
+        hierarchyLevels: []
+    })
 
     useEffect(() => {
-        setEmployees(employeesData);
-    }, []);
+        loadDepartments()
+        loadHierarchyLevels()
+    }, [])
+
+    async function loadDepartments() {
+        setIsLoading(true)
+        try {
+            const res = await ApiCall('get', '/empmst/departmentsList')
+            if (res?.data?.success) {
+                setDropdowns(prev => ({
+                    ...prev,
+                    departments: res.data.data.data
+                }))
+            }
+        } catch (err) {
+            console.log(err)
+        }
+        setIsLoading(false)
+    }
+
+    async function loadDesignations(department_code) {
+        setIsLoading(true)
+        try {
+            const res = await ApiCall('get', `/empmst/designantionList?department_code=${department_code}`
+            )
+
+            if (res?.data?.success) {
+                setDropdowns(prev => ({
+                    ...prev,
+                    designations: res.data.data.data
+                }))
+            }
+        } catch (err) {
+            console.log(err)
+        }
+        setIsLoading(false)
+    }
+
+    async function loadHierarchyLevels() {
+        setIsLoading(true)
+        try {
+            const res = await ApiCall('get', '/empmst/hierarchyLevel')
+
+            if (res?.data?.success) {
+                setDropdowns(prev => ({
+                    ...prev,
+                    hierarchyLevels: res.data.data.data
+                }))
+            }
+        } catch (err) {
+            console.log(err)
+        }
+        setIsLoading(false)
+    }
+
+    const handleFilterChange = (name, value) => {
+        setFilters(prev => ({
+            ...prev,
+            [name]: value
+        }))
+        setShowTable(false)
+        if (name === 'department_code') {
+            loadDesignations(value)
+            setFilters(prev => ({
+                ...prev,
+                designation_code: ''
+            }))
+        }
+    }
+
+    const handleSearch = async () => {
+        setIsLoading(true)
+        try {
+            const queryParams = new URLSearchParams()
+            Object.entries(filters).forEach(([key, value]) => {
+                if (value) queryParams.append(key, value)
+            })
+
+            const res = await ApiCall('get',`/empmst/employeeList?${queryParams.toString()}`)
+
+            if (res?.data?.success) {
+                setEmployees(res.data.data)
+                setShowTable(true)
+            }
+            else{
+
+            }
+
+        } catch (err) {
+            console.log(err)
+        }
+        setIsLoading(false)
+    }
+
+    const handleRefresh = () => {
+        setFilters({
+            emp_code: '',
+            emp_name: '',
+            department_code: '',
+            designation_code: '',
+            hierarchy_code: '',
+            status: ''
+        })
+        setEmployees([])
+        setShowTable(false)
+    }
+    const isSearchDisabled = Object.values(filters).every(val => !val)
 
     const handleEdit = (row) => {
-        navigate(`${getRoleBasePath()}/employee_master_entry/edit/${row.employee_id}`, { state: { employee: row, mode: 'edit' } });
+        navigate(`${getRoleBasePath()}/employee_master_entry/edit/${row.employee_code}`, { state: { employee: row, mode: 'edit' } });
     };
 
     const handleDelete = (id) => {
         if (window.confirm('Are you sure you want to delete this employee?')) {
-            setEmployees(employees.filter(emp => emp.employee_id !== id));
+            setEmployees(employees.filter(emp => emp.employee_code !== id));
             alert('Employee deleted successfully!');
         }
     };
@@ -105,7 +162,7 @@ function EmployeeMasterEntry() {
                         <Edit size={16} />
                     </button>
                     <button
-                        onClick={() => handleDelete(row.employee_id)}
+                        onClick={() => handleDelete(row.employee_code)}
                         className="p-1 text-red-600 hover:bg-red-50 rounded-lg"
                         title="Delete"
                     >
@@ -185,22 +242,6 @@ function EmployeeMasterEntry() {
         }
     ];
 
-    const filteredEmployees = employees.filter(emp => {
-        const matchesSearch =
-            emp.employee_code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            emp.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            emp.last_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            emp.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            emp.department?.toLowerCase().includes(searchQuery.toLowerCase());
-
-        const matchesDepartment = departmentFilter === 'all' || emp.department === departmentFilter;
-        const matchesStatus = statusFilter === 'all' || emp.employee_status === statusFilter;
-
-        return matchesSearch && matchesDepartment && matchesStatus;
-    })
-
-    const departments = [...new Set(employees.map(emp => emp.department))]
-
     return (
         <div className="p-2">
             <BreadCrumb
@@ -218,78 +259,90 @@ function EmployeeMasterEntry() {
 
             <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+
                     <CommonInputField
                         label="Employee Code"
-                        value={''}
-                        disabled={''}
-                        onChange={''}
-                        placeholder="Enter Employee code"
+                        value={filters.emp_code}
+                        onChange={(val) => handleFilterChange('emp_code', val)}
+                        placeholder="Enter Employee Code"
                     />
 
                     <CommonInputField
                         label="Employee Name"
-                        value={''}
-                        disabled={''}
-                        onChange={''}
+                        value={filters.emp_name}
+                        onChange={(val) => handleFilterChange('emp_name', val)}
                         placeholder="Enter Employee Name"
                     />
+
                     <CommonDropDown
                         label="Department"
-                        value={departmentFilter}
-                        onChange={setDepartmentFilter}
-                        options={[
-                            { label: 'All Departments', value: 'all' },
-                            ...departments.map(dept => ({ label: dept, value: dept }))
-                        ]}
-                        placeholder="Filter by Department"
+                        value={filters.department_code}
+                        onChange={(val) => handleFilterChange('department_code', val)}
+                        options={dropdowns.departments}
+                        placeholder="Select Department"
                     />
 
                     <CommonDropDown
                         label="Designation"
-                        value={statusFilter}
-                        onChange={setStatusFilter}
-                        options={[
-                            { label: 'All Status', value: 'all' },
-                            { label: 'Active', value: 'Active' },
-                            { label: 'Inactive', value: 'Inactive' },
-                            { label: 'Probation', value: 'Probation' },
-                            { label: 'Terminated', value: 'Terminated' }
-                        ]}
-                        placeholder="Filter by Status"
+                        value={filters.designation_code}
+                        onChange={(val) => handleFilterChange('designation_code', val)}
+                        options={dropdowns.designations}
+                        placeholder="Select Designation"
+                    />
+
+                    <CommonDropDown
+                        label="Hierarchy Level"
+                        value={filters.hierarchy_code}
+                        onChange={(val) => handleFilterChange('hierarchy_code', val)}
+                        options={dropdowns.hierarchyLevels}
+                        placeholder="Select Hierarchy"
                     />
 
                     <CommonDropDown
                         label="Status"
-                        value={statusFilter}
-                        onChange={setStatusFilter}
+                        value={filters.status}
+                        onChange={(val) => handleFilterChange('status', val)}
                         options={[
-                            { label: 'All Status', value: 'all' },
                             { label: 'Active', value: 'Active' },
                             { label: 'Inactive', value: 'Inactive' },
                             { label: 'Probation', value: 'Probation' },
                             { label: 'Terminated', value: 'Terminated' }
                         ]}
-                        placeholder="Filter by Status"
+                        placeholder="Select Status"
                     />
-                    <div className='flex mt-6'>
-                        <button className="px-6   text-white bg-indigo-500 rounded-md hover:bg-indigo-600 cursor-pointer h-10">
+
+                    <div className="flex mt-6 gap-3">
+                        <button
+                            onClick={handleSearch}
+                            disabled={isSearchDisabled}
+                            className={`px-6 text-white rounded-md h-8 ${isSearchDisabled
+                                ? 'bg-indigo-400 cursor-not-allowed'
+                                : 'bg-indigo-500 hover:bg-indigo-600 cursor-pointer'
+                                }`}
+                        >
                             Search
                         </button>
-                        <button className="p-3 border-1 flex items-center ml-3 hover:border-gray-600 hover:text-gray-600 border-gray-700 rounded-md text-gray-700 cursor-pointer h-10">
-                            <RefreshCw />
+
+                        <button onClick={handleRefresh}
+                            className="h-8 w-8 flex cursor-pointer items-center justify-center  border bg-gray-200 border-gray-400 rounded-md hover:border-gray-400 text-gray-700"
+                        >
+                            <RefreshCw className="w-4 h-4" />
                         </button>
                     </div>
                 </div>
 
             </div>
 
-            <CommonTable
-                columns={columns}
-                data={filteredEmployees}
-                itemsPerPage={10}
-                showSearch={false}
-                showPagination={true}
-            />
+            {showTable && (
+                <CommonTable
+                    columns={columns}
+                    data={employees}
+                    itemsPerPage={10}
+                    showSearch={false}
+                    showPagination={true}
+                />
+            )}
+            {isLoading && <LoadingSpinner />}
         </div>
     )
 }
