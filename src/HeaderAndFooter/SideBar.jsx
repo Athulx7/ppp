@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { ChevronRight, ChevronLeft, X, Building2, LogOut, Grid3X3, Home, Rows3,  LayoutDashboard } from "lucide-react"
+import { ChevronRight, ChevronLeft, X, Building2, LogOut, Grid3X3, Home, Rows3, LayoutDashboard } from "lucide-react"
 import { NavLink, Link, useLocation } from "react-router-dom"
 import * as Icons from "lucide-react"
 import MainMenu from "./MainMenu";
@@ -19,6 +19,7 @@ function SideBar({
     const [menuData, setMenuData] = useState([])
     const [groupedMenus, setGroupedMenus] = useState({})
     const [settingsItems, setSettingsItems] = useState([])
+    const [isLogoHovered, setIsLogoHovered] = useState(false);
 
     const userData = useMemo(() => {
         try {
@@ -112,7 +113,6 @@ function SideBar({
         window.location.href = "/"
     }
 
-    const userInitial = userData?.name?.charAt(0)?.toUpperCase() || "U"
     return (
         <>
             <div className="lg:hidden flex items-center justify-between p-4 bg-white border-b border-gray-300 sticky top-0 z-50">
@@ -129,14 +129,36 @@ function SideBar({
         ${isCollapsed && !isMobile ? "w-20" : "w-64"} lg:translate-x-0`}
             >
                 <div className="flex items-center justify-between p-4 border-b border-gray-300">
-                    <div className="flex items-center">
-                        <Building2 className="text-indigo-500" />
-                        {!isCollapsed && <span className="ml-2 font-bold">PPP</span>}
+
+                    <div
+                        className="flex items-center justify-center cursor-pointer w-8 h-8 ml-1"
+                        onMouseEnter={() => setIsLogoHovered(true)}
+                        onMouseLeave={() => setIsLogoHovered(false)}
+                        onClick={isCollapsed ? handleToggle : undefined}
+                    >
+                        {isCollapsed ? (
+                            isLogoHovered ? (
+                                <ChevronRight className="text-black w-6 h-6 transition-all duration-200" />
+                            ) : (
+                                <Building2 className="text-indigo-500 w-6 h-6 transition-all duration-200" />
+                            )
+                        ) : (
+                            <div className="flex items-center p-2">
+                                <Building2 className="text-indigo-500 w-6 h-6" />
+                                <span className="ml-2 font-bold">PPP</span>
+                            </div>
+                        )}
                     </div>
 
-                    <button onClick={handleToggle}>
-                        {isMobile ? isMobileOpen ? <X /> : <Rows3 /> : isCollapsed ? <ChevronRight /> : <ChevronLeft />}
-                    </button>
+                    {!isCollapsed && (
+                        <button onClick={handleToggle}>
+                            {isMobile ? (
+                                isMobileOpen ? <X /> : <Rows3 />
+                            ) : (
+                                <ChevronLeft />
+                            )}
+                        </button>
+                    )}
                 </div>
 
                 <div className="flex flex-col justify-between h-[calc(100%-4rem)] px-2 py-3 overflow-y-auto">
