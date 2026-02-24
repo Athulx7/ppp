@@ -454,31 +454,27 @@ function SalaryComponentEntry() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {/* Left Column - Basic Details */}
                                 <div className="space-y-4">
-                                    {/* Component Type Dropdown */}
-                                    <CommonDropDown
-                                        label="Component Type *"
-                                        value={newComponent.type}
-                                        options={componentTypeOptions}
-                                        onChange={v => handleChange('type', v)}
-                                    />
-
-                                    {/* Component Name Input */}
                                     <CommonInputField
-                                        label="Component Name *"
-                                        value={newComponent.name}
-                                        onChange={v => handleChange('name', v)}
-                                        placeholder="e.g., Basic Salary, House Rent Allowance"
-                                    />
-
-                                    {/* Component Code Input */}
-                                    <CommonInputField
-                                        label="Component Code *"
+                                        label="Component Code"
                                         value={newComponent.code}
                                         onChange={v => handleChange('code', v.toUpperCase())}
                                         placeholder="e.g., BASIC, HRA, EPF"
+                                        required = {true}
                                     />
-
-                                    {/* Priority Input */}
+                                    <CommonInputField
+                                        label="Component Name"
+                                        value={newComponent.name}
+                                        onChange={v => handleChange('name', v)}
+                                        placeholder="e.g., Basic Salary, House Rent Allowance"
+                                        required = {true}
+                                    />
+                                    <CommonDropDown
+                                        label="Component Type"
+                                        value={newComponent.type}
+                                        options={componentTypeOptions}
+                                        onChange={v => handleChange('type', v)}
+                                        required = {true}
+                                    />
                                     <CommonInputField
                                         label="Priority Order"
                                         value={newComponent.priority.toString()}
@@ -492,7 +488,7 @@ function SalaryComponentEntry() {
                                 <div className="space-y-4">
                                     {/* Calculation Type Dropdown */}
                                     <CommonDropDown
-                                        label="Calculation Type *"
+                                        label="Calculation Type"
                                         value={newComponent.calculationType}
                                         options={calculationTypeOptions}
                                         onChange={v => handleChange('calculationType', v)}
@@ -606,32 +602,6 @@ function SalaryComponentEntry() {
                                             <CommonToggleButton
                                                 value={newComponent.affectsGross}
                                                 onChange={v => handleChange('affectsGross', v)}
-                                                yesLabel="Yes"
-                                                noLabel="No"
-                                            />
-                                        </div>
-
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <p className="text-sm font-medium text-gray-700">Affects Net Salary</p>
-                                                <p className="text-xs text-gray-500">Include in net salary calculation</p>
-                                            </div>
-                                            <CommonToggleButton
-                                                value={newComponent.affectsNet}
-                                                onChange={v => handleChange('affectsNet', v)}
-                                                yesLabel="Yes"
-                                                noLabel="No"
-                                            />
-                                        </div>
-
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <p className="text-sm font-medium text-gray-700">Taxable</p>
-                                                <p className="text-xs text-gray-500">Subject to income tax</p>
-                                            </div>
-                                            <CommonToggleButton
-                                                value={newComponent.taxable}
-                                                onChange={v => handleChange('taxable', v)}
                                                 yesLabel="Yes"
                                                 noLabel="No"
                                             />

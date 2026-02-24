@@ -29,6 +29,8 @@ import LeaveSettingTest from './LeaveSetting/LeaveSettingTest'
 import LeaveSettingsAddEditTest from './LeaveSetting/LeaveSettingsAddEditTest'
 import LeaveApprovalWorkflow from './LeaveApprovalWorkFlow/LeaveApprovalWorkflowTest'
 import LeaveRequest from './LeaveRequest/LeaveRequestTest'
+import MyLeaves from './LeaveMyLeavss/MyLeaveTest'
+import LeaveApproval from './LeaveApproval/LeaveApprovalTest'
 
 const PublicRoute = ({ children }) => {
   const token = sessionStorage.getItem('token')
@@ -57,8 +59,8 @@ function App() {
       <Routes>
         <Route path='/' element={<PublicRoute><LoginPage /></PublicRoute>} />
 
-        {/* <Route path='/admin' element={<ProtectedRoute allowedRoles={['ADMIN']}> <Dashboard /> </ProtectedRoute>}> */}
-        <Route path='/admin' element={<Dashboard />}>
+        <Route path='/admin' element={<ProtectedRoute allowedRoles={['ADMIN']}> <Dashboard /> </ProtectedRoute>}>
+        {/* <Route path='/admin' element={<Dashboard />}> */}
           <Route index element={<AdminDashboard />} />
 
           {/* Done fe be */}
@@ -88,6 +90,8 @@ function App() {
           <Route path='leave-settings/edit' element={<LeaveSettingsAddEditTest />} />
           <Route path='leaveapprovalworkflow' element={<LeaveApprovalWorkflow />} />
           <Route path='leaveRequest' element={<LeaveRequest />} />
+          <Route path='myleves' element = {<MyLeaves />} />
+          <Route path='leaveapproval' element={<LeaveApproval />} />
 
         </Route>
 

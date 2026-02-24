@@ -6,7 +6,8 @@ import {
     Filter, Search, Plus, Upload, Trash2, Edit, Save,
     ArrowLeft, Send, History, Award, Bell, MessageSquare,
     ThumbsUp, ThumbsDown, MinusCircle, PlusCircle, Info,
-    HelpCircle, Loader, ChevronLeft
+    HelpCircle, Loader, ChevronLeft,
+    CalendarPlus
 } from 'lucide-react';
 import Breadcrumb from '../basicComponents/BreadCrumb';
 import CommonDropDown from '../basicComponents/CommonDropDown';
@@ -537,10 +538,9 @@ function LeaveRequest() {
                 description="Apply for leave and track your requests"
             />
 
-            {/* Leave Balance Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
                 {leaveTypes.map(leave => (
-                    <div key={leave.code} className="bg-white rounded-xl shadow-sm border p-4 hover:shadow-md transition-all">
+                    <div key={leave.code} className="bg-white rounded-xl shadow-sm border border-gray-300 p-4 hover:shadow-md transition-all">
                         <div className="flex justify-between items-start mb-2">
                             <div className={`p-2 rounded-lg ${leave.color}`}>
                                 {leave.icon}
@@ -567,7 +567,6 @@ function LeaveRequest() {
                 ))}
             </div>
 
-            {/* Tabs */}
             <div className="bg-white rounded-xl shadow-sm mb-6">
                 <div className="flex p-2 gap-1 border-b border-b-gray-300">
                     <button
@@ -577,8 +576,8 @@ function LeaveRequest() {
                             : 'text-gray-600 hover:bg-gray-100'
                             }`}
                     >
-                        <Calendar className="w-4 h-4" />
-                        Calendar View
+                        <CalendarPlus className="w-4 h-4" />
+                        Request Leave
                     </button>
                     <button
                         onClick={() => setSelectedTab('history')}
@@ -590,23 +589,11 @@ function LeaveRequest() {
                         <History className="w-4 h-4" />
                         Request History
                     </button>
-                    <button
-                        onClick={() => setSelectedTab('balance')}
-                        className={`px-4 py-2 font-medium text-sm whitespace-nowrap flex items-center gap-2 rounded-lg transition-all ${selectedTab === 'balance'
-                            ? 'bg-indigo-600 text-white shadow-sm'
-                            : 'text-gray-600 hover:bg-gray-100'
-                            }`}
-                    >
-                        <Award className="w-4 h-4" />
-                        Leave Balance
-                    </button>
                 </div>
 
-                {/* Tab Content */}
                 <div className="p-6">
                     {selectedTab === 'apply' && (
                         <div>
-                            {/* Calendar Header */}
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-lg font-semibold text-gray-900">
                                     Select Leave Dates
@@ -631,7 +618,6 @@ function LeaveRequest() {
                                 </div>
                             </div>
 
-                            {/* Calendar Navigation */}
                             <div className="flex justify-between items-center mb-4">
                                 <button
                                     onClick={handlePrevMonth}
@@ -650,10 +636,9 @@ function LeaveRequest() {
                                 </button>
                             </div>
 
-                            {/* Calendar Grid */}
-                            <div className="border rounded-lg overflow-hidden">
+                            <div className="border border-gray-300 rounded-lg overflow-hidden">
                                 {/* Week Days Header */}
-                                <div className="grid grid-cols-7 bg-gray-50 border-b">
+                                <div className="grid grid-cols-7 bg-gray-50 border-b border-b-gray-300">
                                     {weekDays.map(day => (
                                         <div key={day} className="p-3 text-center text-sm font-medium text-gray-600">
                                             {day}
@@ -664,7 +649,7 @@ function LeaveRequest() {
                                 {/* Calendar Days */}
                                 <div className="grid grid-cols-7">
                                     {Array.from({ length: getDaysInMonth(currentDate).startingDay }).map((_, index) => (
-                                        <div key={`empty-${index}`} className="p-3 border-b border-r bg-gray-50"></div>
+                                        <div key={`empty-${index}`} className="p-3 border-b border-r border-b-gray-300 border-r-gray-300 bg-gray-50"></div>
                                     ))}
 
                                     {Array.from({ length: getDaysInMonth(currentDate).daysInMonth }).map((_, index) => {
@@ -685,8 +670,8 @@ function LeaveRequest() {
                                                 key={day}
                                                 onClick={() => !isPast && handleDateClick(day)}
                                                 onMouseEnter={() => !isPast && handleDateHover(day)}
-                                                className={`p-3 border-b border-r relative cursor-pointer transition-all
-                                                    ${isPast ? 'bg-gray-50 cursor-not-allowed' : 'hover:bg-gray-50'}
+                                                className={`p-3 border-b border-r border-b-gray-300 border-r-gray-300 relative cursor-pointer h-16 transition-all
+                                                    ${isPast ? ' cursor-not-allowed' : 'hover:bg-gray-50'}
                                                     ${isInRange ? 'bg-indigo-50' : ''}
                                                     ${isSelected ? 'bg-indigo-100 border-indigo-300' : ''}
                                                     ${hasLeave ? 'bg-red-50' : ''}
@@ -710,7 +695,6 @@ function LeaveRequest() {
                                 </div>
                             </div>
 
-                            {/* Selected Range Info */}
                             {selectedStartDate && (
                                 <div className="mt-4 p-4 bg-indigo-50 rounded-lg">
                                     <div className="flex justify-between items-center">
