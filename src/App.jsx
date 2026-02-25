@@ -31,6 +31,9 @@ import LeaveApprovalWorkflow from './LeaveApprovalWorkFlow/LeaveApprovalWorkflow
 import LeaveRequest from './LeaveRequest/LeaveRequestTest'
 import MyLeaves from './LeaveMyLeavss/MyLeaveTest'
 import LeaveApproval from './LeaveApproval/LeaveApprovalTest'
+import SalaryAdvanceRequest from './SalaryAdvanceRequest/SalaryAdvanceRequestTest'
+import SalaryAdvanceApproval from './SalaryAdvanceApproval/SalaryAdvanceApprovaltest'
+import PayrollRun from './PayrollRuns/PayrollRunstest'
 
 const PublicRoute = ({ children }) => {
   const token = sessionStorage.getItem('token')
@@ -92,6 +95,10 @@ function App() {
           <Route path='leaveRequest' element={<LeaveRequest />} />
           <Route path='myleves' element = {<MyLeaves />} />
           <Route path='leaveapproval' element={<LeaveApproval />} />
+          <Route path='salaryadvanceRequest' element={<SalaryAdvanceRequest />} />
+          <Route path='salaryadvanceapproval' element={<SalaryAdvanceApproval />} />
+          <Route path='payrollruns' element={<PayrollRun />} />
+          
 
         </Route>
 

@@ -591,9 +591,9 @@ function LeaveRequest() {
                     </button>
                 </div>
 
-                <div className="p-6">
+                <div className="">
                     {selectedTab === 'apply' && (
-                        <div>
+                        <div className='p-3'>
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-lg font-semibold text-gray-900">
                                     Select Leave Dates
@@ -723,17 +723,7 @@ function LeaveRequest() {
                     {selectedTab === 'history' && (
                         <div>
                             {/* Filters */}
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                                <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                                    <input
-                                        type="text"
-                                        placeholder="Search by ID, reason..."
-                                        className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                    />
-                                </div>
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-3">
 
                                 <CommonDropDown
                                     label=""
@@ -764,7 +754,6 @@ function LeaveRequest() {
                                 />
                             </div>
 
-                            {/* Requests Table */}
                             <CommonTable
                                 columns={requestColumns}
                                 data={filteredRequests}
@@ -774,91 +763,13 @@ function LeaveRequest() {
                             />
                         </div>
                     )}
-
-                    {selectedTab === 'balance' && (
-                        <div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Leave Balance Summary</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {leaveTypes.filter(l => l.code !== 'UL').map(leave => (
-                                    <div key={leave.code} className="border rounded-lg p-4">
-                                        <div className="flex justify-between items-start mb-3">
-                                            <div>
-                                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${leave.color}`}>
-                                                    {leave.name}
-                                                </span>
-                                            </div>
-                                            <span className="text-sm text-gray-500">Year {new Date().getFullYear()}</span>
-                                        </div>
-
-                                        <div className="grid grid-cols-3 gap-4 text-center mb-3">
-                                            <div>
-                                                <div className="text-2xl font-bold text-gray-900">{leave.total}</div>
-                                                <div className="text-xs text-gray-500">Total</div>
-                                            </div>
-                                            <div>
-                                                <div className="text-2xl font-bold text-indigo-600">{leave.total - leave.balance}</div>
-                                                <div className="text-xs text-gray-500">Used</div>
-                                            </div>
-                                            <div>
-                                                <div className="text-2xl font-bold text-green-600">{leave.balance}</div>
-                                                <div className="text-xs text-gray-500">Available</div>
-                                            </div>
-                                        </div>
-
-                                        <div className="w-full bg-gray-200 rounded-full h-2">
-                                            <div
-                                                className={`h-2 rounded-full ${leave.color.split(' ')[0]}`}
-                                                style={{ width: `${((leave.total - leave.balance) / leave.total) * 100}%` }}
-                                            />
-                                        </div>
-
-                                        {leave.code === 'CL' && leave.balance > 0 && (
-                                            <p className="text-xs text-orange-600 mt-2">
-                                                ⚠️ {leave.balance} days will expire on Dec 31, 2024
-                                            </p>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Upcoming Holidays */}
-                            <div className="mt-6">
-                                <h4 className="font-medium text-gray-900 mb-3">Upcoming Holidays</h4>
-                                <div className="bg-gray-50 rounded-lg p-4">
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between items-center">
-                                            <div className="flex items-center gap-2">
-                                                <Calendar className="w-4 h-4 text-indigo-600" />
-                                                <span className="text-sm">Independence Day</span>
-                                            </div>
-                                            <span className="text-sm font-medium">August 15, 2024</span>
-                                        </div>
-                                        <div className="flex justify-between items-center">
-                                            <div className="flex items-center gap-2">
-                                                <Calendar className="w-4 h-4 text-indigo-600" />
-                                                <span className="text-sm">Gandhi Jayanti</span>
-                                            </div>
-                                            <span className="text-sm font-medium">October 2, 2024</span>
-                                        </div>
-                                        <div className="flex justify-between items-center">
-                                            <div className="flex items-center gap-2">
-                                                <Calendar className="w-4 h-4 text-indigo-600" />
-                                                <span className="text-sm">Diwali</span>
-                                            </div>
-                                            <span className="text-sm font-medium">November 12, 2024</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
                 </div>
             </div>
 
             {/* Apply Leave Modal */}
             {showApplyModal && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                    <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto scrollbar">
                         <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
                             <h3 className="text-lg font-semibold text-gray-900">Apply for Leave</h3>
                             <button
@@ -1045,10 +956,9 @@ function LeaveRequest() {
                 </div>
             )}
 
-            {/* Request Details Modal */}
             {showDetailsModal && selectedRequest && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                    <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto scrollbar">
                         <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
                             <h3 className="text-lg font-semibold text-gray-900">Leave Request Details</h3>
                             <button

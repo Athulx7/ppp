@@ -332,7 +332,7 @@ function MenuMappingTest() {
     };
 
     return (
-        <div className="p-6">
+        <div className="p-3">
             <Breadcrumb
                 items={[
                     { label: 'Settings', to: '/settings' },
@@ -343,7 +343,7 @@ function MenuMappingTest() {
             />
 
             <div className="bg-white rounded-xl shadow-sm mb-6">
-                <div className="flex overflow-x-auto border-b">
+                <div className="flex overflow-x-auto">
                     <button
                         onClick={() => handleMappingTypeChange('role')}
                         className={`px-6 py-3 font-medium text-sm whitespace-nowrap flex items-center gap-2 transition-colors ${mappingType === 'role'

@@ -578,7 +578,7 @@ function MyLeaves() {
     const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
     return (
-        <div className="p-3 md:p-4 lg:p-6 bg-gray-50 min-h-screen">
+        <div className="p-3 md:p-2 lg:p-2 bg-gray-50 min-h-screen">
             <Breadcrumb
                 items={[
                     { label: 'Employee Self Service', to: '/ess' },
@@ -587,61 +587,6 @@ function MyLeaves() {
                 title="My Leaves"
                 description="View your leave balance, history, and analytics"
             />
-
-            {/* Quick Stats Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
-                <div className="bg-white rounded-xl shadow-sm border p-3 md:p-4">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-xs text-gray-500">Total Leaves</p>
-                            <p className="text-xl md:text-2xl font-bold text-gray-900">{leaveStats.totalLeaves || 0}</p>
-                        </div>
-                        <div className="p-2 bg-blue-100 rounded-lg">
-                            <Calendar className="w-5 h-5 text-blue-600" />
-                        </div>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">Year {selectedYear}</p>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-sm border p-3 md:p-4">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-xs text-gray-500">Used Leaves</p>
-                            <p className="text-xl md:text-2xl font-bold text-orange-600">{leaveStats.totalUsed || 0}</p>
-                        </div>
-                        <div className="p-2 bg-orange-100 rounded-lg">
-                            <CheckCircle className="w-5 h-5 text-orange-600" />
-                        </div>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">{leaveStats.utilizationRate || 0}% utilized</p>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-sm border p-3 md:p-4">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-xs text-gray-500">Pending</p>
-                            <p className="text-xl md:text-2xl font-bold text-yellow-600">{leaveStats.totalPending || 0}</p>
-                        </div>
-                        <div className="p-2 bg-yellow-100 rounded-lg">
-                            <Loader className="w-5 h-5 text-yellow-600" />
-                        </div>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">Awaiting approval</p>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-sm border p-3 md:p-4">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-xs text-gray-500">Available</p>
-                            <p className="text-xl md:text-2xl font-bold text-green-600">{leaveStats.totalAvailable || 0}</p>
-                        </div>
-                        <div className="p-2 bg-green-100 rounded-lg">
-                            <Award className="w-5 h-5 text-green-600" />
-                        </div>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">Ready to use</p>
-                </div>
-            </div>
 
             {/* Main Tabs */}
             <div className="bg-white rounded-xl shadow-sm mb-4 md:mb-6">
@@ -667,16 +612,6 @@ function MyLeaves() {
                         Leave History
                     </button>
                     <button
-                        onClick={() => setSelectedTab('calendar')}
-                        className={`px-3 md:px-4 py-2 font-medium text-xs md:text-sm whitespace-nowrap flex items-center gap-1 md:gap-2 rounded-lg transition-all ${selectedTab === 'calendar'
-                            ? 'bg-indigo-600 text-white shadow-sm'
-                            : 'text-gray-600 hover:bg-gray-100'
-                            }`}
-                    >
-                        <CalendarDays className="w-3 h-3 md:w-4 md:h-4" />
-                        Calendar View
-                    </button>
-                    <button
                         onClick={() => setSelectedTab('analytics')}
                         className={`px-3 md:px-4 py-2 font-medium text-xs md:text-sm whitespace-nowrap flex items-center gap-1 md:gap-2 rounded-lg transition-all ${selectedTab === 'analytics'
                             ? 'bg-indigo-600 text-white shadow-sm'
@@ -689,10 +624,10 @@ function MyLeaves() {
                 </div>
 
                 {/* Tab Content */}
-                <div className="p-4 md:p-6">
+                <div className="">
                     {/* Overview Tab */}
                     {selectedTab === 'overview' && (
-                        <div className="space-y-6">
+                        <div className="space-y-6 p-4">
                             {/* Leave Balance Cards */}
                             <div>
                                 <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-4">Leave Balance</h3>
@@ -752,8 +687,8 @@ function MyLeaves() {
                             {/* Upcoming Leaves & Holidays */}
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                                 {/* Upcoming Leaves */}
-                                <div className="border rounded-lg overflow-hidden">
-                                    <div className="bg-gray-50 px-4 py-3 border-b">
+                                <div className="border border-gray-300 rounded-lg overflow-hidden">
+                                    <div className="bg-gray-50 px-4 py-3 border-b border-b-gray-300">
                                         <h4 className="font-medium text-gray-900">Upcoming Leaves</h4>
                                     </div>
                                     <div className="p-4">
@@ -782,8 +717,8 @@ function MyLeaves() {
                                 </div>
 
                                 {/* Upcoming Holidays */}
-                                <div className="border rounded-lg overflow-hidden">
-                                    <div className="bg-gray-50 px-4 py-3 border-b">
+                                <div className="border border-gray-300 rounded-lg overflow-hidden">
+                                    <div className="bg-gray-50 px-4 py-3 border-b border-b-gray-300">
                                         <h4 className="font-medium text-gray-900">Upcoming Holidays</h4>
                                     </div>
                                     <div className="p-4">
@@ -841,17 +776,7 @@ function MyLeaves() {
                     {selectedTab === 'history' && (
                         <div>
                             {/* Filters */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
-                                <div className="relative lg:col-span-2">
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                                    <input
-                                        type="text"
-                                        placeholder="Search by ID, reason..."
-                                        className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                    />
-                                </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-4 p-3">
 
                                 <CommonDropDown
                                     label=""
@@ -884,9 +809,6 @@ function MyLeaves() {
                                 />
                             </div>
 
-                            {/* History Table */}
-                            <div className="overflow-x-auto -mx-4 md:mx-0">
-                                <div className="min-w-[800px] md:min-w-0 px-4 md:px-0">
                                     <CommonTable
                                         columns={historyColumns}
                                         data={filteredHistory}
@@ -894,114 +816,15 @@ function MyLeaves() {
                                         showSearch={false}
                                         showPagination={true}
                                     />
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Calendar Tab */}
-                    {selectedTab === 'calendar' && (
-                        <div>
-                            {/* Calendar Navigation */}
-                            <div className="flex justify-between items-center mb-4">
-                                <button
-                                    onClick={handlePrevMonth}
-                                    className="p-1.5 md:p-2 hover:bg-gray-100 rounded-lg"
-                                >
-                                    <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
-                                </button>
-                                <h4 className="text-base md:text-lg font-medium">
-                                    {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-                                </h4>
-                                <button
-                                    onClick={handleNextMonth}
-                                    className="p-1.5 md:p-2 hover:bg-gray-100 rounded-lg"
-                                >
-                                    <ChevronRightIcon className="w-4 h-4 md:w-5 md:h-5" />
-                                </button>
-                            </div>
-
-                            {/* Calendar Grid */}
-                            <div className="border border-gray-300 rounded-lg overflow-hidden">
-                                {/* Week Days Header */}
-                                <div className="grid grid-cols-7 bg-gray-50 border-b">
-                                    {weekDays.map((day, index) => (
-                                        <div
-                                            key={day}
-                                            className={`p-2 md:p-3 text-center text-xs md:text-sm font-medium ${index === 0 || index === 6 ? 'text-red-500' : 'text-gray-600'
-                                                }`}
-                                        >
-                                            {day}
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* Calendar Days */}
-                                <div className="grid grid-cols-7">
-                                    {Array.from({ length: getDaysInMonth(currentDate).startingDay }).map((_, index) => (
-                                        <div key={`empty-${index}`} className="p-2 md:p-3 border-b border-r bg-gray-50"></div>
-                                    ))}
-
-                                    {Array.from({ length: getDaysInMonth(currentDate).daysInMonth }).map((_, index) => {
-                                        const day = index + 1;
-                                        const dateStr = new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toISOString().split('T')[0];
-                                        const isPast = new Date(dateStr) < new Date(new Date().setHours(0, 0, 0, 0));
-                                        const hasLeaveOnDate = hasLeave(dateStr);
-                                        const leavesOnDate = getLeavesForDate(dateStr);
-
-                                        return (
-                                            <div
-                                                key={day}
-                                                onClick={() => hasLeaveOnDate && handleDateClick(day)}
-                                                className={`p-2 md:p-3 border-b border-r relative transition-all
-                                                    ${isPast ? 'bg-gray-50' : ''}
-                                                    ${hasLeaveOnDate ? 'bg-indigo-50 cursor-pointer hover:bg-indigo-100' : ''}
-                                                `}
-                                            >
-                                                <div className="flex flex-col items-center min-h-[40px] md:min-h-[50px]">
-                                                    <span className={`text-xs md:text-sm font-medium
-                                                        ${isPast ? 'text-gray-400' : 'text-gray-700'}
-                                                        ${hasLeaveOnDate ? 'text-indigo-700 font-semibold' : ''}
-                                                    `}>
-                                                        {day}
-                                                    </span>
-                                                    {hasLeaveOnDate && (
-                                                        <div className="mt-1">
-                                                            <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-indigo-600 rounded-full"></div>
-                                                            {leavesOnDate.length > 1 && (
-                                                                <span className="text-[8px] md:text-[10px] text-indigo-600">
-                                                                    +{leavesOnDate.length - 1}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-
-                            {/* Legend */}
-                            <div className="mt-4 flex flex-wrap gap-4 text-xs">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-3 h-3 bg-indigo-50 border border-indigo-200 rounded"></div>
-                                    <span>Leave Day</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <div className="w-3 h-3 bg-gray-50 border border-gray-200 rounded"></div>
-                                    <span>Past Date</span>
-                                </div>
-                            </div>
                         </div>
                     )}
 
                     {/* Analytics Tab */}
                     {selectedTab === 'analytics' && (
-                        <div className="space-y-6">
+                        <div className="space-y-6 p-4">
                             {/* Charts */}
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                <div className="bg-white border rounded-lg p-4">
+                                <div className="bg-white border border-gray-300 rounded-lg p-4">
                                     <h4 className="font-medium text-gray-900 mb-4">Monthly Leave Trend</h4>
                                     <div className="h-64">
                                         <Bar
@@ -1019,7 +842,7 @@ function MyLeaves() {
                                     </div>
                                 </div>
 
-                                <div className="bg-white border rounded-lg p-4">
+                                <div className="bg-white border border-gray-300 rounded-lg p-4">
                                     <h4 className="font-medium text-gray-900 mb-4">Leave Distribution</h4>
                                     <div className="h-64">
                                         <Pie
@@ -1060,9 +883,8 @@ function MyLeaves() {
                                 </div>
                             </div>
 
-                            {/* Leave Balance Summary Table */}
-                            <div className="border rounded-lg overflow-hidden">
-                                <div className="bg-gray-50 px-4 py-3 border-b">
+                            <div className="border border-gray-300 rounded-lg overflow-hidden">
+                                <div className="bg-gray-50 px-4 py-3 border-b border-b-gray-300">
                                     <h4 className="font-medium text-gray-900">Leave Balance Summary</h4>
                                 </div>
                                 <div className="overflow-x-auto">
@@ -1077,7 +899,7 @@ function MyLeaves() {
                                                 <th className="px-4 py-2 text-right">Carry Forward</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y">
+                                        <tbody className="divide-y divide-gray-300">
                                             {leaveBalance.map(item => (
                                                 <tr key={item.leave_code} className="hover:bg-gray-50">
                                                     <td className="px-4 py-2">
@@ -1106,7 +928,7 @@ function MyLeaves() {
             {showLeaveDetails && selectedLeaveDetails && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-3 md:p-4">
                     <div className="bg-white rounded-xl shadow-xl w-full max-w-lg">
-                        <div className="px-4 md:px-6 py-3 md:py-4 border-b flex justify-between items-center">
+                        <div className="px-4 md:px-6 py-3 md:py-4 border-b border-b-gray-300 flex justify-between items-center">
                             <h3 className="text-base md:text-lg font-semibold text-gray-900">
                                 Leaves on {selectedDate}
                             </h3>
@@ -1119,7 +941,7 @@ function MyLeaves() {
                         </div>
                         <div className="p-4 md:p-6 space-y-3">
                             {selectedLeaveDetails.map((leave, index) => (
-                                <div key={leave.id || index} className="border rounded-lg p-3">
+                                <div key={leave.id || index} className="border border-gray-300 rounded-lg p-3">
                                     <div className="flex justify-between items-start mb-2">
                                         <div className="flex items-center gap-2">
                                             <div className={`p-1.5 rounded-lg ${leaveTypes.find(l => l.code === leave.leave_type)?.color
@@ -1139,7 +961,7 @@ function MyLeaves() {
                                 </div>
                             ))}
                         </div>
-                        <div className="px-4 md:px-6 py-3 border-t flex justify-end">
+                        <div className="px-4 md:px-6 py-3 border-t border-t-gray-300 flex justify-end">
                             <button
                                 onClick={() => setShowLeaveDetails(false)}
                                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm"
