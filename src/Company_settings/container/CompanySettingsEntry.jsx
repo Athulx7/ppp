@@ -285,6 +285,7 @@ function CompanySettingsEntry() {
                     onChange={(value) => handleInputChange('basicInfo', 'companyName', value)}
                     placeholder="Enter company name"
                     required={true}
+                    loading={isLoading}
                 />
 
                 <CommonInputField
@@ -294,6 +295,7 @@ function CompanySettingsEntry() {
                     onChange={(value) => handleInputChange('basicInfo', 'legalName', value)}
                     placeholder="Enter legal name"
                     required={true}
+                    loading={isLoading}
                 />
 
                 <CommonInputField
@@ -302,6 +304,7 @@ function CompanySettingsEntry() {
                     disabled={isViewMode}
                     onChange={(value) => handleInputChange('basicInfo', 'registrationNumber', value)}
                     placeholder="GST/Tax registration number"
+                    loading={isLoading}
                 />
 
                 <CommonDatePicker
@@ -311,6 +314,7 @@ function CompanySettingsEntry() {
                         handleInputChange('basicInfo', 'foundedDate', value)
                     }
                     disabled={isViewMode}
+                    loading={isLoading}
                 />
 
                 <CommonDropDown
@@ -319,6 +323,7 @@ function CompanySettingsEntry() {
                     options={industryOptions}
                     disabled={isViewMode}
                     onChange={(value) => handleInputChange('basicInfo', 'industryType', value)}
+                    loading={isLoading}
                 />
 
                 <CommonDropDown
@@ -328,13 +333,17 @@ function CompanySettingsEntry() {
                     disabled={isViewMode}
                     onChange={(value) => handleInputChange('basicInfo', 'companySize', value)}
                     placeholder="Select company size"
+                    loading={isLoading}
                 />
             </div>
 
             <div>
+                {isLoading ? (
+                    <div className="mb-2 h-4 w-24 bg-gray-200 rounded animate-pulse"></div> )
+                    :
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                     Company Description
-                </label>
+                </label> }
                 {isViewMode ? (
                     <div className="p-3 bg-gray-100 rounded-lg border border-indigo-600 min-h-[100px]">
                         {companyData.basicInfo.description}
@@ -363,6 +372,7 @@ function CompanySettingsEntry() {
                     onChange={(value) => handleInputChange('contactDetails', 'primaryEmail', value)}
                     placeholder="primary@company.com"
                     required={true}
+                    loading={isLoading}
                 />
 
                 <CommonInputField
@@ -372,6 +382,7 @@ function CompanySettingsEntry() {
                     disabled={isViewMode}
                     onChange={(value) => handleInputChange('contactDetails', 'secondaryEmail', value)}
                     placeholder="hr@company.com"
+                    loading={isLoading}
                 />
 
                 <CommonInputField
@@ -381,6 +392,7 @@ function CompanySettingsEntry() {
                     disabled={isViewMode}
                     onChange={(value) => handleInputChange('contactDetails', 'phoneNumber', value)}
                     placeholder="+1 (555) 123-4567"
+                    loading={isLoading}
                     required={true}
                 />
 
@@ -391,6 +403,7 @@ function CompanySettingsEntry() {
                     disabled={isViewMode}
                     onChange={(value) => handleInputChange('contactDetails', 'mobileNumber', value)}
                     placeholder="+1 (555) 987-6543"
+                    loading={isLoading}
                 />
 
                 <CommonInputField
@@ -400,6 +413,7 @@ function CompanySettingsEntry() {
                     disabled={isViewMode}
                     onChange={(value) => handleInputChange('contactDetails', 'faxNumber', value)}
                     placeholder="+1 (555) 456-7890"
+                    loading={isLoading}
                 />
             </div>
         </div>
@@ -435,6 +449,7 @@ function CompanySettingsEntry() {
                     onChange={(value) => handleInputChange('address', 'city', value)}
                     placeholder="City"
                     required={true}
+                    loading={isLoading}
                 />
 
                 <CommonInputField
@@ -444,6 +459,7 @@ function CompanySettingsEntry() {
                     onChange={(value) => handleInputChange('address', 'state', value)}
                     placeholder="State/Province"
                     required={true}
+                    loading={isLoading}
                 />
 
                 <CommonInputField
@@ -453,6 +469,7 @@ function CompanySettingsEntry() {
                     onChange={(value) => handleInputChange('address', 'country', value)}
                     placeholder="Country"
                     required={true}
+                    loading={isLoading}
                 />
 
                 <CommonInputField
@@ -462,6 +479,7 @@ function CompanySettingsEntry() {
                     onChange={(value) => handleInputChange('address', 'postalCode', value)}
                     placeholder="Postal/ZIP code"
                     required={true}
+                    loading={isLoading}
                 />
             </div>
 
@@ -530,6 +548,7 @@ function CompanySettingsEntry() {
                     placeholder="Select currency"
                     icon={<Banknote className="w-4 h-4 text-gray-400" />}
                     required={true}
+                    loading={isLoading}
                 />
 
                 <CommonInputField
@@ -539,6 +558,7 @@ function CompanySettingsEntry() {
                     onChange={(value) => handleInputChange('financialDetails', 'taxId', value)}
                     placeholder="Tax identification number"
                     required={true}
+                    loading={isLoading}
                 />
 
                 <CommonInputField
@@ -548,6 +568,7 @@ function CompanySettingsEntry() {
                     onChange={(value) => handleInputChange('financialDetails', 'bankName', value)}
                     placeholder="Bank name"
                     required={true}
+                    loading={isLoading}
                 />
 
                 <CommonInputField
@@ -557,6 +578,7 @@ function CompanySettingsEntry() {
                     onChange={(value) => handleInputChange('financialDetails', 'bankAccountNumber', value)}
                     placeholder="Bank account number"
                     required={true}
+                    loading={isLoading}
                 />
 
                 <CommonInputField
@@ -676,6 +698,7 @@ function CompanySettingsEntry() {
                     items={[{ label: "Company Settings", }]}
                     title="Company Settings"
                     description="Manage your company profile and settings"
+                    loading = {isLoading}
                     actions={
                         <div className="flex items-center gap-3">
                             {isViewMode ? (
@@ -715,6 +738,9 @@ function CompanySettingsEntry() {
             </div>
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <div className="border-b border-gray-200">
+                    {isLoading ? (
+                <div className="h-10 w-xl m-2 bg-gray-200 rounded-lg animate-pulse"></div>
+            ) : 
                     <div className="flex overflow-x-auto scrollbar">
                         {tabs.map((tab) => (
                             <button
@@ -729,7 +755,7 @@ function CompanySettingsEntry() {
                                 {tab.label}
                             </button>
                         ))}
-                    </div>
+                    </div> }
                 </div>
 
                 <div className="p-6 max-h-96 overflow-y-scroll scrollbar">

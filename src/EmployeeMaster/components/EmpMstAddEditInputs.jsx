@@ -7,7 +7,7 @@ import { ApiCall, getRoleBasePath } from '../../library/constants'
 import CommonToggleButton from '../../basicComponents/CommonToggleButton'
 import { useNavigate } from 'react-router-dom'
 
-function EmpMstAddEditInputs({ isDisabled, empMstControls, setIsDisabled, setIsLoading, statusPopup, setStatusPopup, autoCode, employeeId }) {
+function EmpMstAddEditInputs({ isLoading, isDisabled, empMstControls, setIsDisabled, setIsLoading, statusPopup, setStatusPopup, autoCode, employeeId }) {
     const navigate = useNavigate()
 
     const [formData, setFormData] = useState({})
@@ -155,7 +155,8 @@ function EmpMstAddEditInputs({ isDisabled, empMstControls, setIsDisabled, setIsL
             value: formData[control.column_name] || '',
             onChange: (val) => handleChange(control.column_name, val),
             disabled: isDisabled || control.readonly,
-            required: control.required
+            required: control.required,
+            loading: isLoading
         }
 
         switch (control.field_type) {
@@ -339,24 +340,35 @@ function EmpMstAddEditInputs({ isDisabled, empMstControls, setIsDisabled, setIsL
                     ]}
                     onChange={(val) => handleChange('role_code', val)}
                     required
+                    loading={isLoading}
                 />
             </div>
 
-            <div className="flex justify-end gap-4 pt-4 border-t border-gray-300">
+            {isLoading ? (
+                <div className="flex justify-end gap-4 pt-4 border-t border-gray-300 animate-pulse">
+                    <div className="h-10 w-24 bg-gray-200 rounded-lg"></div>
 
-                <button onClick={() => navigate(`${getRoleBasePath()}/employee_master_entry`)}
-                    className="px-6 py-2 rounded-lg border border-gray-300 hover:bg-gray-100"
-                >
-                    Cancel
-                </button>
+                    <div className="h-10 w-24 bg-gray-200 rounded-lg"></div>
+                </div>
+            ) : (
+                <div className="flex justify-end gap-4 pt-4 border-t border-gray-300">
 
-                <button onClick={handleSave}
-                    className="px-6 py-2 rounded-lg bg-indigo-500 text-white hover:bg-indigo-600 cursor-pointer"
-                >
-                    {employeeId ? 'Update' : 'Save'}
-                </button>
+                    <button
+                        onClick={() => navigate(`${getRoleBasePath()}/employee_master_entry`)}
+                        className="px-6 py-2 rounded-lg border border-gray-300 hover:bg-gray-100"
+                    >
+                        Cancel
+                    </button>
 
-            </div>
+                    <button
+                        onClick={handleSave}
+                        className="px-6 py-2 rounded-lg bg-indigo-500 text-white hover:bg-indigo-600 cursor-pointer"
+                    >
+                        {employeeId ? 'Update' : 'Save'}
+                    </button>
+
+                </div>
+            )}
 
         </div>
     )

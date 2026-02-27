@@ -5,12 +5,11 @@ import LoadingSpinner from '../../basicComponents/LoadingSpinner';
 import CommonStatusPopUp from '../../basicComponents/CommonStatusPopUp';
 import { useNavigate } from 'react-router-dom';
 
-function EmpMstAddEditMain({ employeeId }) {
+function EmpMstAddEditMain({ employeeId,isLoading,setIsLoading }) {
     const navigate = useNavigate()
     const [isDisabled, setIsDisabled] = useState(false)
     const [empMstControls, setEmpMstControls] = useState([]);
     const [autoCode, setAutocode] = useState('')
-    const [isLoading, setIsLoading] = useState(false)
     const [statusPopup, setStatusPopup] = useState({
         show: false,
         type: "default",
@@ -42,6 +41,7 @@ function EmpMstAddEditMain({ employeeId }) {
                 setIsDisabled={setIsDisabled}
                 empMstControls={empMstControls}
                 setIsLoading={setIsLoading}
+                isLoading={isLoading}
                 statusPopup={statusPopup}
                 setStatusPopup={setStatusPopup}
                 autoCode={autoCode}

@@ -7,8 +7,7 @@ import { ApiCall } from "../../library/constants"
 import LoadingSpinner from "../../basicComponents/LoadingSpinner"
 import CommonStatusPopUp from "../../basicComponents/CommonStatusPopUp"
 
-function MasterForm({ meta, initialData, onCancel, isEdit, onSave }) {
-    const [isLoading, setIsLoading] = useState(false)
+function MasterForm({ meta, initialData, onCancel, isEdit, isLoading, setIsLoading }) {
     const [statusPopup, setStatusPopup] = useState({
         open: false,
         type: "success",
@@ -139,6 +138,7 @@ function MasterForm({ meta, initialData, onCancel, isEdit, onSave }) {
                         }
                         placeholder={`Enter ${field.label}`}
                         required={field.required === 1 ? true : false}
+                        loading={isLoading}
                     />
                 )
 
@@ -159,6 +159,7 @@ function MasterForm({ meta, initialData, onCancel, isEdit, onSave }) {
                             handleChange(field.column_name, v)
                         }
                         required={field.required === 1 ? true : false}
+                        loading={isLoading}
                     />
                 )
 
@@ -170,6 +171,7 @@ function MasterForm({ meta, initialData, onCancel, isEdit, onSave }) {
                         onChange={v =>
                             handleChange(field.column_name, v)
                         }
+                        loading={isLoading}
                     />
                 )
 
@@ -182,6 +184,7 @@ function MasterForm({ meta, initialData, onCancel, isEdit, onSave }) {
                             handleChange(field.column_name, v)
                         }
                         required={field.required === 1 ? true : false}
+                        loading={isLoading}
                     />
                 )
 

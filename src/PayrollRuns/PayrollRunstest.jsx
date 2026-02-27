@@ -13,7 +13,9 @@ import {
     Layers, Grid, List, Sliders, Play, Pause, StopCircle,
     Award, CalendarDays, Clock3, Banknote, Receipt,
     Calculator, Database, Server, HardDrive, Cloud,
-    CheckSquare, Square, ChevronFirst, ChevronLast, XCircle as XIcon
+    CheckSquare, Square, ChevronFirst, ChevronLast, XCircle as XIcon,
+    ChevronUp, ChevronsUpDown, Clock4, Coffee, Moon,
+    MinusCircle, Settings2, Gauge, Zap, TrendingUp as TrendUp
 } from 'lucide-react';
 import Breadcrumb from '../basicComponents/BreadCrumb';
 import CommonDropDown from '../basicComponents/CommonDropDown';
@@ -47,6 +49,7 @@ function PayrollRun() {
     const [selectedView, setSelectedView] = useState('all');
     const [selectAll, setSelectAll] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
+    const [showLopOtSettings, setShowLopOtSettings] = useState(false);
     const [filters, setFilters] = useState({
         departments: [],
         designations: [],
@@ -54,6 +57,37 @@ function PayrollRun() {
         locations: [],
         bands: [],
         status: ['active']
+    });
+
+    // Accordion state for filter sections
+    const [openFilterSections, setOpenFilterSections] = useState({
+        departments: true,
+        designations: false,
+        employee_types: false,
+        locations: false,
+        bands: false,
+        status: false
+    });
+
+    // LOP (Loss of Pay) data state
+    const [lopData, setLopData] = useState({
+        include_lop: true,
+        min_lop_days: 0,
+        max_lop_days: 30,
+        lop_deduction_type: 'proportional', // 'proportional', 'fixed', 'percentage'
+        lop_deduction_value: 0,
+        exclude_lop_employees: []
+    });
+
+    // Overtime data state
+    const [overtimeData, setOvertimeData] = useState({
+        include_overtime: true,
+        overtime_rate: 1.5, // 1.5x normal rate
+        overtime_calculation: 'hourly', // 'hourly', 'daily', 'fixed'
+        min_overtime_hours: 0,
+        max_overtime_hours: 60,
+        overtime_cap: 5000,
+        exclude_overtime_employees: []
     });
 
     // Available filter options
@@ -123,7 +157,9 @@ function PayrollRun() {
         net_payable: 0,
         employer_contribution: 0,
         by_department: {},
-        by_type: {}
+        by_type: {},
+        total_lop_deductions: 0,
+        total_overtime_pay: 0
     });
 
     // Processing state
@@ -138,8 +174,18 @@ function PayrollRun() {
         notify_employees: true,
         generate_payslips: true,
         post_to_accounting: false,
-        release_payment: false
+        release_payment: false,
+        include_lop: true,
+        include_overtime: true
     });
+
+    // Toggle filter section
+    const toggleFilterSection = (section) => {
+        setOpenFilterSections(prev => ({
+            ...prev,
+            [section]: !prev[section]
+        }));
+    };
 
     // Generate dummy employees
     useEffect(() => {
@@ -159,8 +205,17 @@ function PayrollRun() {
 
             const baseSalary = Math.floor(Math.random() * 150000) + 25000;
             const variablePay = Math.floor(baseSalary * (Math.random() * 0.3));
-            const deductions = Math.floor(baseSalary * (Math.random() * 0.15));
-            const netPay = baseSalary + variablePay - deductions;
+
+            // LOP days (Loss of Pay)
+            const lopDays = status === 'active' ? Math.floor(Math.random() * 3) : 0;
+            const lopDeduction = Math.floor((baseSalary / 30) * lopDays * 0.8); // 80% deduction for LOP
+
+            // Overtime hours
+            const overtimeHours = Math.random() > 0.6 ? Math.floor(Math.random() * 20) : 0;
+            const overtimePay = Math.floor((baseSalary / 30 / 8) * 1.5 * overtimeHours); // 1.5x rate
+
+            const deductions = Math.floor(baseSalary * (Math.random() * 0.15)) + lopDeduction;
+            const netPay = baseSalary + variablePay - deductions + overtimePay;
             const employerPf = Math.floor(baseSalary * 0.12);
             const employerEsi = Math.floor(baseSalary * 0.0325);
             const gratuity = Math.floor(baseSalary * 0.0417);
@@ -194,6 +249,14 @@ function PayrollRun() {
                 variable_pay: variablePay,
                 gross_salary: baseSalary + variablePay,
 
+                // LOP Data
+                lop_days: lopDays,
+                lop_deduction: lopDeduction,
+
+                // Overtime Data
+                overtime_hours: overtimeHours,
+                overtime_pay: overtimePay,
+
                 // Deductions
                 pf: Math.floor(baseSalary * 0.12),
                 esi: Math.floor(baseSalary * 0.0075),
@@ -201,7 +264,7 @@ function PayrollRun() {
                 tds: Math.floor(baseSalary * 0.05),
                 loan_recovery: Math.random() > 0.8 ? Math.floor(Math.random() * 5000) : 0,
                 advance_recovery: Math.random() > 0.7 ? Math.floor(Math.random() * 3000) : 0,
-                other_deductions: deductions,
+                other_deductions: deductions - lopDeduction,
                 total_deductions: deductions,
 
                 // Net
@@ -217,10 +280,9 @@ function PayrollRun() {
 
                 // Attendance
                 working_days: 30,
-                present_days: 28 + Math.floor(Math.random() * 3),
-                absent_days: Math.floor(Math.random() * 2),
+                present_days: 28 + Math.floor(Math.random() * 3) - lopDays,
+                absent_days: Math.floor(Math.random() * 2) + lopDays,
                 leave_days: Math.floor(Math.random() * 3),
-                overtime_hours: Math.random() > 0.7 ? Math.floor(Math.random() * 10) : 0,
 
                 // Selection
                 selected: status === 'active' ? Math.random() > 0.2 : false
@@ -270,12 +332,28 @@ function PayrollRun() {
             filtered = filtered.filter(e => filters.status.includes(e.status));
         }
 
+        // Apply LOP filter if needed
+        if (lopData.min_lop_days > 0 || lopData.max_lop_days < 30) {
+            filtered = filtered.filter(e =>
+                e.lop_days >= lopData.min_lop_days &&
+                e.lop_days <= lopData.max_lop_days
+            );
+        }
+
+        // Apply Overtime filter if needed
+        if (overtimeData.min_overtime_hours > 0 || overtimeData.max_overtime_hours < 60) {
+            filtered = filtered.filter(e =>
+                e.overtime_hours >= overtimeData.min_overtime_hours &&
+                e.overtime_hours <= overtimeData.max_overtime_hours
+            );
+        }
+
         setFilteredEmployees(filtered);
 
         // Update select all based on filtered employees
         const allFilteredSelected = filtered.length > 0 && filtered.every(e => e.selected);
         setSelectAll(allFilteredSelected);
-    }, [filters, employees]);
+    }, [filters, employees, lopData, overtimeData]);
 
     // Calculate payroll summary
     const calculateSummary = (empList) => {
@@ -288,7 +366,9 @@ function PayrollRun() {
                 net_payable: 0,
                 employer_contribution: 0,
                 by_department: {},
-                by_type: {}
+                by_type: {},
+                total_lop_deductions: 0,
+                total_overtime_pay: 0
             });
             return;
         }
@@ -297,6 +377,8 @@ function PayrollRun() {
 
         const totalSalary = selected.reduce((sum, e) => sum + (e.gross_salary || 0), 0);
         const totalDeductions = selected.reduce((sum, e) => sum + (e.total_deductions || 0), 0);
+        const totalLopDeductions = selected.reduce((sum, e) => sum + (e.lop_deduction || 0), 0);
+        const totalOvertimePay = selected.reduce((sum, e) => sum + (e.overtime_pay || 0), 0);
         const netPayable = selected.reduce((sum, e) => sum + (e.net_pay || 0), 0);
         const employerTotal = selected.reduce((sum, e) => sum + (e.employer_total || 0), 0);
 
@@ -310,13 +392,17 @@ function PayrollRun() {
                     count: 0,
                     salary: 0,
                     deductions: 0,
-                    net: 0
+                    net: 0,
+                    lop_days: 0,
+                    overtime_hours: 0
                 };
             }
             byDepartment[e.department].count++;
             byDepartment[e.department].salary += e.gross_salary || 0;
             byDepartment[e.department].deductions += e.total_deductions || 0;
             byDepartment[e.department].net += e.net_pay || 0;
+            byDepartment[e.department].lop_days += e.lop_days || 0;
+            byDepartment[e.department].overtime_hours += e.overtime_hours || 0;
         });
 
         // By employee type
@@ -339,6 +425,8 @@ function PayrollRun() {
             selected_count: selected.length,
             total_salary: totalSalary,
             total_deductions: totalDeductions,
+            total_lop_deductions: totalLopDeductions,
+            total_overtime_pay: totalOvertimePay,
             net_payable: netPayable,
             employer_contribution: employerTotal - totalSalary,
             by_department: byDepartment,
@@ -429,9 +517,41 @@ function PayrollRun() {
         });
     };
 
+    // Reset LOP/OT settings to default
+    const handleResetLopOt = () => {
+        setLopData({
+            include_lop: true,
+            min_lop_days: 0,
+            max_lop_days: 30,
+            lop_deduction_type: 'proportional',
+            lop_deduction_value: 0,
+            exclude_lop_employees: []
+        });
+        setOvertimeData({
+            include_overtime: true,
+            overtime_rate: 1.5,
+            overtime_calculation: 'hourly',
+            min_overtime_hours: 0,
+            max_overtime_hours: 60,
+            overtime_cap: 5000,
+            exclude_overtime_employees: []
+        });
+    };
+
     // Get active filter count
     const getActiveFilterCount = () => {
         return Object.values(filters).reduce((count, arr) => count + arr.length, 0);
+    };
+
+    // Get active LOP/OT settings count
+    const getActiveLopOtCount = () => {
+        let count = 0;
+        if (lopData.min_lop_days > 0 || lopData.max_lop_days < 30) count++;
+        if (lopData.lop_deduction_type !== 'proportional') count++;
+        if (overtimeData.min_overtime_hours > 0 || overtimeData.max_overtime_hours < 60) count++;
+        if (overtimeData.overtime_rate !== 1.5) count++;
+        if (overtimeData.overtime_calculation !== 'hourly') count++;
+        return count;
     };
 
     // Run payroll process
@@ -453,8 +573,8 @@ function PayrollRun() {
         // Simulate payroll processing steps
         const steps = [
             { progress: 20, message: 'Calculating earnings...' },
-            { progress: 35, message: 'Processing deductions...' },
-            { progress: 50, message: 'Computing taxes...' },
+            { progress: 35, message: 'Processing LOP deductions...' },
+            { progress: 50, message: 'Calculating overtime pay...' },
             { progress: 65, message: 'Applying loan recoveries...' },
             { progress: 80, message: 'Generating payslips...' },
             { progress: 95, message: 'Finalizing payroll...' }
@@ -480,6 +600,8 @@ function PayrollRun() {
                 employees: payrollSummary.selected_count,
                 total_gross: payrollSummary.total_salary,
                 total_deductions: payrollSummary.total_deductions,
+                total_lop_deductions: payrollSummary.total_lop_deductions,
+                total_overtime_pay: payrollSummary.total_overtime_pay,
                 net_payable: payrollSummary.net_payable,
                 employer_cost: (payrollSummary.employer_contribution || 0) + payrollSummary.total_salary,
                 bank_transfer_file: `payroll_${payrollConfig.year}_${payrollConfig.month + 1}.txt`,
@@ -547,6 +669,22 @@ function PayrollRun() {
             cell: row => row.gross_salary ? `₹${row.gross_salary.toLocaleString()}` : '₹0'
         },
         {
+            header: "LOP Days",
+            cell: row => (
+                <span className={row.lop_days > 0 ? 'text-red-600 font-medium' : ''}>
+                    {row.lop_days || 0}
+                </span>
+            )
+        },
+        {
+            header: "OT Hours",
+            cell: row => (
+                <span className={row.overtime_hours > 0 ? 'text-green-600 font-medium' : ''}>
+                    {row.overtime_hours || 0}
+                </span>
+            )
+        },
+        {
             header: "Deductions",
             cell: row => row.total_deductions ? `₹${row.total_deductions.toLocaleString()}` : '₹0'
         },
@@ -578,9 +716,9 @@ function PayrollRun() {
         }
     ];
 
-    // Filter Panel Component
+    // Filter Panel Component with Accordion
     const FilterPanel = () => (
-        <div className="bg-white rounded-lg border shadow-lg p-4 max-h-[600px] overflow-y-auto scrollbar">
+        <div className="bg-white rounded-lg border border-gray-300 shadow-lg p-4 max-h-[500px] overflow-y-auto scrollbar">
             <div className="flex items-center justify-between mb-4 sticky top-1 bg-white pb-2 border-b border-gray-300">
                 <h3 className="font-semibold text-gray-900 flex items-center gap-2">
                     <Sliders className="w-4 h-4" />
@@ -630,139 +768,253 @@ function PayrollRun() {
                 </div>
             )}
 
-            {/* Department Filter */}
-            <div className="mb-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Department</h4>
-                <div className="space-y-2 max-h-40 overflow-y-auto scrollbar">
-                    {filterOptions.departments.map(dept => (
-                        <label key={dept.value} className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    checked={filters.departments?.includes(dept.value) || false}
-                                    onChange={() => handleFilterChange('departments', dept.value)}
-                                    className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                />
-                                <span className="text-sm text-gray-700">{dept.label}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                                <span className="text-xs text-gray-500">{dept.count}</span>
-                                <button
-                                    onClick={() => handleBulkSelect('department', dept.value, true)}
-                                    className="text-xs text-indigo-600 hover:text-indigo-800"
-                                    title="Select all in this department"
-                                >
-                                    <CheckSquare className="w-3 h-3" />
-                                </button>
-                            </div>
-                        </label>
-                    ))}
-                </div>
+            {/* Department Filter - Accordion */}
+            <div className="mb-3 border border-gray-300 rounded-lg overflow-hidden">
+                <button
+                    onClick={() => toggleFilterSection('departments')}
+                    className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                >
+                    <span className="font-medium text-sm text-gray-700">Department</span>
+                    <div className="flex items-center gap-2">
+                        {filters.departments.length > 0 && (
+                            <span className="text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">
+                                {filters.departments.length}
+                            </span>
+                        )}
+                        {openFilterSections.departments ? (
+                            <ChevronUp className="w-4 h-4 text-gray-500" />
+                        ) : (
+                            <ChevronDown className="w-4 h-4 text-gray-500" />
+                        )}
+                    </div>
+                </button>
+                {openFilterSections.departments && (
+                    <div className="p-3 space-y-2 max-h-48 overflow-y-auto scrollbar">
+                        {filterOptions.departments.map(dept => (
+                            <label key={dept.value} className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={filters.departments?.includes(dept.value) || false}
+                                        onChange={() => handleFilterChange('departments', dept.value)}
+                                        className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                    />
+                                    <span className="text-sm text-gray-700">{dept.label}</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <span className="text-xs text-gray-500">{dept.count}</span>
+                                    <button
+                                        onClick={() => handleBulkSelect('department', dept.value, true)}
+                                        className="text-xs text-indigo-600 hover:text-indigo-800"
+                                        title="Select all in this department"
+                                    >
+                                        <CheckSquare className="w-3 h-3" />
+                                    </button>
+                                </div>
+                            </label>
+                        ))}
+                    </div>
+                )}
             </div>
 
-            {/* Designation Filter */}
-            <div className="mb-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Designation</h4>
-                <div className="space-y-2 max-h-40 overflow-y-auto scrollbar">
-                    {filterOptions.designations.map(des => (
-                        <label key={des.value} className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    checked={filters.designations?.includes(des.value) || false}
-                                    onChange={() => handleFilterChange('designations', des.value)}
-                                    className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                />
-                                <span className="text-sm text-gray-700">{des.label}</span>
-                            </div>
-                            <span className="text-xs text-gray-500">{des.count}</span>
-                        </label>
-                    ))}
-                </div>
+            {/* Designation Filter - Accordion */}
+            <div className="mb-3 border border-gray-300 rounded-lg overflow-hidden">
+                <button
+                    onClick={() => toggleFilterSection('designations')}
+                    className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                >
+                    <span className="font-medium text-sm text-gray-700">Designation</span>
+                    <div className="flex items-center gap-2">
+                        {filters.designations.length > 0 && (
+                            <span className="text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">
+                                {filters.designations.length}
+                            </span>
+                        )}
+                        {openFilterSections.designations ? (
+                            <ChevronUp className="w-4 h-4 text-gray-500" />
+                        ) : (
+                            <ChevronDown className="w-4 h-4 text-gray-500" />
+                        )}
+                    </div>
+                </button>
+                {openFilterSections.designations && (
+                    <div className="p-3 space-y-2 max-h-48 overflow-y-auto scrollbar">
+                        {filterOptions.designations.map(des => (
+                            <label key={des.value} className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={filters.designations?.includes(des.value) || false}
+                                        onChange={() => handleFilterChange('designations', des.value)}
+                                        className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                    />
+                                    <span className="text-sm text-gray-700">{des.label}</span>
+                                </div>
+                                <span className="text-xs text-gray-500">{des.count}</span>
+                            </label>
+                        ))}
+                    </div>
+                )}
             </div>
 
-            {/* Employee Type Filter */}
-            <div className="mb-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Employee Type</h4>
-                <div className="space-y-2">
-                    {filterOptions.employee_types.map(type => (
-                        <label key={type.value} className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    checked={filters.employee_types?.includes(type.value) || false}
-                                    onChange={() => handleFilterChange('employee_types', type.value)}
-                                    className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                />
-                                <span className="text-sm text-gray-700">{type.label}</span>
-                            </div>
-                            <span className="text-xs text-gray-500">{type.count}</span>
-                        </label>
-                    ))}
-                </div>
+            {/* Employee Type Filter - Accordion */}
+            <div className="mb-3 border border-gray-300 rounded-lg overflow-hidden">
+                <button
+                    onClick={() => toggleFilterSection('employee_types')}
+                    className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                >
+                    <span className="font-medium text-sm text-gray-700">Employee Type</span>
+                    <div className="flex items-center gap-2">
+                        {filters.employee_types.length > 0 && (
+                            <span className="text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">
+                                {filters.employee_types.length}
+                            </span>
+                        )}
+                        {openFilterSections.employee_types ? (
+                            <ChevronUp className="w-4 h-4 text-gray-500" />
+                        ) : (
+                            <ChevronDown className="w-4 h-4 text-gray-500" />
+                        )}
+                    </div>
+                </button>
+                {openFilterSections.employee_types && (
+                    <div className="p-3 space-y-2">
+                        {filterOptions.employee_types.map(type => (
+                            <label key={type.value} className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={filters.employee_types?.includes(type.value) || false}
+                                        onChange={() => handleFilterChange('employee_types', type.value)}
+                                        className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                    />
+                                    <span className="text-sm text-gray-700">{type.label}</span>
+                                </div>
+                                <span className="text-xs text-gray-500">{type.count}</span>
+                            </label>
+                        ))}
+                    </div>
+                )}
             </div>
 
-            {/* Location Filter */}
-            <div className="mb-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Location</h4>
-                <div className="space-y-2">
-                    {filterOptions.locations.map(loc => (
-                        <label key={loc.value} className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    checked={filters.locations?.includes(loc.value) || false}
-                                    onChange={() => handleFilterChange('locations', loc.value)}
-                                    className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                />
-                                <span className="text-sm text-gray-700">{loc.label}</span>
-                            </div>
-                            <span className="text-xs text-gray-500">{loc.count}</span>
-                        </label>
-                    ))}
-                </div>
+            {/* Location Filter - Accordion */}
+            <div className="mb-3 border border-gray-300 rounded-lg overflow-hidden">
+                <button
+                    onClick={() => toggleFilterSection('locations')}
+                    className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                >
+                    <span className="font-medium text-sm text-gray-700">Location</span>
+                    <div className="flex items-center gap-2">
+                        {filters.locations.length > 0 && (
+                            <span className="text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">
+                                {filters.locations.length}
+                            </span>
+                        )}
+                        {openFilterSections.locations ? (
+                            <ChevronUp className="w-4 h-4 text-gray-500" />
+                        ) : (
+                            <ChevronDown className="w-4 h-4 text-gray-500" />
+                        )}
+                    </div>
+                </button>
+                {openFilterSections.locations && (
+                    <div className="p-3 space-y-2">
+                        {filterOptions.locations.map(loc => (
+                            <label key={loc.value} className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={filters.locations?.includes(loc.value) || false}
+                                        onChange={() => handleFilterChange('locations', loc.value)}
+                                        className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                    />
+                                    <span className="text-sm text-gray-700">{loc.label}</span>
+                                </div>
+                                <span className="text-xs text-gray-500">{loc.count}</span>
+                            </label>
+                        ))}
+                    </div>
+                )}
             </div>
 
-            {/* Band Filter */}
-            <div className="mb-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Grade/Band</h4>
-                <div className="space-y-2">
-                    {filterOptions.bands.map(band => (
-                        <label key={band.value} className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    checked={filters.bands?.includes(band.value) || false}
-                                    onChange={() => handleFilterChange('bands', band.value)}
-                                    className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                />
-                                <span className="text-sm text-gray-700">{band.label}</span>
-                            </div>
-                            <span className="text-xs text-gray-500">{band.count}</span>
-                        </label>
-                    ))}
-                </div>
+            {/* Band Filter - Accordion */}
+            <div className="mb-3 border border-gray-300 rounded-lg overflow-hidden">
+                <button
+                    onClick={() => toggleFilterSection('bands')}
+                    className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                >
+                    <span className="font-medium text-sm text-gray-700">Grade/Band</span>
+                    <div className="flex items-center gap-2">
+                        {filters.bands.length > 0 && (
+                            <span className="text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">
+                                {filters.bands.length}
+                            </span>
+                        )}
+                        {openFilterSections.bands ? (
+                            <ChevronUp className="w-4 h-4 text-gray-500" />
+                        ) : (
+                            <ChevronDown className="w-4 h-4 text-gray-500" />
+                        )}
+                    </div>
+                </button>
+                {openFilterSections.bands && (
+                    <div className="p-3 space-y-2">
+                        {filterOptions.bands.map(band => (
+                            <label key={band.value} className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={filters.bands?.includes(band.value) || false}
+                                        onChange={() => handleFilterChange('bands', band.value)}
+                                        className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                    />
+                                    <span className="text-sm text-gray-700">{band.label}</span>
+                                </div>
+                                <span className="text-xs text-gray-500">{band.count}</span>
+                            </label>
+                        ))}
+                    </div>
+                )}
             </div>
 
-            {/* Status Filter */}
-            <div className="mb-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Status</h4>
-                <div className="space-y-2">
-                    {filterOptions.status.map(st => (
-                        <label key={st.value} className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    checked={filters.status?.includes(st.value) || false}
-                                    onChange={() => handleFilterChange('status', st.value)}
-                                    className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                />
-                                <span className="text-sm text-gray-700">{st.label}</span>
-                            </div>
-                            <span className="text-xs text-gray-500">{st.count}</span>
-                        </label>
-                    ))}
-                </div>
+            {/* Status Filter - Accordion */}
+            <div className="mb-3 border border-gray-300 rounded-lg overflow-hidden">
+                <button
+                    onClick={() => toggleFilterSection('status')}
+                    className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                >
+                    <span className="font-medium text-sm text-gray-700">Status</span>
+                    <div className="flex items-center gap-2">
+                        {filters.status.length > 0 && (
+                            <span className="text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">
+                                {filters.status.length}
+                            </span>
+                        )}
+                        {openFilterSections.status ? (
+                            <ChevronUp className="w-4 h-4 text-gray-500" />
+                        ) : (
+                            <ChevronDown className="w-4 h-4 text-gray-500" />
+                        )}
+                    </div>
+                </button>
+                {openFilterSections.status && (
+                    <div className="p-3 space-y-2">
+                        {filterOptions.status.map(st => (
+                            <label key={st.value} className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={filters.status?.includes(st.value) || false}
+                                        onChange={() => handleFilterChange('status', st.value)}
+                                        className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                    />
+                                    <span className="text-sm text-gray-700">{st.label}</span>
+                                </div>
+                                <span className="text-xs text-gray-500">{st.count}</span>
+                            </label>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* Filter Summary */}
@@ -775,6 +1027,217 @@ function PayrollRun() {
                     className="w-full px-3 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200"
                 >
                     Clear All Filters
+                </button>
+            </div>
+        </div>
+    );
+
+    // LOP/OT Settings Panel
+    const LopOtSettingsPanel = () => (
+        <div className="bg-white rounded-lg border border-gray-300 shadow-lg p-4 max-h-[500px] overflow-y-auto scrollbar">
+            <div className="flex items-center justify-between mb-4 sticky top-1 bg-white pb-2 border-b border-gray-300">
+                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <Settings2 className="w-4 h-4" />
+                    LOP & Overtime Settings
+                </h3>
+                <button
+                    onClick={() => setShowLopOtSettings(false)}
+                    className="p-1 hover:bg-gray-100 rounded-lg"
+                >
+                    <XIcon className="w-5 h-5 text-gray-500" />
+                </button>
+            </div>
+
+            {/* Active Settings Summary */}
+            {getActiveLopOtCount() > 0 && (
+                <div className="mb-4 p-2 bg-yellow-50 rounded-lg">
+                    <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-yellow-700">
+                            {getActiveLopOtCount()} active settings
+                        </span>
+                        <button
+                            onClick={handleResetLopOt}
+                            className="text-xs text-yellow-700 hover:text-yellow-800 underline"
+                        >
+                            Reset to default
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* LOP Section */}
+            <div className="mb-6">
+                <h4 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
+                    <MinusCircle className="w-4 h-4 text-red-500" />
+                    Loss of Pay (LOP) Settings
+                </h4>
+                <div className="space-y-3 pl-2">
+                    <label className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            checked={lopData.include_lop}
+                            onChange={(e) => setLopData({ ...lopData, include_lop: e.target.checked })}
+                            className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <span className="text-sm text-gray-700">Include LOP in payroll calculation</span>
+                    </label>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-xs text-gray-600 mb-1">Min LOP Days</label>
+                            <input
+                                type="number"
+                                min="0"
+                                max="30"
+                                value={lopData.min_lop_days}
+                                onChange={(e) => setLopData({ ...lopData, min_lop_days: parseInt(e.target.value) || 0 })}
+                                className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs text-gray-600 mb-1">Max LOP Days</label>
+                            <input
+                                type="number"
+                                min="0"
+                                max="30"
+                                value={lopData.max_lop_days}
+                                onChange={(e) => setLopData({ ...lopData, max_lop_days: parseInt(e.target.value) || 30 })}
+                                className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs text-gray-600 mb-1">Deduction Type</label>
+                        <select
+                            value={lopData.lop_deduction_type}
+                            onChange={(e) => setLopData({ ...lopData, lop_deduction_type: e.target.value })}
+                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
+                        >
+                            <option value="proportional">Proportional (1 day = 1/30 of monthly)</option>
+                            <option value="fixed">Fixed Amount per day</option>
+                            <option value="percentage">Percentage of Basic per day</option>
+                        </select>
+                    </div>
+
+                    {lopData.lop_deduction_type !== 'proportional' && (
+                        <div>
+                            <label className="block text-xs text-gray-600 mb-1">
+                                {lopData.lop_deduction_type === 'fixed' ? 'Fixed Deduction per day (₹)' : 'Deduction Percentage per day (%)'}
+                            </label>
+                            <input
+                                type="number"
+                                min="0"
+                                value={lopData.lop_deduction_value}
+                                onChange={(e) => setLopData({ ...lopData, lop_deduction_value: parseInt(e.target.value) || 0 })}
+                                className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
+                            />
+                        </div>
+                    )}
+
+                    <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+                        <span className="font-medium">Current:</span>{' '}
+                        {lopData.include_lop ? 'Including' : 'Excluding'} LOP |
+                        Days: {lopData.min_lop_days}-{lopData.max_lop_days} |
+                        Type: {lopData.lop_deduction_type}
+                    </div>
+                </div>
+            </div>
+
+            {/* Overtime Section */}
+            <div className="mb-4">
+                <h4 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
+                    <Clock4 className="w-4 h-4 text-green-500" />
+                    Overtime Settings
+                </h4>
+                <div className="space-y-3 pl-2">
+                    <label className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            checked={overtimeData.include_overtime}
+                            onChange={(e) => setOvertimeData({ ...overtimeData, include_overtime: e.target.checked })}
+                            className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <span className="text-sm text-gray-700">Include Overtime in payroll calculation</span>
+                    </label>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-xs text-gray-600 mb-1">Min OT Hours</label>
+                            <input
+                                type="number"
+                                min="0"
+                                max="60"
+                                value={overtimeData.min_overtime_hours}
+                                onChange={(e) => setOvertimeData({ ...overtimeData, min_overtime_hours: parseInt(e.target.value) || 0 })}
+                                className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs text-gray-600 mb-1">Max OT Hours</label>
+                            <input
+                                type="number"
+                                min="0"
+                                max="60"
+                                value={overtimeData.max_overtime_hours}
+                                onChange={(e) => setOvertimeData({ ...overtimeData, max_overtime_hours: parseInt(e.target.value) || 60 })}
+                                className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs text-gray-600 mb-1">Overtime Rate (x normal pay)</label>
+                        <input
+                            type="number"
+                            min="1"
+                            max="3"
+                            step="0.1"
+                            value={overtimeData.overtime_rate}
+                            onChange={(e) => setOvertimeData({ ...overtimeData, overtime_rate: parseFloat(e.target.value) || 1.5 })}
+                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-xs text-gray-600 mb-1">Calculation Method</label>
+                        <select
+                            value={overtimeData.overtime_calculation}
+                            onChange={(e) => setOvertimeData({ ...overtimeData, overtime_calculation: e.target.value })}
+                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
+                        >
+                            <option value="hourly">Hourly Rate</option>
+                            <option value="daily">Daily Rate</option>
+                            <option value="fixed">Fixed Amount per hour</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs text-gray-600 mb-1">Maximum Overtime Pay (₹ per month)</label>
+                        <input
+                            type="number"
+                            min="0"
+                            value={overtimeData.overtime_cap}
+                            onChange={(e) => setOvertimeData({ ...overtimeData, overtime_cap: parseInt(e.target.value) || 0 })}
+                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
+                        />
+                    </div>
+
+                    <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+                        <span className="font-medium">Current:</span>{' '}
+                        {overtimeData.include_overtime ? 'Including' : 'Excluding'} OT |
+                        Hours: {overtimeData.min_overtime_hours}-{overtimeData.max_overtime_hours} |
+                        Rate: {overtimeData.overtime_rate}x
+                    </div>
+                </div>
+            </div>
+
+            <div className="mt-4 pt-4 border-t">
+                <button
+                    onClick={handleResetLopOt}
+                    className="w-full px-3 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200"
+                >
+                    Reset to Default Settings
                 </button>
             </div>
         </div>
@@ -812,54 +1275,13 @@ function PayrollRun() {
                     Excluded
                 </button>
             </div>
-            <div className="h-6 w-px bg-gray-300"></div>
-            <button
-                onClick={() => setShowFilters(!showFilters)}
-                className={`p-2 rounded-lg flex items-center gap-1 relative ${showFilters ? 'bg-indigo-100 text-indigo-700' : 'text-gray-600 hover:bg-gray-100'
-                    }`}
-                title="Toggle filters"
-            >
-                <Filter className="w-4 h-4" />
-                {getActiveFilterCount() > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                        {getActiveFilterCount()}
-                    </span>
-                )}
-            </button>
         </div>
     );
 
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-    // Helper function to safely get department summary entries
-    const getDepartmentEntries = () => {
-        try {
-            // Check if by_department exists and is an object
-            if (!payrollSummary || typeof payrollSummary !== 'object') {
-                return [];
-            }
-
-            const byDepartment = payrollSummary.by_department;
-
-            // Check if by_department exists and is an object
-            if (!byDepartment || typeof byDepartment !== 'object') {
-                return [];
-            }
-
-            // Check if it's a plain object (not null, not array)
-            if (Object.prototype.toString.call(byDepartment) !== '[object Object]') {
-                return [];
-            }
-
-            return Object.entries(byDepartment);
-        } catch (error) {
-            console.error('Error getting department entries:', error);
-            return [];
-        }
-    };
-
     return (
-        <div className="p-3 md:p-4 lg:p-6 bg-gray-50 min-h-screen">
+        <div className="p-3 md:p-4 lg:p-6 bg-gray-50 min-h-screen pb-32">
             <Breadcrumb
                 items={[
                     { label: 'Payroll', to: '/payroll' },
@@ -867,7 +1289,146 @@ function PayrollRun() {
                 ]}
                 title="Run Payroll"
                 description="Process monthly payroll with multi-level filtering and selection"
+                actions={
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => {
+                                setShowLopOtSettings(!showLopOtSettings);
+                                setShowFilters(false);
+                            }}
+                            className={`px-3 py-2 rounded-lg flex items-center gap-2 relative ${showLopOtSettings ? 'bg-indigo-100 text-indigo-700' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                                }`}
+                            title="LOP & Overtime Settings"
+                        >
+                            <Settings2 className="w-4 h-4" />
+                            <span className="hidden sm:inline">LOP/OT Settings</span>
+                            {getActiveLopOtCount() > 0 && (
+                                <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                                    {getActiveLopOtCount()}
+                                </span>
+                            )}
+                        </button>
+                        <button
+                            onClick={() => {
+                                setShowFilters(!showFilters);
+                                setShowLopOtSettings(false);
+                            }}
+                            className={`px-3 py-2 rounded-lg flex items-center gap-2 relative ${showFilters ? 'bg-indigo-100 text-indigo-700' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                                }`}
+                            title="Toggle filters"
+                        >
+                            <Filter className="w-4 h-4" />
+                            <span className="hidden sm:inline">Filters</span>
+                            {getActiveFilterCount() > 0 && (
+                                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                                    {getActiveFilterCount()}
+                                </span>
+                            )}
+                        </button>
+                    </div>
+                }
             />
+
+            {/* Filter Panel */}
+            {showFilters && (
+                <div className="absolute top-32 right-4 z-50 w-80 md:w-96">
+                    <FilterPanel />
+                </div>
+            )}
+
+            {/* LOP/OT Settings Panel */}
+            {showLopOtSettings && (
+                <div className="absolute top-32 right-4 z-50 w-80 md:w-96">
+                    <LopOtSettingsPanel />
+                </div>
+            )}
+
+            {/* Stats Cards with LOP and Overtime */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2 md:gap-4 mb-4 md:mb-6">
+                <div className="bg-white rounded-lg shadow-sm border p-3">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-xs text-gray-500">Total</p>
+                            <p className="text-lg font-bold text-gray-900">{payrollSummary.total_employees || 0}</p>
+                        </div>
+                        <div className="p-2 bg-blue-100 rounded-lg">
+                            <Users className="w-4 h-4 text-blue-600" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-sm border p-3">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-xs text-gray-500">Selected</p>
+                            <p className="text-lg font-bold text-indigo-600">{payrollSummary.selected_count || 0}</p>
+                        </div>
+                        <div className="p-2 bg-indigo-100 rounded-lg">
+                            <CheckSquare className="w-4 h-4 text-indigo-600" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-sm border p-3">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-xs text-gray-500">Gross</p>
+                            <p className="text-lg font-bold text-gray-900">₹{((payrollSummary.total_salary || 0) / 100000).toFixed(1)}L</p>
+                        </div>
+                        <div className="p-2 bg-green-100 rounded-lg">
+                            <DollarSign className="w-4 h-4 text-green-600" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-sm border p-3">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-xs text-gray-500">LOP</p>
+                            <p className="text-lg font-bold text-red-600">₹{((payrollSummary.total_lop_deductions || 0) / 1000).toFixed(0)}K</p>
+                        </div>
+                        <div className="p-2 bg-red-100 rounded-lg">
+                            <Minus className="w-4 h-4 text-red-600" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-sm border p-3">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-xs text-gray-500">OT</p>
+                            <p className="text-lg font-bold text-green-600">₹{((payrollSummary.total_overtime_pay || 0) / 1000).toFixed(0)}K</p>
+                        </div>
+                        <div className="p-2 bg-green-100 rounded-lg">
+                            <Clock4 className="w-4 h-4 text-green-600" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-sm border p-3">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-xs text-gray-500">Net</p>
+                            <p className="text-lg font-bold text-purple-600">₹{((payrollSummary.net_payable || 0) / 100000).toFixed(1)}L</p>
+                        </div>
+                        <div className="p-2 bg-purple-100 rounded-lg">
+                            <Banknote className="w-4 h-4 text-purple-600" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-sm border p-3">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-xs text-gray-500">Cost</p>
+                            <p className="text-lg font-bold text-orange-600">₹{(((payrollSummary.employer_contribution || 0) + (payrollSummary.total_salary || 0)) / 100000).toFixed(1)}L</p>
+                        </div>
+                        <div className="p-2 bg-orange-100 rounded-lg">
+                            <Building className="w-4 h-4 text-orange-600" />
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             {/* Main Content - Single Column with Table */}
             <div className="bg-white rounded-xl shadow-sm relative">
@@ -886,104 +1447,140 @@ function PayrollRun() {
                         tableControls={tableControls}
                         searchPlaceholder="Search employees..."
                     />
-
-                    {/* Floating Filter Panel */}
-                    {showFilters && (
-                        <div className="absolute top-16 right-4 z-50 w-80 md:w-96">
-                            <FilterPanel />
-                        </div>
-                    )}
-                </div>
-
-                {/* Summary by Department */}
-                <div className="p-4 border-t bg-gray-50">
-                    <h4 className="font-medium text-gray-700 mb-3">Summary by Department</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {getDepartmentEntries().map(([dept, data]) => (
-                            <div key={dept} className="bg-white p-3 rounded-lg shadow-sm">
-                                <p className="font-medium text-sm">{dept}</p>
-                                <div className="grid grid-cols-2 gap-2 mt-2 text-xs">
-                                    <div>
-                                        <span className="text-gray-500">Employees:</span>
-                                        <span className="ml-1 font-medium">{data?.count || 0}</span>
-                                    </div>
-                                    <div>
-                                        <span className="text-gray-500">Net Pay:</span>
-                                        <span className="ml-1 font-medium">₹{((data?.net || 0) / 1000).toFixed(0)}K</span>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                        {getDepartmentEntries().length === 0 && (
-                            <div className="col-span-3 text-center py-4 text-gray-500">
-                                No department data available
-                            </div>
-                        )}
-                    </div>
                 </div>
             </div>
 
-            {/* Bottom Action Bar */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4 z-40">
-                <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <span className="text-sm text-gray-600">
-                                {payrollSummary.selected_count || 0} employees selected
-                            </span>
-                        </div>
-                        <div className="h-4 w-px bg-gray-300"></div>
-                        <div className="text-sm">
-                            <span className="text-gray-500">Net Payable:</span>
-                            <span className="ml-2 font-bold text-indigo-600">
-                                ₹{(payrollSummary.net_payable || 0).toLocaleString()}
-                            </span>
-                        </div>
-                        <div className="text-sm">
-                            <span className="text-gray-500">Employer Cost:</span>
-                            <span className="ml-2 font-bold text-purple-600">
-                                ₹{((payrollSummary.employer_contribution || 0) + (payrollSummary.total_salary || 0)).toLocaleString()}
-                            </span>
+            {/* Bottom Action Bar - Responsive */}
+            <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-3 md:p-4 z-40">
+                <div className="max-w-7xl mx-auto">
+                    {/* Mobile View */}
+                    <div className="block md:hidden">
+                        <div className="flex flex-col gap-2">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    <span className="text-xs text-gray-600">
+                                        {payrollSummary.selected_count || 0} selected
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs text-gray-500">Net:</span>
+                                    <span className="text-sm font-bold text-indigo-600">
+                                        ₹{(payrollSummary.net_payable || 0).toLocaleString()}
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="flex items-center justify-between text-xs">
+                                <span className="text-red-600">LOP: -₹{(payrollSummary.total_lop_deductions || 0).toLocaleString()}</span>
+                                <span className="text-green-600">OT: +₹{(payrollSummary.total_overtime_pay || 0).toLocaleString()}</span>
+                            </div>
+                            <div className="flex items-center gap-2 mt-1">
+                                <CommonDropDown
+                                    label=""
+                                    value={payrollConfig.month}
+                                    onChange={(val) => setPayrollConfig({ ...payrollConfig, month: parseInt(val) })}
+                                    options={monthNames.map((m, i) => ({ label: m.substring(0, 3), value: i }))}
+                                    placeholder="Month"
+                                    theme="light"
+                                    className="flex-1"
+                                />
+                                <CommonDropDown
+                                    label=""
+                                    value={payrollConfig.run_type}
+                                    onChange={(val) => setPayrollConfig({ ...payrollConfig, run_type: val })}
+                                    options={[
+                                        { value: 'regular', label: 'Regular' },
+                                        { value: 'supplementary', label: 'Supp.' },
+                                        { value: 'bonus', label: 'Bonus' }
+                                    ]}
+                                    placeholder="Type"
+                                    theme="light"
+                                    className="flex-1"
+                                />
+                                <button
+                                    onClick={() => setShowRunModal(true)}
+                                    disabled={!payrollSummary.selected_count || payrollSummary.selected_count === 0}
+                                    className={`px-3 py-2 rounded-lg text-white text-xs flex items-center gap-1 ${!payrollSummary.selected_count || payrollSummary.selected_count === 0
+                                            ? 'bg-gray-400 cursor-not-allowed'
+                                            : 'bg-indigo-600 hover:bg-indigo-700'
+                                        }`}
+                                >
+                                    <Play className="w-3 h-3" />
+                                    Run
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                        <CommonDropDown
-                            label=""
-                            value={payrollConfig.month}
-                            onChange={(val) => setPayrollConfig({ ...payrollConfig, month: parseInt(val) })}
-                            options={monthNames.map((m, i) => ({ label: m, value: i }))}
-                            placeholder="Month"
-                            theme="light"
-                        />
-                        <CommonDropDown
-                            label=""
-                            value={payrollConfig.run_type}
-                            onChange={(val) => setPayrollConfig({ ...payrollConfig, run_type: val })}
-                            options={[
-                                { value: 'regular', label: 'Regular Payroll' },
-                                { value: 'supplementary', label: 'Supplementary' },
-                                { value: 'bonus', label: 'Bonus Run' },
-                                { value: 'off-cycle', label: 'Off-Cycle' }
-                            ]}
-                            placeholder="Run Type"
-                            theme="light"
-                        />
-                        <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm">
-                            Save Draft
-                        </button>
-                        <button
-                            onClick={() => setShowRunModal(true)}
-                            disabled={!payrollSummary.selected_count || payrollSummary.selected_count === 0}
-                            className={`px-6 py-2 rounded-lg text-white text-sm flex items-center gap-2 ${!payrollSummary.selected_count || payrollSummary.selected_count === 0
-                                ? 'bg-gray-400 cursor-not-allowed'
-                                : 'bg-indigo-600 hover:bg-indigo-700'
-                                }`}
-                        >
-                            <Play className="w-4 h-4" />
-                            Run Payroll
-                        </button>
+                    {/* Desktop View */}
+                    <div className="hidden md:flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <span className="text-sm text-gray-600">
+                                    {payrollSummary.selected_count || 0} employees selected
+                                </span>
+                            </div>
+                            <div className="h-4 w-px bg-gray-300"></div>
+                            <div className="text-sm">
+                                <span className="text-gray-500">Net Payable:</span>
+                                <span className="ml-2 font-bold text-indigo-600">
+                                    ₹{(payrollSummary.net_payable || 0).toLocaleString()}
+                                </span>
+                            </div>
+                            <div className="text-sm">
+                                <span className="text-gray-500">LOP:</span>
+                                <span className="ml-2 font-medium text-red-600">
+                                    -₹{(payrollSummary.total_lop_deductions || 0).toLocaleString()}
+                                </span>
+                            </div>
+                            <div className="text-sm">
+                                <span className="text-gray-500">OT:</span>
+                                <span className="ml-2 font-medium text-green-600">
+                                    +₹{(payrollSummary.total_overtime_pay || 0).toLocaleString()}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                            <CommonDropDown
+                                label=""
+                                value={payrollConfig.month}
+                                onChange={(val) => setPayrollConfig({ ...payrollConfig, month: parseInt(val) })}
+                                options={monthNames.map((m, i) => ({ label: m, value: i }))}
+                                placeholder="Month"
+                                theme="light"
+                                className="w-32"
+                            />
+                            <CommonDropDown
+                                label=""
+                                value={payrollConfig.run_type}
+                                onChange={(val) => setPayrollConfig({ ...payrollConfig, run_type: val })}
+                                options={[
+                                    { value: 'regular', label: 'Regular Payroll' },
+                                    { value: 'supplementary', label: 'Supplementary' },
+                                    { value: 'bonus', label: 'Bonus Run' },
+                                    { value: 'off-cycle', label: 'Off-Cycle' }
+                                ]}
+                                placeholder="Run Type"
+                                theme="light"
+                                className="w-36"
+                            />
+                            <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm whitespace-nowrap">
+                                Save Draft
+                            </button>
+                            <button
+                                onClick={() => setShowRunModal(true)}
+                                disabled={!payrollSummary.selected_count || payrollSummary.selected_count === 0}
+                                className={`px-6 py-2 rounded-lg text-white text-sm flex items-center gap-2 whitespace-nowrap ${!payrollSummary.selected_count || payrollSummary.selected_count === 0
+                                        ? 'bg-gray-400 cursor-not-allowed'
+                                        : 'bg-indigo-600 hover:bg-indigo-700'
+                                    }`}
+                            >
+                                <Play className="w-4 h-4" />
+                                Run Payroll
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -991,7 +1588,7 @@ function PayrollRun() {
             {/* Run Payroll Modal */}
             {showRunModal && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-xl max-w-lg w-full">
+                    <div className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
                         <div className="p-6">
                             <div className="flex items-center gap-3 mb-4">
                                 <div className="p-2 bg-indigo-100 rounded-full">
@@ -1002,6 +1599,20 @@ function PayrollRun() {
                                     <p className="text-sm text-gray-500">
                                         {monthNames[payrollConfig.month] || ''} {payrollConfig.year} - {payrollSummary.selected_count || 0} employees
                                     </p>
+                                </div>
+                            </div>
+
+                            {/* LOP and Overtime Summary */}
+                            <div className="bg-gray-50 p-3 rounded-lg mb-4">
+                                <div className="grid grid-cols-2 gap-2 text-xs">
+                                    <div>
+                                        <span className="text-gray-500">LOP Deductions:</span>
+                                        <span className="ml-1 font-medium text-red-600">₹{(payrollSummary.total_lop_deductions || 0).toLocaleString()}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-gray-500">Overtime Pay:</span>
+                                        <span className="ml-1 font-medium text-green-600">₹{(payrollSummary.total_overtime_pay || 0).toLocaleString()}</span>
+                                    </div>
                                 </div>
                             </div>
 
@@ -1031,8 +1642,16 @@ function PayrollRun() {
                                                 <p className="font-medium">₹{(payrollSummary.total_salary || 0).toLocaleString()}</p>
                                             </div>
                                             <div>
-                                                <p className="text-gray-500">Total Deductions</p>
-                                                <p className="font-medium text-red-600">-₹{(payrollSummary.total_deductions || 0).toLocaleString()}</p>
+                                                <p className="text-gray-500">LOP Deductions</p>
+                                                <p className="font-medium text-red-600">-₹{(payrollSummary.total_lop_deductions || 0).toLocaleString()}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-gray-500">Overtime Pay</p>
+                                                <p className="font-medium text-green-600">+₹{(payrollSummary.total_overtime_pay || 0).toLocaleString()}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-gray-500">Other Deductions</p>
+                                                <p className="font-medium text-red-600">-₹{((payrollSummary.total_deductions || 0) - (payrollSummary.total_lop_deductions || 0)).toLocaleString()}</p>
                                             </div>
                                             <div>
                                                 <p className="text-gray-500">Net Payable</p>
@@ -1115,8 +1734,8 @@ function PayrollRun() {
                                         onClick={handleRunPayroll}
                                         disabled={!runConfig.confirm}
                                         className={`px-4 py-2 text-white rounded-lg text-sm ${runConfig.confirm
-                                            ? 'bg-indigo-600 hover:bg-indigo-700'
-                                            : 'bg-gray-400 cursor-not-allowed'
+                                                ? 'bg-indigo-600 hover:bg-indigo-700'
+                                                : 'bg-gray-400 cursor-not-allowed'
                                             }`}
                                     >
                                         Process Payroll
@@ -1131,7 +1750,7 @@ function PayrollRun() {
             {/* Preview Modal */}
             {showPreview && previewData && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full">
+                    <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                         <div className="p-6">
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-3">
@@ -1199,9 +1818,6 @@ function PayrollRun() {
                     </div>
                 </div>
             )}
-
-            {/* Bottom Padding for Fixed Bar */}
-            <div className="h-24"></div>
         </div>
     );
 }

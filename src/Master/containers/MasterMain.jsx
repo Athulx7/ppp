@@ -5,6 +5,7 @@ import CommonButton from '../../basicComponents/CommonButton';
 import CommonTable from '../../basicComponents/commonTable';
 import { buildMasterTableColumns } from '../components/BuildMasterTableColumns';
 import { ApiCall, getRoleBasePath } from '../../library/constants';
+import Breadcrumb from '../../basicComponents/BreadCrumb';
 
 function MasterMain() {
 
@@ -14,12 +15,14 @@ function MasterMain() {
     const [master, setMaster] = useState(null);
     const [columns, setColumns] = useState([]);
     const [tableData, setTableData] = useState([]);
+    const [isLoading, setIsLoading] = useState(false)
 
     useEffect(() => {
         loadMasterList();
     }, [menuId]);
 
     const loadMasterList = async () => {
+        setIsLoading(true)
         try {
             const response = await ApiCall("GET", `/master/${menuId}/getlist`)
             console.log("Master List Response:", response.data.data);
@@ -47,6 +50,7 @@ function MasterMain() {
         } catch (err) {
             console.error("Failed to load master list", err);
         }
+        setIsLoading(false)
     };
 
     const handleEdit = (row) => {
@@ -56,42 +60,24 @@ function MasterMain() {
     if (!master) return null;
     return (
         <>
-            <div className="flex items-center text-sm text-gray-600 mb-3">
-                <Link to="/" className="flex items-center hover:underline">
-                    <LayoutDashboard className="w-4 h-4 mr-2 text-gray-400" />
-                    Dashboard
-                </Link>
-
-                <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
-
-                <span className="font-medium text-indigo-600">
-                    {master.header_name}
-                </span>
-            </div>
-
-            {/* Header */}
-            <div className="flex justify-between items-center mb-6">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
-                        {master.header_name}
-                    </h1>
-                    <p className="text-gray-600 text-sm">
-                        Manage and configure {master.header_name.toLowerCase()}
-                    </p>
-                </div>
-
-                <button
+            <Breadcrumb
+                items={[{ label: `${master.header_name}`, }]}
+                title={master.header_name}
+                description={`Manage and configure ${master.header_name.toLowerCase()}`}
+                actions={<button
                     onClick={() => navigate(`${getRoleBasePath()}/master/${menuId}/add`)}
                     className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 cursor-pointer"
                 >
                     <Plus className="w-4 h-4" />
                     Add New
-                </button>
-            </div>
+                </button>}
+                loading={isLoading}
+            />
 
             <CommonTable
                 columns={columns}
                 data={tableData}
+                loading={isLoading}
             />
         </>
     )

@@ -108,13 +108,13 @@ function EmployeeMasterEntry() {
                 if (value) queryParams.append(key, value)
             })
 
-            const res = await ApiCall('get',`/empmst/employeeList?${queryParams.toString()}`)
+            const res = await ApiCall('get', `/empmst/employeeList?${queryParams.toString()}`)
 
             if (res?.data?.success) {
                 setEmployees(res.data.data)
                 setShowTable(true)
             }
-            else{
+            else {
 
             }
 
@@ -255,6 +255,7 @@ function EmployeeMasterEntry() {
                     <Plus className="w-4 h-4" />
                     Add New Employee
                 </button>}
+                loading={isLoading}
             />
 
             <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
@@ -265,6 +266,7 @@ function EmployeeMasterEntry() {
                         value={filters.emp_code}
                         onChange={(val) => handleFilterChange('emp_code', val)}
                         placeholder="Enter Employee Code"
+                        loading={isLoading}
                     />
 
                     <CommonInputField
@@ -272,6 +274,7 @@ function EmployeeMasterEntry() {
                         value={filters.emp_name}
                         onChange={(val) => handleFilterChange('emp_name', val)}
                         placeholder="Enter Employee Name"
+                        loading={isLoading}
                     />
 
                     <CommonDropDown
@@ -280,6 +283,7 @@ function EmployeeMasterEntry() {
                         onChange={(val) => handleFilterChange('department_code', val)}
                         options={dropdowns.departments}
                         placeholder="Select Department"
+                        loading={isLoading}
                     />
 
                     <CommonDropDown
@@ -288,6 +292,7 @@ function EmployeeMasterEntry() {
                         onChange={(val) => handleFilterChange('designation_code', val)}
                         options={dropdowns.designations}
                         placeholder="Select Designation"
+                        loading={isLoading}
                     />
 
                     <CommonDropDown
@@ -296,6 +301,7 @@ function EmployeeMasterEntry() {
                         onChange={(val) => handleFilterChange('hierarchy_code', val)}
                         options={dropdowns.hierarchyLevels}
                         placeholder="Select Hierarchy"
+                        loading={isLoading}
                     />
 
                     <CommonDropDown
@@ -309,26 +315,33 @@ function EmployeeMasterEntry() {
                             { label: 'Terminated', value: 'Terminated' }
                         ]}
                         placeholder="Select Status"
+                        loading={isLoading}
                     />
+                    {isLoading ? (
+                        <div className="flex justify-end gap-4 pt-4 border-t border-gray-300 animate-pulse">
+                            <div className="h-10 w-24 bg-gray-200 rounded-lg"></div>
 
-                    <div className="flex mt-6 gap-3">
-                        <button
-                            onClick={handleSearch}
-                            disabled={isSearchDisabled}
-                            className={`px-6 text-white rounded-md h-8 ${isSearchDisabled
-                                ? 'bg-indigo-400 cursor-not-allowed'
-                                : 'bg-indigo-500 hover:bg-indigo-600 cursor-pointer'
-                                }`}
-                        >
-                            Search
-                        </button>
+                            <div className="h-10 w-24 bg-gray-200 rounded-lg"></div>
+                        </div>
+                    ) : (
+                        <div className="flex mt-6 gap-3">
+                            <button
+                                onClick={handleSearch}
+                                disabled={isSearchDisabled}
+                                className={`px-6 text-white rounded-md h-8 ${isSearchDisabled
+                                    ? 'bg-indigo-400 cursor-not-allowed'
+                                    : 'bg-indigo-500 hover:bg-indigo-600 cursor-pointer'
+                                    }`}
+                            >
+                                Search
+                            </button>
 
-                        <button onClick={handleRefresh}
-                            className="h-8 w-8 flex cursor-pointer items-center justify-center  border bg-gray-200 border-gray-400 rounded-md hover:border-gray-400 text-gray-700"
-                        >
-                            <RefreshCw className="w-4 h-4" />
-                        </button>
-                    </div>
+                            <button onClick={handleRefresh}
+                                className="h-8 w-8 flex cursor-pointer items-center justify-center  border bg-gray-200 border-gray-400 rounded-md hover:border-gray-400 text-gray-700"
+                            >
+                                <RefreshCw className="w-4 h-4" />
+                            </button>
+                        </div>)}
                 </div>
 
             </div>
@@ -340,6 +353,7 @@ function EmployeeMasterEntry() {
                     itemsPerPage={10}
                     showSearch={false}
                     showPagination={true}
+                    loading={isLoading}
                 />
             )}
             {isLoading && <LoadingSpinner />}

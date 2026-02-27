@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react"
+import React, { useState, useRef, useEffect, useLayoutEffect } from "react"
 import { ChevronDown, ChevronUp } from "lucide-react"
 import ReactDOM from "react-dom"
 
@@ -13,7 +13,8 @@ function CommonDropDown({
     disabled = false,
     className = '',
     style = {},
-    errorMessage
+    errorMessage,
+    loading = false
 }) {
     const [searchTerm, setSearchTerm] = useState('')
     const [isOpen, setIsOpen] = useState(false)
@@ -25,25 +26,24 @@ function CommonDropDown({
         option.label.toLowerCase().includes(searchTerm.toLowerCase())
     )
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (isOpen && containerRef.current) {
             const containerRect = containerRef.current.getBoundingClientRect()
+            const dropdownHeight = 240
             const spaceBelow = window.innerHeight - containerRect.bottom
             const spaceAbove = containerRect.top
-            const dropdownHeight = 240
 
-            let top, left
+            let top
+            let left = containerRect.left
 
             if (spaceBelow >= dropdownHeight || spaceBelow >= spaceAbove) {
-                top = containerRect.bottom + window.scrollY + 4
-                left = containerRect.left + window.scrollX
+                top = containerRect.bottom + 4
             } else {
-                top = containerRect.top + window.scrollY - dropdownHeight - 4
-                left = containerRect.left + window.scrollX
+                top = containerRect.top - dropdownHeight - 4
             }
 
             setDropdownStyle({
-                position: 'absolute',
+                position: 'fixed',
                 top,
                 left,
                 width: containerRect.width,
@@ -87,51 +87,62 @@ function CommonDropDown({
             ref={containerRef}
         >
             {label && (
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                    {label}
-                    {required && <span className="ml-1 text-red-500">*</span>}
-                </label>
-            )}
-            <div
-                className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all
-                    ${disabled
-                        ? "bg-gray-100 text-gray-900 border border-indigo-500"
-                        : "bg-white border border-indigo-500 hover:border-indigo-400"}
-                    ${isOpen ? "ring-1 ring-indigo-500" : ""}
-                     ${errorMessage ? "border-red-500 focus:ring-red-500" : ""}
-                `}
-                onClick={() => !disabled && setIsOpen(!isOpen)}
-            >
-                {isOpen && showSearch ? (
-                    <input
-                        type="text"
-                        placeholder="Search..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full text-sm bg-transparent outline-none"
-                        autoFocus
-                        onClick={(e) => e.stopPropagation()}
-                    />
+                loading ? (
+                    <div className="mb-2 h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
                 ) : (
-                    <span className={`truncate text-sm ${value ? "text-gray-800" : "text-gray-400"}`}>
-                        {value
-                            ? options.find(opt => opt.value === value)?.label
-                            : placeholder}
-                    </span>
-                )}
-
-                <div className="ml-2 pl-2 border-l border-gray-200">
-                    {isOpen ? (
-                        <ChevronUp size={16} className="text-indigo-500" />
+                    <label className="block mb-1 text-sm font-medium text-gray-700">
+                        {label}
+                        {required && <span className="ml-1 text-red-500">*</span>}
+                    </label>
+                )
+            )}
+            {loading ? (
+                <div className="h-10 w-full bg-gray-200 rounded-lg animate-pulse"></div>
+            ) : (
+                <div
+                    className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all
+            ${disabled
+                            ? "bg-gray-100 text-gray-900 border border-indigo-500"
+                            : "bg-white border border-indigo-500 hover:border-indigo-400"}
+            ${isOpen ? "ring-1 ring-indigo-500" : ""}
+            ${errorMessage ? "border-red-500 focus:ring-red-500" : ""}
+        `}
+                    onClick={() => !disabled && !loading && setIsOpen(!isOpen)}
+                >
+                    {isOpen && showSearch ? (
+                        <input
+                            type="text"
+                            placeholder="Search..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full text-sm bg-transparent outline-none"
+                            autoFocus
+                            onClick={(e) => e.stopPropagation()}
+                        />
                     ) : (
-                        <ChevronDown size={16} className="text-indigo-500" />
+                        <span className={`truncate text-sm ${value ? "text-gray-800" : "text-gray-400"}`}>
+                            {value
+                                ? options.find(opt => opt.value === value)?.label
+                                : placeholder}
+                        </span>
                     )}
+
+                    <div className="ml-2 pl-2 border-l border-gray-200">
+                        {isOpen ? (
+                            <ChevronUp size={16} className="text-indigo-500" />
+                        ) : (
+                            <ChevronDown size={16} className="text-indigo-500" />
+                        )}
+                    </div>
                 </div>
-            </div>
+            )}
             {errorMessage && (
-                <div className="mt-1 text-xs text-red-500">
-                    {errorMessage}
-                </div>
+                loading ? (
+                    <div className="mb-2 h-4 w-24 bg-gray-200 rounded animate-pulse mt-1"></div>
+                ) :
+                    <div className="mt-1 text-xs text-red-500">
+                        {errorMessage}
+                    </div>
             )}
 
             {isOpen && ReactDOM.createPortal(

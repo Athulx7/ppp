@@ -18,7 +18,8 @@ function CommonInputField({
     step,
     autoComplete = "off",
     onKeyDown,
-    spellCheck = false
+    spellCheck = false,
+    loading = false
 }) {
 
     const checkForNumber = (val) => {
@@ -42,37 +43,46 @@ function CommonInputField({
     return (
         <div className={`w-full ${className}`} style={style}>
             {label && (
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                    {label}
-                    {required && <span className="ml-1 text-red-500">*</span>}
-                </label>
+                loading ? (
+                    <div className="mb-2 h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+                ) : (
+                    <label className="block mb-1 text-sm font-medium text-gray-700">
+                        {label}
+                        {required && <span className="ml-1 text-red-500">*</span>}
+                    </label>
+                )
             )}
-
-            <input
-                type={type}
-                value={value}
-                placeholder={placeholder}
-                disabled={disabled}
-                autoComplete={autoComplete}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                onWheel={(e) => e.currentTarget.blur()}
-                onKeyDown={onKeyDown}
-                spellCheck={spellCheck}
-                step={step}
-                min="0"
-                className={`w-full px-3 py-2 rounded-lg text-sm transition-all
+            {loading ? (
+                <div className="w-full h-10 bg-gray-200 rounded-lg animate-pulse"></div>
+            ) : (
+                <input
+                    type={type}
+                    value={value}
+                    placeholder={placeholder}
+                    disabled={disabled}
+                    autoComplete={autoComplete}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    onWheel={(e) => e.currentTarget.blur()}
+                    onKeyDown={onKeyDown}
+                    spellCheck={spellCheck}
+                    step={step}
+                    min="0"
+                    className={`w-full px-3 py-2 rounded-lg text-sm transition-all
           ${disabled
-                        ? "bg-gray-100 text-gray-900 border border-indigo-500"
-                        : "bg-white border border-indigo-500 hover:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"}
+                            ? "bg-gray-100 text-gray-900 border border-indigo-500"
+                            : "bg-white border border-indigo-500 hover:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"}
           ${errorMessage ? "border-red-500 focus:ring-red-500" : ""}
         `}
-            />
+                />)}
 
             {errorMessage && (
-                <div className="mt-1 text-xs text-red-500">
-                    {errorMessage}
-                </div>
+                loading ? (
+                    <div className="mb-2 h-4 w-24 bg-gray-200 rounded animate-pulse mt-1"></div>
+                ) :
+                    <div className="mt-1 text-xs text-red-500">
+                        {errorMessage}
+                    </div>
             )}
         </div>
     )
