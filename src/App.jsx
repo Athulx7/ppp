@@ -21,8 +21,6 @@ import EmployeeMasterEntry from './EmployeeMaster/container/EmployeeMasterEntry'
 import EmpMstAddEditEntry from './EmployeeMaster/container/EmpMstAddEditEntry'
 import MenuMappingTest from './MenuMapping/MenuMappingTest'
 import UploadDashboard from './UploadCenter/container/UploadCenterEntry'
-import UploadProgress from './UploadCenter/components/UploadProgress'
-import UploadHistory from './UploadCenter/components/UploadHistory'
 import CtcReportTest from './CtcReport/CtcReportTest'
 import PayslipsTest from './Payslips/PayslipsTest'
 import LeaveSettingTest from './LeaveSetting/LeaveSettingTest'
@@ -35,6 +33,8 @@ import SalaryAdvanceRequest from './SalaryAdvanceRequest/SalaryAdvanceRequestTes
 import SalaryAdvanceApproval from './SalaryAdvanceApproval/SalaryAdvanceApprovaltest'
 import PayrollRun from './PayrollRuns/PayrollRunstest'
 import PayrollInputstest from './PayrollRuns/PayrollInputstest'
+import UploadProgressEntry from './UploadCenter/container/UploadProgressEntry'
+import UploadHistoryEntry from './UploadCenter/container/UploadHistoryEntry'
 
 const PublicRoute = ({ children }) => {
   const token = sessionStorage.getItem('token')
@@ -63,8 +63,8 @@ function App() {
       <Routes>
         <Route path='/' element={<PublicRoute><LoginPage /></PublicRoute>} />
 
-        {/* <Route path='/admin' element={<ProtectedRoute allowedRoles={['ADMIN']}> <Dashboard /> </ProtectedRoute>}> */}
-        <Route path='/admin' element={<Dashboard />}>
+        <Route path='/admin' element={<ProtectedRoute allowedRoles={['ADMIN']}> <Dashboard /> </ProtectedRoute>}>
+        {/* <Route path='/admin' element={<Dashboard />}> */}
           <Route index element={<AdminDashboard />} />
 
           {/* Done fe be */}
@@ -85,8 +85,8 @@ function App() {
           <Route path='profile' element={<UserProfileEntry />} />
           <Route path='menumapping' element={<MenuMappingTest />} />
           <Route path='uploadDash' element={<UploadDashboard />} />
-          <Route path='uploadProgress/:batchId' element={<UploadProgress />} />
-          <Route path='uploadHistory' element={<UploadHistory />} />
+          <Route path='uploadProgress/:batchId' element={<UploadProgressEntry />} />
+          <Route path='uploadHistory' element={<UploadHistoryEntry />} />
           <Route path='ctcreport' element={<CtcReportTest />} />
           <Route path='payslip' element={<PayslipsTest />} />
           <Route path='leavesetting' element={<LeaveSettingTest />} />
@@ -125,8 +125,8 @@ function App() {
           <Route path='mycalendar' element={<MyCalendarEntry />} />
 
           <Route path='uploadDash' element={<UploadDashboard />} />
-          <Route path='uploadProgress/:batchId' element={<UploadProgress />} />
-          <Route path='uploadHistory' element={<UploadHistory />} />
+          <Route path='uploadProgress/:batchId' element={<UploadProgressEntry />} />
+          <Route path='uploadHistory' element={<UploadHistoryEntry />} />
           <Route path='ctcreport' element={<CtcReportTest />} />
           <Route path='payslip' element={<PayslipsTest />} />
         </Route>
@@ -136,8 +136,8 @@ function App() {
           <Route path='mycalendar' element={<MyCalendarEntry />} />
 
           <Route path='uploadDash' element={<UploadDashboard />} />
-          <Route path='uploadProgress/:batchId' element={<UploadProgress />} />
-          <Route path='uploadHistory' element={<UploadHistory />} />
+          <Route path='uploadProgress/:batchId' element={<UploadProgressEntry />} />
+          <Route path='uploadHistory' element={<UploadHistoryEntry />} />
           <Route path='ctcreport' element={<CtcReportTest />} />
           <Route path='payslip' element={<PayslipsTest />} />
         </Route>
