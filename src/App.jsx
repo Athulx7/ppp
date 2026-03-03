@@ -20,7 +20,6 @@ import ZCursorTracker from './ZCursorTracker'
 import EmployeeMasterEntry from './EmployeeMaster/container/EmployeeMasterEntry'
 import EmpMstAddEditEntry from './EmployeeMaster/container/EmpMstAddEditEntry'
 import UploadDashboard from './UploadCenter/container/UploadCenterEntry'
-import CtcReportTest from './CtcReport/CtcReportTest'
 import PayslipsTest from './Payslips/PayslipsTest'
 import LeaveSettingTest from './LeaveSetting/LeaveSettingTest'
 import LeaveSettingsAddEditTest from './LeaveSetting/LeaveSettingsAddEditTest'
@@ -35,6 +34,7 @@ import PayrollInputstest from './PayrollRuns/PayrollInputstest'
 import UploadProgressEntry from './UploadCenter/container/UploadProgressEntry'
 import UploadHistoryEntry from './UploadCenter/container/UploadHistoryEntry'
 import MenuMappingEntry from './MenuMapping/container/MenuMappingEntry'
+import CtcReportEntry from './CtcReport/container/CtcReportEntry'
 
 const PublicRoute = ({ children }) => {
   const token = sessionStorage.getItem('token')
@@ -63,8 +63,8 @@ function App() {
       <Routes>
         <Route path='/' element={<PublicRoute><LoginPage /></PublicRoute>} />
 
-        <Route path='/admin' element={<ProtectedRoute allowedRoles={['ADMIN']}> <Dashboard /> </ProtectedRoute>}>
-          {/* <Route path='/admin' element={<Dashboard />}> */}
+        {/* <Route path='/admin' element={<ProtectedRoute allowedRoles={['ADMIN']}> <Dashboard /> </ProtectedRoute>}> */}
+        <Route path='/admin' element={<Dashboard />}>
           <Route index element={<AdminDashboard />} />
 
           {/* Done fe be */}
@@ -87,7 +87,7 @@ function App() {
           <Route path='uploadDash' element={<UploadDashboard />} />
           <Route path='uploadProgress/:batchId' element={<UploadProgressEntry />} />
           <Route path='uploadHistory' element={<UploadHistoryEntry />} />
-          <Route path='ctcreport' element={<CtcReportTest />} />
+          <Route path='ctcreport' element={<CtcReportEntry />} />
           <Route path='payslip' element={<PayslipsTest />} />
           <Route path='leavesetting' element={<LeaveSettingTest />} />
           <Route path='leave-settings/add' element={<LeaveSettingsAddEditTest />} />
@@ -106,7 +106,7 @@ function App() {
         <Route path='/employee' element={<ProtectedRoute allowedRoles={['EMPLOYEE']}><Dashboard /></ProtectedRoute>}>
           <Route index element={<EmployeeDashboard />} />
           <Route path='mycalendar' element={<MyCalendarEntry />} />
-          <Route path='ctcreport' element={<CtcReportTest />} />
+          <Route path='ctcreport' element={<CtcReportEntry />} />
           <Route path='payslip' element={<PayslipsTest />} />
         </Route>
 
@@ -127,7 +127,7 @@ function App() {
           <Route path='uploadDash' element={<UploadDashboard />} />
           <Route path='uploadProgress/:batchId' element={<UploadProgressEntry />} />
           <Route path='uploadHistory' element={<UploadHistoryEntry />} />
-          <Route path='ctcreport' element={<CtcReportTest />} />
+          <Route path='ctcreport' element={<CtcReportEntry />} />
           <Route path='payslip' element={<PayslipsTest />} />
         </Route>
 
@@ -138,7 +138,7 @@ function App() {
           <Route path='uploadDash' element={<UploadDashboard />} />
           <Route path='uploadProgress/:batchId' element={<UploadProgressEntry />} />
           <Route path='uploadHistory' element={<UploadHistoryEntry />} />
-          <Route path='ctcreport' element={<CtcReportTest />} />
+          <Route path='ctcreport' element={<CtcReportEntry />} />
           <Route path='payslip' element={<PayslipsTest />} />
         </Route>
 
