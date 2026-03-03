@@ -19,7 +19,6 @@ import CompanySettingsEntry from './Company_settings/container/CompanySettingsEn
 import ZCursorTracker from './ZCursorTracker'
 import EmployeeMasterEntry from './EmployeeMaster/container/EmployeeMasterEntry'
 import EmpMstAddEditEntry from './EmployeeMaster/container/EmpMstAddEditEntry'
-import MenuMappingTest from './MenuMapping/MenuMappingTest'
 import UploadDashboard from './UploadCenter/container/UploadCenterEntry'
 import CtcReportTest from './CtcReport/CtcReportTest'
 import PayslipsTest from './Payslips/PayslipsTest'
@@ -35,6 +34,7 @@ import PayrollRun from './PayrollRuns/PayrollRunstest'
 import PayrollInputstest from './PayrollRuns/PayrollInputstest'
 import UploadProgressEntry from './UploadCenter/container/UploadProgressEntry'
 import UploadHistoryEntry from './UploadCenter/container/UploadHistoryEntry'
+import MenuMappingEntry from './MenuMapping/container/MenuMappingEntry'
 
 const PublicRoute = ({ children }) => {
   const token = sessionStorage.getItem('token')
@@ -64,7 +64,7 @@ function App() {
         <Route path='/' element={<PublicRoute><LoginPage /></PublicRoute>} />
 
         <Route path='/admin' element={<ProtectedRoute allowedRoles={['ADMIN']}> <Dashboard /> </ProtectedRoute>}>
-        {/* <Route path='/admin' element={<Dashboard />}> */}
+          {/* <Route path='/admin' element={<Dashboard />}> */}
           <Route index element={<AdminDashboard />} />
 
           {/* Done fe be */}
@@ -83,7 +83,7 @@ function App() {
           <Route path='salary_structure/edit/:id' element={<SalaryStructureAddEditEntry />} />
 
           <Route path='profile' element={<UserProfileEntry />} />
-          <Route path='menumapping' element={<MenuMappingTest />} />
+          <Route path='menumapping' element={<MenuMappingEntry />} />
           <Route path='uploadDash' element={<UploadDashboard />} />
           <Route path='uploadProgress/:batchId' element={<UploadProgressEntry />} />
           <Route path='uploadHistory' element={<UploadHistoryEntry />} />
@@ -94,7 +94,7 @@ function App() {
           <Route path='leave-settings/edit' element={<LeaveSettingsAddEditTest />} />
           <Route path='leaveapprovalworkflow' element={<LeaveApprovalWorkflow />} />
           <Route path='leaveRequest' element={<LeaveRequest />} />
-          <Route path='myleves' element = {<MyLeaves />} />
+          <Route path='myleves' element={<MyLeaves />} />
           <Route path='leaveapproval' element={<LeaveApproval />} />
           <Route path='salaryadvanceRequest' element={<SalaryAdvanceRequest />} />
           <Route path='salaryadvanceapproval' element={<SalaryAdvanceApproval />} />
