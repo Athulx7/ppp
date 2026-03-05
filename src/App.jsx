@@ -20,7 +20,6 @@ import ZCursorTracker from './ZCursorTracker'
 import EmployeeMasterEntry from './EmployeeMaster/container/EmployeeMasterEntry'
 import EmpMstAddEditEntry from './EmployeeMaster/container/EmpMstAddEditEntry'
 import UploadDashboard from './UploadCenter/container/UploadCenterEntry'
-import PayslipsTest from './Payslips/PayslipsTest'
 import LeaveSettingTest from './LeaveSetting/LeaveSettingTest'
 import LeaveSettingsAddEditTest from './LeaveSetting/LeaveSettingsAddEditTest'
 import LeaveApprovalWorkflow from './LeaveApprovalWorkFlow/LeaveApprovalWorkflowTest'
@@ -35,6 +34,8 @@ import UploadProgressEntry from './UploadCenter/container/UploadProgressEntry'
 import UploadHistoryEntry from './UploadCenter/container/UploadHistoryEntry'
 import MenuMappingEntry from './MenuMapping/container/MenuMappingEntry'
 import CtcReportEntry from './CtcReport/container/CtcReportEntry'
+import PayslipsEntry from './Payslips/container/PayslipsEntry'
+import PayrollSettings from './Payrollsettings/payrollSettinsTest'
 
 const PublicRoute = ({ children }) => {
   const token = sessionStorage.getItem('token')
@@ -71,35 +72,48 @@ function App() {
           <Route path='master/:menuId' element={<MasterMain />} />
           <Route path="master/:menuId/add" element={<MasterFormPage />} />
           <Route path="master/:menuId/edit/:rowId" element={<MasterFormPage />} />
+
           <Route path='companysettings' element={<CompanySettingsEntry />} />
+
           <Route path='employee_master_entry' element={<EmployeeMasterEntry />} />
           <Route path='employee_master_entry/edit/add' element={<EmpMstAddEditEntry />} />
           <Route path='employee_master_entry/edit/:id' element={<EmpMstAddEditEntry />} />
 
           <Route path='mycalendar' element={<MyCalendarEntry />} />
+
           <Route path='salary_components' element={<SalaryComponentEntry />} />
+
           <Route path='salary_structure' element={<SalaryStructureEntry />} />
           <Route path='salary_structure/create' element={<SalaryStructureAddEditEntry />} />
           <Route path='salary_structure/edit/:id' element={<SalaryStructureAddEditEntry />} />
 
           <Route path='profile' element={<UserProfileEntry />} />
+
           <Route path='menumapping' element={<MenuMappingEntry />} />
+
           <Route path='uploadDash' element={<UploadDashboard />} />
           <Route path='uploadProgress/:batchId' element={<UploadProgressEntry />} />
           <Route path='uploadHistory' element={<UploadHistoryEntry />} />
+
           <Route path='ctcreport' element={<CtcReportEntry />} />
-          <Route path='payslip' element={<PayslipsTest />} />
+
+          <Route path='payslip' element={<PayslipsEntry />} />
+
           <Route path='leavesetting' element={<LeaveSettingTest />} />
           <Route path='leave-settings/add' element={<LeaveSettingsAddEditTest />} />
           <Route path='leave-settings/edit' element={<LeaveSettingsAddEditTest />} />
+
           <Route path='leaveapprovalworkflow' element={<LeaveApprovalWorkflow />} />
           <Route path='leaveRequest' element={<LeaveRequest />} />
           <Route path='myleves' element={<MyLeaves />} />
           <Route path='leaveapproval' element={<LeaveApproval />} />
+
           <Route path='salaryadvanceRequest' element={<SalaryAdvanceRequest />} />
           <Route path='salaryadvanceapproval' element={<SalaryAdvanceApproval />} />
+
           <Route path='payrollruns' element={<PayrollRun />} />
           <Route path='payrollinputs' element={<PayrollInputstest />} />
+          <Route path='payrollsettings' element={<PayrollSettings />} />
 
         </Route>
 
@@ -107,7 +121,7 @@ function App() {
           <Route index element={<EmployeeDashboard />} />
           <Route path='mycalendar' element={<MyCalendarEntry />} />
           <Route path='ctcreport' element={<CtcReportEntry />} />
-          <Route path='payslip' element={<PayslipsTest />} />
+          <Route path='payslip' element={<PayslipsEntry />} />
         </Route>
 
         <Route path='/hr' element={<ProtectedRoute allowedRoles={['HR']}><Dashboard /> </ProtectedRoute>}>
@@ -128,7 +142,7 @@ function App() {
           <Route path='uploadProgress/:batchId' element={<UploadProgressEntry />} />
           <Route path='uploadHistory' element={<UploadHistoryEntry />} />
           <Route path='ctcreport' element={<CtcReportEntry />} />
-          <Route path='payslip' element={<PayslipsTest />} />
+          <Route path='payslip' element={<PayslipsEntry />} />
         </Route>
 
         <Route path='/payroll' element={<ProtectedRoute allowedRoles={['PAYROLL_MANAGER']}> <Dashboard /> </ProtectedRoute>}>
@@ -139,7 +153,7 @@ function App() {
           <Route path='uploadProgress/:batchId' element={<UploadProgressEntry />} />
           <Route path='uploadHistory' element={<UploadHistoryEntry />} />
           <Route path='ctcreport' element={<CtcReportEntry />} />
-          <Route path='payslip' element={<PayslipsTest />} />
+          <Route path='payslip' element={<PayslipsEntry />} />
         </Route>
 
         <Route path='/dashboard' element={<RoleBasedRedirect />} />

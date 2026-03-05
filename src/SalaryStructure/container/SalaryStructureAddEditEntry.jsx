@@ -156,14 +156,14 @@ function SalaryStructureAddEditEntry() {
 
             // Show success message and redirect
             alert(isEditMode ? 'Structure updated successfully!' : 'Structure created successfully!');
-            navigate(`${getRoleBasePath()}/salary_structure`);
+            navigate(`/admin/salary_structure`);
         }, 1500);
     };
 
     // Handle cancel
     const handleCancel = () => {
         if (window.confirm('Are you sure you want to cancel? Any unsaved changes will be lost.')) {
-            navigate(`${getRoleBasePath()}/salary_structure`);
+            navigate(`/admin/salary_structure`);
         }
     };
 
@@ -200,7 +200,7 @@ function SalaryStructureAddEditEntry() {
                     <div className="flex items-center justify-between py-6">
                         <div className="flex items-center">
                             <button
-                                onClick={() => navigate(`${getRoleBasePath()}/salary_structure`)}
+                                onClick={() => navigate(`/admin/salary_structure`)}
                                 className="mr-4 p-2 hover:bg-gray-100 rounded-lg transition-colors"
                             >
                                 <ArrowLeft className="w-5 h-5 text-gray-600" />

@@ -82,17 +82,17 @@ function SalaryStructureEntry() {
 
     // Navigation functions
     const handleCreateStructure = () => {
-        navigate(`${getRoleBasePath()}/salary_structure/create`);
+        navigate(`/admin/salary_structure/create`);
     };
 
     const handleEditStructure = (structure) => {
-        navigate(`${getRoleBasePath()}/salary_structure/edit/${structure.id}`);
+        navigate(`/admin/salary_structure/edit/${structure.id}`);
     };
 
     const handleAssignStructure = (structure) => {
         // You can keep this as a modal or create separate page for assignment
         // For now, navigate to assignment page
-        navigate(`${getRoleBasePath()}/salary_structure/assign/${structure.id}`);
+        navigate(`/admin/salary_structure/assign/${structure.id}`);
     };
 
     // Sample data - Designations
@@ -588,7 +588,7 @@ function SalaryStructureEntry() {
             )}
 
             {/* Create/Edit Structure Modal */}
-            
+
         </div>
     );
 }
