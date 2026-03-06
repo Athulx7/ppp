@@ -36,6 +36,7 @@ import MenuMappingEntry from './MenuMapping/container/MenuMappingEntry'
 import CtcReportEntry from './CtcReport/container/CtcReportEntry'
 import PayslipsEntry from './Payslips/container/PayslipsEntry'
 import PayrollSettings from './Payrollsettings/payrollSettinsTest'
+import SalaryStructureAssignment from './SalaryStructure/container/SalaryStructureAssignmentTest'
 
 const PublicRoute = ({ children }) => {
   const token = sessionStorage.getItem('token')
@@ -86,6 +87,8 @@ function App() {
           <Route path='salary_structure' element={<SalaryStructureEntry />} />
           <Route path='salary_structure/create' element={<SalaryStructureAddEditEntry />} />
           <Route path='salary_structure/edit/:id' element={<SalaryStructureAddEditEntry />} />
+          <Route path="salary_structure/assign" element={<SalaryStructureAssignment />} />
+          <Route path="salary_structure/assign/:id" element={<SalaryStructureAssignment />} />
 
           <Route path='profile' element={<UserProfileEntry />} />
 

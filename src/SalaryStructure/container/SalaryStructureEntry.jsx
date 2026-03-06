@@ -88,11 +88,14 @@ function SalaryStructureEntry() {
     const handleEditStructure = (structure) => {
         navigate(`/admin/salary_structure/edit/${structure.id}`);
     };
-
-    const handleAssignStructure = (structure) => {
-        // You can keep this as a modal or create separate page for assignment
-        // For now, navigate to assignment page
-        navigate(`/admin/salary_structure/assign/${structure.id}`);
+    const handleAssignStructure = (structure = null) => {
+        if (structure) {
+            // If a specific structure is selected, pre-fill it
+            navigate(`/admin/salary_structure/assign/${structure.id}`);
+        } else {
+            // For the main Assign button, go to empty assignment form
+            navigate(`/admin/salary_structure/assign`);
+        }
     };
 
     // Sample data - Designations
