@@ -37,6 +37,7 @@ import CtcReportEntry from './CtcReport/container/CtcReportEntry'
 import PayslipsEntry from './Payslips/container/PayslipsEntry'
 import PayrollSettings from './Payrollsettings/payrollSettinsTest'
 import SalaryStructureAssignment from './SalaryStructure/container/SalaryStructureAssignmentTest'
+import JobTrackingTest from './JobTracking/JobTrackingTest'
 
 const PublicRoute = ({ children }) => {
   const token = sessionStorage.getItem('token')
@@ -117,6 +118,7 @@ function App() {
           <Route path='payrollruns' element={<PayrollRun />} />
           <Route path='payrollinputs' element={<PayrollInputstest />} />
           <Route path='payrollsettings' element={<PayrollSettings />} />
+          <Route path='jobtracking' element={<JobTrackingTest />} />
 
         </Route>
 
