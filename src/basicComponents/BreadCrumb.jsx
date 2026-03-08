@@ -5,7 +5,7 @@ import { Link } from "react-router-dom"
 function Breadcrumb({ items = [], title, description, actions, loading = false }) {
     return (
         <>
-            <div className="flex items-center text-sm mb-3">
+            <div className="flex items-center text-sm mb-2">
                 {loading ? (
                     <div className="flex items-center gap-2 animate-pulse">
                         <div className="h-4 w-20 bg-gray-200 rounded"></div>

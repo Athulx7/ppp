@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import MasterForm from "../components/MasterForm";
 import { ApiCall, getRoleBasePath } from "../../library/constants";
 import Breadcrumb from "../../basicComponents/BreadCrumb";
+import { Plus } from "lucide-react";
 
 function MasterFormPage() {
     const { menuId, rowId } = useParams()
@@ -64,7 +65,7 @@ function MasterFormPage() {
     return (
         <>
             <Breadcrumb
-                items={[{ label: `${meta.master_name}`, }, { label: `${meta.master_name}`, to: `${getRoleBasePath()}/master/${menuId}` }, { label: rowId ? "Edit" : "Add New" }]}
+                items={[ { label: `${meta.master_name}`, to: `${getRoleBasePath()}/master/${menuId}` }, { label: rowId ? "Edit" : "Add New" }]}
                 title={meta.master_name}
                 description={rowId ? `Edit ${meta.master_name}` : `Add ${meta.master_name}`}
                 actions={<button

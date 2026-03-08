@@ -100,7 +100,7 @@ function CommonTable({ columns, data, tableControls, customHeader, customClass, 
                                 : columns.map((col, i) => (
                                     <th
                                         key={i}
-                                        className="px-2 py-2 sticky top-0 text-left text-black border-2 border-gray-200 font-medium whitespace-nowrap"
+                                        className="px-2 py-2 sticky top-0 text-left text-black text-sm border-2 border-gray-200 font-medium whitespace-nowrap"
                                     >
                                         {col.header}
                                     </th>
@@ -113,7 +113,7 @@ function CommonTable({ columns, data, tableControls, customHeader, customClass, 
                             [...Array(skeletonCount)].map((_, ri) => (
                                 <tr key={ri} className="animate-pulse">
                                     {columns.map((_, ci) => (
-                                        <td key={ci} className="px-2 py-2 border-b border-gray-200">
+                                        <td key={ci} className="px-2 py-2 text-sm border-b border-gray-200">
                                             <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                                         </td>
                                     ))}
@@ -123,7 +123,7 @@ function CommonTable({ columns, data, tableControls, customHeader, customClass, 
                             <tr>
                                 <td
                                     colSpan={columns.length}
-                                    className="text-center py-4 text-gray-500"
+                                    className="text-center text-sm py-4 text-gray-500"
                                 >
                                     No data available
                                 </td>
@@ -135,7 +135,7 @@ function CommonTable({ columns, data, tableControls, customHeader, customClass, 
                                     className={`text-sm text-gray-700 ${ri % 2 === 0 ? 'bg-white' : 'bg-indigo-50'}`}
                                 >
                                     {columns.map((col, ci) => (
-                                        <td key={ci} className="px-2 py-2 border-b border-gray-200 whitespace-nowrap">
+                                        <td key={ci} className="px-2 py-2 text-sm border-b border-gray-200 whitespace-nowrap">
                                             {col.cell
                                                 ? col.cell(row)
                                                 : col.accessor

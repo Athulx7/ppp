@@ -1,377 +1,363 @@
-import React, { useEffect, useState } from 'react'
-import SalaryComponentTabSection from './SalaryComponentTabSection';
-import LoadingSpinner from '../../basicComponents/LoadingSpinner';
-import { BarChart, Building, Calculator, Clock, DollarSign, Edit, Eye, Layers, Minus, Percent, Plus, Trash2, TrendingUp, Zap } from 'lucide-react';
-import SalaryComponentModal from './SalaryComponentModal';
-import { ApiCall } from '../../library/constants';
-import CommonTable from '../../basicComponents/commonTable';
+import React, { useEffect, useState } from "react"
+import SalaryComponentModal from "./SalaryComponentModal"
+import LoadingSpinner from "../../basicComponents/LoadingSpinner"
+import { Plus, Edit, Trash2 } from "lucide-react"
+import { ApiCall } from "../../library/constants"
+import CommonTable from "../../basicComponents/commonTable"
+import CommonStatusPopUp from "../../basicComponents/CommonStatusPopUp"
 
 function SalaryComponentMain({ isLoading, setIsLoading }) {
-    const [activeTab, setActiveTab] = useState('earnings');
-    const [showCreateModal, setShowCreateModal] = useState(false);
-    const [selectedComponent, setSelectedComponent] = useState(null);
-    const [calculationType, setCalculationType] = useState({
-        calculationTypeDDL: [],
-        selectCalculationType: "",
+
+    const [controls, setControls] = useState([])
+    const [dropdownOptions, setDropdownOptions] = useState({})
+    const [showCreateModal, setShowCreateModal] = useState(false)
+    const [selectedComponent, setSelectedComponent] = useState(null)
+    const [errors, setErrors] = useState({})
+
+    const [newComponent, setNewComponent] = useState({})
+
+    const [components, setComponents] = useState([])
+    const [statusPopup, setStatusPopup] = useState({
+        show: false,
+        type: "default",
+        title: "",
+        message: "",
+        autoClose: false
     })
-    const [componentType, setComponentType] = useState({
-        componentTypeDDL: [],
-        selectComponentType: "",
-    })
+
+    const allComponentCodes = components.map(c => ({
+        value: c.component_code,
+        label: c.component_code
+    }))
+
+    const resetModal = () => {
+        const defaultState = {}
+        controls.forEach(c => {
+            defaultState[c.column_name] = ""
+        })
+        defaultState.formula = ""
+        setNewComponent(defaultState)
+        setSelectedComponent(null)
+        setShowCreateModal(false)
+        setErrors({})
+    }
 
     useEffect(() => {
-        getCalculationTypeDDL()
-        getComponentTypeDDL()
+        getSalaryComponentControls()
+        getSalaryComponents()
     }, [])
 
-    async function getCalculationTypeDDL() {
-        setIsLoading(true)
+    async function getSalaryComponentControls() {
+        setIsLoading(true);
         try {
-            const responce = await ApiCall('get', '/salaryComponent/calculationTypeDDL')
-            console.log('responce', responce)
-            setCalculationType(prev => ({
-                ...prev,
-                calculationTypeDDL: responce.data.data
-            }))
-        }
-        catch (err) {
-            console.log('error getCalculationTypeDDL', err)
+            const result = await ApiCall("get", "/getmenubasedcontrols/29")
+            const controlsData = result.data.data.controls
+            const dropdownData = result.data.data.dropdowns
+
+            setControls(controlsData)
+            setDropdownOptions(dropdownData)
+
+            const defaultState = {}
+            controlsData.forEach(c => {
+                defaultState[c.column_name] = ""
+            })
+
+            defaultState.formula = ""
+
+            setNewComponent(defaultState)
+
+        } catch (err) {
+            console.log("error loading controls", err)
         }
         setIsLoading(false)
     }
 
-    async function getComponentTypeDDL() {
+    async function getSalaryComponents() {
         setIsLoading(true)
         try {
-            const responce = await ApiCall('get', '/salaryComponent/componentTypeDDL')
-            console.log('responce of the compoennt type DDL', responce)
-            setComponentType(prev => ({
-                ...prev,
-                componentTypeDDL: responce.data.data
-            }))
-        }
-        catch (err) {
-            console.log('error getComponentTypeDDL', err)
+            const result = await ApiCall("get", "/salarycomponent/list")
+            const componentsData = result.data.data
+            setComponents(componentsData)
+        } catch (err) {
+            console.log("error loading components", err)
         }
         setIsLoading(false)
     }
-
-    const handleDeleteComponent = (id) => {
-        console.log('Delete component with id:', id);
-    }
-    const componentTypeOptions = [
-        { value: 'earning', label: 'Earning' },
-        { value: 'deduction', label: 'Deduction' },
-        { value: 'employer', label: 'Employer Contribution' },
-    ];
-
-    const calculationTypeOptions = [
-        { value: 'fixed', label: 'Fixed Amount' },
-        { value: 'formula', label: 'Formula Based' },
-        { value: 'percentage', label: 'Percentage of Basic' },
-        { value: 'attendance', label: 'Attendance Based' },
-        { value: 'performance', label: 'Performance Based' },
-        { value: 'sales', label: 'Sales Commission' },
-        { value: 'overtime', label: 'Overtime Based' },
-    ];
-    const baseComponentOptions = [
-        { value: 'BASIC', label: 'Basic Salary (BASIC)' },
-        { value: 'CTC', label: 'Cost to Company (CTC)' },
-        { value: 'GROSS', label: 'Gross Salary' },
-    ];
-    const [components, setComponents] = useState({
-        earnings: [
-            {
-                id: 1,
-                name: 'Basic Salary',
-                code: 'BASIC',
-                type: 'earning',
-                calculationType: 'percentage',
-                formula: '50% of CTC',
-                status: 'active',
-                affectsGross: true,
-                affectsNet: true,
-                taxable: true,
-                priority: 1,
-                createdDate: '2024-01-15'
-            },
-            {
-                id: 2,
-                name: 'House Rent Allowance',
-                code: 'HRA',
-                type: 'earning',
-                calculationType: 'percentage',
-                formula: '40% of Basic',
-                status: 'active',
-                affectsGross: true,
-                affectsNet: true,
-                taxable: true,
-                priority: 2,
-                createdDate: '2024-01-15'
-            },
-            {
-                id: 3,
-                name: 'Special Allowance',
-                code: 'SA',
-                type: 'earning',
-                calculationType: 'formula',
-                formula: 'CTC - (Basic + HRA)',
-                status: 'active',
-                affectsGross: true,
-                affectsNet: true,
-                taxable: true,
-                priority: 3,
-                createdDate: '2024-01-15'
-            },
-        ],
-        deductions: [
-            {
-                id: 4,
-                name: 'Professional Tax',
-                code: 'PT',
-                type: 'deduction',
-                calculationType: 'fixed',
-                formula: '₹200 per month',
-                status: 'active',
-                affectsGross: false,
-                affectsNet: true,
-                taxable: false,
-                priority: 1,
-                createdDate: '2024-01-15'
-            },
-            {
-                id: 5,
-                name: 'Employee PF',
-                code: 'EPF',
-                type: 'deduction',
-                calculationType: 'percentage',
-                formula: '12% of Basic',
-                status: 'active',
-                affectsGross: false,
-                affectsNet: true,
-                taxable: false,
-                priority: 2,
-                createdDate: '2024-01-15'
-            },
-        ],
-        employerContributions: [
-            {
-                id: 6,
-                name: 'Employer PF',
-                code: 'EPF_ER',
-                type: 'employer',
-                calculationType: 'percentage',
-                formula: '13.61% of Basic',
-                status: 'active',
-                affectsGross: false,
-                affectsNet: false,
-                taxable: false,
-                priority: 1,
-                createdDate: '2024-01-15'
-            },
-        ]
-    });
-
-    const [newComponent, setNewComponent] = useState({
-        name: '',
-        code: '',
-        type: 'earning',
-        calculationType: 'fixed',
-        formula: '',
-        affectsGross: true,
-        affectsNet: true,
-        taxable: false,
-        priority: 1,
-        status: 'active'
-    });
-    const handleCreateComponent = () => {
-        const newId = Math.max(...[...components.earnings, ...components.deductions, ...components.employerContributions].map(c => c.id)) + 1;
-        const component = { ...newComponent, id: newId, createdDate: new Date().toISOString().split('T')[0] };
-
-        const key = newComponent.type === 'earning' ? 'earnings' :
-            newComponent.type === 'deduction' ? 'deductions' :
-                'employerContributions';
-
-        setComponents(prev => ({
-            ...prev,
-            [key]: [...prev[key], component]
-        }));
-
-        // Reset form
-        setNewComponent({
-            name: '',
-            code: '',
-            type: 'earning',
-            calculationType: 'fixed',
-            formula: '',
-            affectsGross: true,
-            affectsNet: true,
-            taxable: false,
-            priority: 1,
-            status: 'active'
-        });
-
-        setShowCreateModal(false);
-        setSelectedComponent(null);
-    };
 
     const handleChange = (field, value) => {
-        setNewComponent(prev => ({ ...prev, [field]: value }));
-    };
+        setNewComponent(prev => ({ ...prev, [field]: value }))
+    }
 
-    // Insert operator into formula
     const insertOperator = (operator) => {
         setNewComponent(prev => ({
             ...prev,
-            formula: prev.formula + ` ${operator} `
-        }));
-    };
+            formula: (prev.formula || "") + ` ${operator} `
+        }))
+    }
+
+    const insertComponentCode = (code) => {
+        setNewComponent(prev => ({
+            ...prev,
+            formula: (prev.formula || "") + ` ${code} `
+        }))
+    }
+
+    function validateForm() {
+        const newErrors = {}
+        controls.forEach(control => {
+            const value = newComponent[control.column_name]
+
+            if (control.required && !value) {
+                newErrors[control.column_name] = `${control.label} is required`
+                return
+            }
+
+            if (control.regex && value) {
+
+                const regex = new RegExp(control.regex)
+
+                if (!regex.test(value)) {
+                    newErrors[control.column_name] =
+                        `${control.label} format is invalid`
+                }
+            }
+
+            if (control.min_length && value?.length < control.min_length) {
+                newErrors[control.column_name] =
+                    `${control.label} must be at least ${control.min_length} characters`
+            }
+
+            if (control.max_length && value?.length > control.max_length) {
+                newErrors[control.column_name] =
+                    `${control.label} must be less than ${control.max_length} characters`
+            }
+        })
+
+        setErrors(newErrors)
+        return Object.keys(newErrors).length === 0
+    }
+
+    async function handleCreateComponent() {
+        if (!validateForm()) return
+        try {
+            const payload = {}
+            controls.forEach(control => {
+                const key = control.column_name
+                if (newComponent[key] !== undefined) {
+                    payload[key] = newComponent[key]
+                }
+            })
+            const calcOptions = dropdownOptions["calc_code"] || []
+            const selectedCalc = calcOptions.find(
+                c => c.value === newComponent.calc_code
+            )
+            if (selectedCalc?.requires_formula) {
+                payload.formula_expression = newComponent.formula
+            }
+            else if (selectedCalc?.requires_percentage) {
+                payload.percentage_value = newComponent.formula
+                payload.base_component_code = newComponent.base_component_code
+            }
+            else {
+                payload.fixed_amount = newComponent.formula
+            }
+            let result
+            if (selectedComponent) {
+                payload.id = selectedComponent.id
+                result = await ApiCall("put", "/salarycomponent/update", payload)
+            } else {
+                result = await ApiCall("post", "/salarycomponent/save", payload)
+            }
+            if (result.data.success) {
+                setStatusPopup({
+                    show: true,
+                    type: "success",
+                    title: "Success",
+                    message: result.data.message,
+                    autoClose: true
+                })
+                setSelectedComponent(null)
+                await getSalaryComponents()
+            }
+        } catch (error) {
+            setStatusPopup({
+                show: true,
+                type: "error",
+                title: "Error",
+                message: error?.response?.data?.message || "Save failed",
+                autoClose: false
+            })
+        }
+    }
+
+    function handleEditComponent(row) {
+        const editData = {
+            ...row,
+            formula:
+                row.formula_expression ||
+                row.percentage_value ||
+                row.fixed_amount ||
+                ""
+        }
+        setNewComponent(editData)
+        setSelectedComponent(row)
+        setShowCreateModal(true)
+    }
+
+    async function handleDeleteComponent(row) {
+        if (!window.confirm("Delete this salary component?")) return
+        try {
+            const result = await ApiCall(
+                "delete",
+                `/salarycomponent/delete/${row.id}`
+            )
+            if (result.data.success) {
+                setStatusPopup({
+                    show: true,
+                    type: "success",
+                    title: "Deleted",
+                    message: result.data.message,
+                    autoClose: true
+                })
+                await getSalaryComponents()
+            }
+        } catch (err) {
+            setStatusPopup({
+                show: true,
+                type: "error",
+                title: "Error",
+                message: "Delete failed",
+                autoClose: false
+            })
+        }
+    }
+
     const tableColumns = [
         {
             header: "Actions",
             cell: row => (
-                <div className="flex items-center gap-2">
+                <div className="flex gap-2">
                     <button
                         onClick={() => handleEditComponent(row)}
-                        className="text-indigo-600 hover:text-indigo-900"
-                        title="Edit"
+                        className="text-indigo-600 hover:text-indigo-800"
                     >
                         <Edit size={16} />
                     </button>
                     <button
-                        onClick={() => handleDeleteComponent(row.id)}
-                        className="text-red-600 hover:text-red-900"
-                        title="Delete"
+                        onClick={() => handleDeleteComponent(row)}
+                        className="text-red-600 hover:text-red-800"
                     >
                         <Trash2 size={16} />
-                    </button>
-                    <button
-                        onClick={() => console.log('View', row)}
-                        className="text-gray-600 hover:text-gray-900"
-                        title="View Details"
-                    >
-                        <Eye size={16} />
                     </button>
                 </div>
             )
         },
         {
             header: "Code",
-            accessor: "code",
-            cell: row => (
-                <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-sm font-mono">
-                    {row.code}
-                </span>
-            )
+            accessor: "component_code"
         },
         {
             header: "Component Name",
-            accessor: "name",
-            cell: row => (
-                <div className="flex items-center">
-                    <div className="ml-3">
-                        <div className="font-medium text-gray-900">{row.name}</div>
-                        <div className="text-sm text-gray-500">
-                            {row.affectsGross && 'Gross '}
-                            {row.affectsNet && 'Net '}
-                            {row.taxable && 'Taxable'}
-                        </div>
-                    </div>
-                </div>
-            )
+            accessor: "component_name"
         },
-
+        {
+            header: "Component Type",
+            accessor: "type_code",
+            cell: row => {
+                const typeMap = Object.fromEntries(
+                    (dropdownOptions.type_code || []).map(x => [x.value, x.label])
+                );
+                return typeMap[row.type_code] || row.type_code;
+            }
+        },
         {
             header: "Calculation Type",
-            accessor: "calculationType",
-            cell: row => (
-                <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-900">
-                        {calculationTypeOptions.find(t => t.value === row.calculationType)?.label}
-                    </span>
-                </div>
-            )
+            accessor: "calc_code",
+            cell: row => {
+                const calcMap = Object.fromEntries(
+                    (dropdownOptions.calc_code || []).map(x => [x.value, x.label])
+                );
+                return calcMap[row.calc_code] || row.calc_code;
+            }
         },
         {
-            header: "Formula",
+            header: "Formula / Value",
             accessor: "formula",
-            cell: row => (
-                <div className="text-sm text-gray-900">{row.formula}</div>
-            )
+            cell: row => {
+                if (row.formula_expression) {
+                    return row.formula_expression
+                }
+                if (row.percentage_value) {
+                    return `${row.percentage_value}% of ${row.base_component_code}`
+                }
+                if (row.fixed_amount) {
+                    return row.fixed_amount
+                }
+                return "-"
+            }
         },
         {
-            header: "Status",
+            header: "Active",
             accessor: "status",
             cell: row => (
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${row.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                    {row.status}
+                <span
+                    className={`px-2 py-1 rounded text-xs font-medium ${row.status ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                        }`}
+                >
+                    {row.status ? "Active" : "Inactive"}
                 </span>
             )
-        },
-        {
-            header: "Created Date",
-            accessor: "createdDate"
         }
-    ];
-
-    const getTableData = () => {
-        const data = activeTab === 'earnings' ? components.earnings :
-            activeTab === 'deductions' ? components.deductions :
-                components.employerContributions;
-
-        return data.map(item => ({
-            ...item,
-            onEdit: handleEditComponent
-        }));
-    };
-    const insertComponentCode = (code) => {
-        setNewComponent(prev => ({
-            ...prev,
-            formula: prev.formula + ` ${code} `
-        }));
-    };
-    const handleEditComponent = (component) => { console.log('Edit component', component) }
-    const allComponentCodes = [
-        ...components.earnings.map(c => ({ value: c.code, label: c.name })),
-        ...components.deductions.map(c => ({ value: c.code, label: c.name })),
-        ...components.employerContributions.map(c => ({ value: c.code, label: c.name }))
-    ];
+    ]
 
     return (
         <>
-            <SalaryComponentTabSection
-                activeTab={activeTab}
-                components={components}
-                setActiveTab={setActiveTab}
-                setShowCreateModal={setShowCreateModal}
-            />
-
             <CommonTable
                 columns={tableColumns}
-                data={getTableData()}
+                data={components}
                 loading={isLoading}
+                tableControls={
+                    <button
+                        onClick={() => setShowCreateModal(true)}
+                        className="px-4 py-2 h-7 text-sm font-semibold cursor-pointer bg-indigo-600 text-white rounded-md flex items-center gap-2"
+                    >
+                        <Plus size={16} />
+                        Create
+                    </button>
+                }
             />
 
-            {
-                showCreateModal && (
-                    <SalaryComponentModal
-                        selectedComponent={selectedComponent}
-                        setSelectedComponent={setSelectedComponent}
-                        setShowCreateModal={setShowCreateModal}
-                        newComponent={newComponent}
-                        setNewComponent={setNewComponent}
-                        handleChange={handleChange}
-                        insertOperator={insertOperator}
-                        componentTypeOptions={componentTypeOptions}
-                        calculationTypeOptions={calculationTypeOptions}
-                        handleCreateComponent={handleCreateComponent}
-                        allComponentCodes={allComponentCodes}
-                        baseComponentOptions={baseComponentOptions}
-                        insertComponentCode={insertComponentCode}
-                    />
-                )
-            }
-            {/* {isLoading && <LoadingSpinner />} */}
+            {showCreateModal && (
+                <SalaryComponentModal
+                    controls={controls}
+                    dropdownOptions={dropdownOptions}
+                    newComponent={newComponent}
+                    handleChange={handleChange}
+                    insertOperator={insertOperator}
+                    insertComponentCode={insertComponentCode}
+                    handleCreateComponent={handleCreateComponent}
+                    onClose={resetModal}
+                    selectedComponent={selectedComponent}
+                    allComponentCodes={allComponentCodes}
+                    errors={errors}
+                />
+            )}
+
+            {isLoading && <LoadingSpinner />}
+
+            <CommonStatusPopUp
+                isOpen={statusPopup.show}
+                type={statusPopup.type}
+                title={statusPopup.title}
+                body={statusPopup.message}
+                autoClose={statusPopup.autoClose}
+                onClose={() => {
+                    setStatusPopup(prev => ({ ...prev, show: false }))
+                    if (statusPopup.type === "success") {
+                        resetModal()
+                    }
+                }}
+            />
         </>
     )
 }
