@@ -38,6 +38,8 @@ import PayslipsEntry from './Payslips/container/PayslipsEntry'
 import PayrollSettings from './Payrollsettings/payrollSettinsTest'
 import SalaryStructureAssignment from './SalaryStructure/container/SalaryStructureAssignmentTest'
 import JobTrackingTest from './JobTracking/JobTrackingTest'
+import AnimatelandingPage from './AnimatedLandingPage/AnimatelandingPage'
+import JobTrackingMain from './JobTracking/JobTrackingMain'
 
 const PublicRoute = ({ children }) => {
   const token = sessionStorage.getItem('token')
@@ -161,6 +163,7 @@ function App() {
           <Route path='payslip' element={<PayslipsEntry />} />
         </Route>
 
+        <Route path='/landing' element={<AnimatelandingPage />} />
         <Route path='/dashboard' element={<RoleBasedRedirect />} />
 
         <Route path='*' element={<NotFoundPage />} />

@@ -12,22 +12,16 @@ const TABS = [
 ];
 
 function JobTrackingTest() {
-    const [activeTab, setActiveTab] = useState('jobs');
+    const [activeTab, setActiveTab] = useState('calendar');
 
     // Shared state: all jobs and lunch break config live here
     const [jobs, setJobs] = useState([]);
     const [lunchBreak, setLunchBreak] = useState({ enabled: false, start: '13:00', end: '14:00' });
 
     return (
-        <div className="p-3">
-            <Breadcrumb
-                items={[{ label: 'Job Tracking' }]}
-                title="Job Tracking"
-                description="Create, run, and track your job sessions — manage time with precision"
-            />
-
+        <>
             {/* Tab Nav */}
-            <div className="flex gap-1 p-1.5 bg-gray-100 rounded-xl mb-5 w-fit flex-wrap">
+            {/* <div className="flex gap-1 p-1.5 bg-gray-100 rounded-xl mb-5 w-fit flex-wrap">
                 {TABS.map(tab => (
                     <button
                         key={tab.id}
@@ -42,7 +36,7 @@ function JobTrackingTest() {
                         {tab.label}
                     </button>
                 ))}
-            </div>
+            </div> */}
 
             {/* Tab Content */}
             {activeTab === 'jobs' && (
@@ -64,7 +58,7 @@ function JobTrackingTest() {
                     jobs={jobs}
                 />
             )}
-        </div>
+        </>
     );
 }
 
