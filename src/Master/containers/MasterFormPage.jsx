@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import MasterForm from "../components/MasterForm";
 import { ApiCall, getRoleBasePath } from "../../library/constants";
 import Breadcrumb from "../../basicComponents/BreadCrumb";
 import { Plus } from "lucide-react";
 
 function MasterFormPage() {
-    const { menuId, rowId } = useParams()
+    const { mastercode, rowId } = useParams()
     const navigate = useNavigate()
     const [meta, setMeta] = useState(null)
     const [formData, setFormData] = useState(null)
@@ -14,11 +14,11 @@ function MasterFormPage() {
 
     useEffect(() => {
         loadMetaAndData()
-    }, [menuId, rowId])
+    }, [mastercode, rowId])
 
     const loadMetaAndData = async () => {
         try {
-            const metaRes = await ApiCall("GET", `/master/${menuId}/getcontents`)
+            const metaRes = await ApiCall("GET", `/master/${mastercode}/getcontents`)
             const apiMeta = metaRes.data.data
             const normalizedMeta = {
                 ...metaRes.data.data.master,
@@ -30,7 +30,7 @@ function MasterFormPage() {
             setMeta(normalizedMeta)
 
             if (rowId) {
-                const recordRes = await ApiCall("GET", `/master/${menuId}/${rowId}`)
+                const recordRes = await ApiCall("GET", `/master/${mastercode}/${rowId}`)
                 console.log("Record Response:", recordRes)
 
                 if (recordRes?.data?.success) {
@@ -54,7 +54,6 @@ function MasterFormPage() {
                 setFormData({})
             }
 
-
         } catch (err) {
             console.error("Failed to load master form", err)
         }
@@ -65,11 +64,11 @@ function MasterFormPage() {
     return (
         <>
             <Breadcrumb
-                items={[ { label: `${meta.master_name}`, to: `${getRoleBasePath()}/master/${menuId}` }, { label: rowId ? "Edit" : "Add New" }]}
+                items={[{ label: `${meta.master_name}`, to: `${getRoleBasePath()}/master/${mastercode}` },{ label: rowId ? "Edit" : "Add New" }]}
                 title={meta.master_name}
                 description={rowId ? `Edit ${meta.master_name}` : `Add ${meta.master_name}`}
                 actions={<button
-                    onClick={() => navigate(`${getRoleBasePath()}/master/${menuId}/add`)}
+                    onClick={() => navigate(`${getRoleBasePath()}/master/${mastercode}/add`)}
                     className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 cursor-pointer"
                 >
                     <Plus className="w-4 h-4" />
@@ -82,7 +81,7 @@ function MasterFormPage() {
                 meta={meta}
                 initialData={formData}
                 isEdit={!!rowId}
-                onCancel={() => navigate(`${getRoleBasePath()}/master/${menuId}`)}
+                onCancel={() => navigate(`${getRoleBasePath()}/master/${mastercode}`)}
                 setIsLoading={setIsLoading}
                 isLoading={isLoading}
             />

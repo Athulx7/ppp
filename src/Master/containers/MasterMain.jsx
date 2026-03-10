@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { Plus, LayoutDashboard, ChevronRight, Pencil } from 'lucide-react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import CommonButton from '../../basicComponents/CommonButton';
+import { Plus } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
 import CommonTable from '../../basicComponents/commonTable';
 import { buildMasterTableColumns } from '../components/BuildMasterTableColumns';
 import { ApiCall, getRoleBasePath } from '../../library/constants';
@@ -9,7 +8,7 @@ import Breadcrumb from '../../basicComponents/BreadCrumb';
 
 function MasterMain() {
 
-    const { menuId } = useParams();
+    const { mastercode } = useParams();
     const navigate = useNavigate();
 
     const [master, setMaster] = useState(null);
@@ -19,12 +18,12 @@ function MasterMain() {
 
     useEffect(() => {
         loadMasterList();
-    }, [menuId]);
+    }, [mastercode]);
 
     const loadMasterList = async () => {
         setIsLoading(true)
         try {
-            const response = await ApiCall("GET", `/master/${menuId}/getlist`)
+            const response = await ApiCall("GET", `/master/${mastercode}/getlist`)
             console.log("Master List Response:", response.data.data);
 
             const { master, fields, data } = response.data.data;
@@ -54,7 +53,7 @@ function MasterMain() {
     };
 
     const handleEdit = (row) => {
-        navigate(`${getRoleBasePath()}/master/${menuId}/edit/${row.id}`)
+        navigate(`${getRoleBasePath()}/master/${mastercode}/edit/${row.id}`)
     };
 
     if (!master) return null;
@@ -65,7 +64,7 @@ function MasterMain() {
                 title={master.header_name}
                 description={`Manage and configure ${master.header_name.toLowerCase()}`}
                 actions={<button
-                    onClick={() => navigate(`${getRoleBasePath()}/master/${menuId}/add`)}
+                    onClick={() => navigate(`${getRoleBasePath()}/master/${mastercode}/add`)}
                     className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 cursor-pointer"
                 >
                     <Plus className="w-4 h-4" />

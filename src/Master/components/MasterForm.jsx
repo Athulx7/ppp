@@ -34,11 +34,11 @@ function MasterForm({ meta, initialData, onCancel, isEdit, isLoading, setIsLoadi
     }
 
     useEffect(() => {
-        if (!meta?.fields || !meta?.menu_id) return
+        if (!meta?.fields || !meta?.master_code) return
 
         meta.fields.forEach(field => {
             if (field.field_type === "dropdown" && !field.depends_on) {
-                ApiCall("GET", `/master/${meta.menu_id}/dropdown/${field.column_name}`).then(res => {
+                ApiCall("GET", `/master/${meta.master_code}/dropdown/${field.column_name}`).then(res => {
                     if (res?.data?.success) {
                         setDropdownOptions(prev => ({
                             ...prev,
@@ -51,7 +51,7 @@ function MasterForm({ meta, initialData, onCancel, isEdit, isLoading, setIsLoadi
     }, [meta])
 
     useEffect(() => {
-        if (!meta?.fields || !meta?.menu_id) return
+        if (!meta?.fields || !meta?.master_code) return
 
         meta.fields.forEach(field => {
             if (!field.depends_on) return
@@ -65,7 +65,7 @@ function MasterForm({ meta, initialData, onCancel, isEdit, isLoading, setIsLoadi
                 return
             }
 
-            ApiCall("GET", `/master/${meta.menu_id}/dropdown/${field.column_name}?${field.depends_on}=${parentValue}`).then(res => {
+            ApiCall("GET",`/master/${meta.master_code}/dropdown/${field.column_name}?${field.depends_on}=${parentValue}`).then(res => {
                 if (res?.data?.success) {
                     setDropdownOptions(prev => ({
                         ...prev,
@@ -97,7 +97,7 @@ function MasterForm({ meta, initialData, onCancel, isEdit, isLoading, setIsLoadi
         setIsLoading(true)
         setSaving(true)
         try {
-            const res = await ApiCall("POST", `/master/${meta.menu_id}/save`, formData)
+            const res = await ApiCall("POST", `/master/${meta.master_code}/save`, formData)
 
             if (res?.data?.success) {
                 setStatusPopup({
@@ -133,9 +133,7 @@ function MasterForm({ meta, initialData, onCancel, isEdit, isLoading, setIsLoadi
                         label={field.label}
                         value={value || ""}
                         disabled={field.is_auto_code === 1}
-                        onChange={v =>
-                            handleChange(field.column_name, v)
-                        }
+                        onChange={v => handleChange(field.column_name, v)}
                         placeholder={`Enter ${field.label}`}
                         required={field.required === 1 ? true : false}
                         loading={isLoading}
@@ -147,17 +145,12 @@ function MasterForm({ meta, initialData, onCancel, isEdit, isLoading, setIsLoadi
                     <CommonDropDown
                         label={field.label}
                         value={value || ""}
-                        options={
-                            dropdownOptions[field.column_name] || []
-                        }
+                        options={dropdownOptions[field.column_name] || []}
                         disabled={
                             field.is_disable === 1 ||
-                            (field.depends_on &&
-                                !formData[field.depends_on])
+                            (field.depends_on && !formData[field.depends_on])
                         }
-                        onChange={v =>
-                            handleChange(field.column_name, v)
-                        }
+                        onChange={v => handleChange(field.column_name, v)}
                         required={field.required === 1 ? true : false}
                         loading={isLoading}
                     />
@@ -168,9 +161,7 @@ function MasterForm({ meta, initialData, onCancel, isEdit, isLoading, setIsLoadi
                     <CommonToggleButton
                         label={field.label}
                         value={value ?? 0}
-                        onChange={v =>
-                            handleChange(field.column_name, v)
-                        }
+                        onChange={v => handleChange(field.column_name, v)}
                         loading={isLoading}
                     />
                 )
@@ -180,9 +171,7 @@ function MasterForm({ meta, initialData, onCancel, isEdit, isLoading, setIsLoadi
                     <CommonDatePicker
                         label={field.label}
                         value={value || null}
-                        onChange={v =>
-                            handleChange(field.column_name, v)
-                        }
+                        onChange={v => handleChange(field.column_name, v)}
                         required={field.required === 1 ? true : false}
                         loading={isLoading}
                     />

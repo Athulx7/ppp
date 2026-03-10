@@ -73,9 +73,9 @@ function App() {
           <Route index element={<AdminDashboard />} />
 
           {/* Done fe be */}
-          <Route path='master/:menuId' element={<MasterMain />} />
-          <Route path="master/:menuId/add" element={<MasterFormPage />} />
-          <Route path="master/:menuId/edit/:rowId" element={<MasterFormPage />} />
+          <Route path='master/:mastercode' element={<MasterMain />} />
+          <Route path="master/:mastercode/add" element={<MasterFormPage />} />
+          <Route path="master/:mastercode/edit/:rowId" element={<MasterFormPage />} />
 
           <Route path='companysettings' element={<CompanySettingsEntry />} />
 
@@ -133,9 +133,9 @@ function App() {
 
         <Route path='/hr' element={<ProtectedRoute allowedRoles={['HR']}><Dashboard /> </ProtectedRoute>}>
           <Route index element={<HRDashboard />} />
-          <Route path='master/:menuId' element={<MasterMain />} />
-          <Route path="master/:menuId/add" element={<MasterFormPage />} />
-          <Route path="master/:menuId/edit/:rowId" element={<MasterFormPage />} />
+          <Route path='master/:mastercode' element={<MasterMain />} />
+          <Route path="master/:mastercode/add" element={<MasterFormPage />} />
+          <Route path="master/:mastercode/edit/:rowId" element={<MasterFormPage />} />
           <Route path='salary_components' element={<SalaryComponentEntry />} />
           <Route path='salary_structure' element={<SalaryStructureEntry />} />
           <Route path='salary_structure/create' element={<SalaryStructureAddEditEntry />} />
