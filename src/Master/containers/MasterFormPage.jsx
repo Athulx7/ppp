@@ -64,7 +64,7 @@ function MasterFormPage() {
     return (
         <>
             <Breadcrumb
-                items={[{ label: `${meta.master_name}`, to: `${getRoleBasePath()}/master/${mastercode}` },{ label: rowId ? "Edit" : "Add New" }]}
+                items={[{ label: `${meta.master_name}`, to: `${getRoleBasePath()}/master/${mastercode}` }, { label: rowId ? "Edit" : "Add New" }]}
                 title={meta.master_name}
                 description={rowId ? `Edit ${meta.master_name}` : `Add ${meta.master_name}`}
                 actions={<button

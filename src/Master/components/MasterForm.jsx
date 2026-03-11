@@ -5,18 +5,9 @@ import CommonToggleButton from "../../basicComponents/CommonToggleButton"
 import CommonDatePicker from "../../basicComponents/CommonDatePicker"
 import { ApiCall } from "../../library/constants"
 import LoadingSpinner from "../../basicComponents/LoadingSpinner"
-import CommonStatusPopUp from "../../basicComponents/CommonStatusPopUp"
+import { showStatusToast } from "../../basicComponents/CommonStatusPopUp"
 
 function MasterForm({ meta, initialData, onCancel, isEdit, isLoading, setIsLoading }) {
-    const [statusPopup, setStatusPopup] = useState({
-        open: false,
-        type: "success",
-        title: "",
-        body: ""
-    })
-    const closePopup = () => {
-        setStatusPopup(prev => ({ ...prev, open: false }))
-    }
     const [formData, setFormData] = useState({})
     const [dropdownOptions, setDropdownOptions] = useState({})
     const [saving, setSaving] = useState(false)
@@ -65,7 +56,7 @@ function MasterForm({ meta, initialData, onCancel, isEdit, isLoading, setIsLoadi
                 return
             }
 
-            ApiCall("GET",`/master/${meta.master_code}/dropdown/${field.column_name}?${field.depends_on}=${parentValue}`).then(res => {
+            ApiCall("GET", `/master/${meta.master_code}/dropdown/${field.column_name}?${field.depends_on}=${parentValue}`).then(res => {
                 if (res?.data?.success) {
                     setDropdownOptions(prev => ({
                         ...prev,
@@ -100,22 +91,23 @@ function MasterForm({ meta, initialData, onCancel, isEdit, isLoading, setIsLoadi
             const res = await ApiCall("POST", `/master/${meta.master_code}/save`, formData)
 
             if (res?.data?.success) {
-                setStatusPopup({
-                    open: true,
+                showStatusToast({
                     type: "success",
                     title: isEdit ? "Updated Successfully" : "Saved Successfully",
-                    body: isEdit
+                    message: isEdit
                         ? "The record has been updated successfully."
-                        : "The record has been created successfully."
+                        : "The record has been created successfully.",
+                    autoClose: true,
+                    onClose: onCancel,
                 })
             }
         } catch (err) {
             console.error("Save failed", err)
-            setStatusPopup({
-                open: true,
+            showStatusToast({
                 type: "error",
                 title: "Save Failed",
-                body: "Something went wrong while saving."
+                message: "Something went wrong while saving.",
+                autoClose: false,
             })
         } finally {
             setSaving(false)
@@ -153,6 +145,8 @@ function MasterForm({ meta, initialData, onCancel, isEdit, isLoading, setIsLoadi
                         onChange={v => handleChange(field.column_name, v)}
                         required={field.required === 1 ? true : false}
                         loading={isLoading}
+                        allowInlineCreate={!field.isInline && !!field.inline_master_code}
+                        inlineMasterCode={field.inline_master_code}
                     />
                 )
 
@@ -212,20 +206,6 @@ function MasterForm({ meta, initialData, onCancel, isEdit, isLoading, setIsLoadi
                 </button>
             </div>
             {isLoading && <LoadingSpinner />}
-            <CommonStatusPopUp
-                isOpen={statusPopup.open}
-                type={statusPopup.type}
-                title={statusPopup.title}
-                body={statusPopup.body}
-                onClose={() => {
-                    closePopup()
-                    if (statusPopup.type === "success") {
-                        onCancel()
-                    }
-                }}
-                primaryButtonText={statusPopup.type === "error" ? "OK" : ""}
-                onPrimaryButtonClick={closePopup}
-            />
         </div>
     )
 }

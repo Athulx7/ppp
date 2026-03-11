@@ -7,17 +7,10 @@ import CommonDropDown from '../../basicComponents/CommonDropDown';
 import { ApiCall } from '../../library/constants';
 import moment from 'moment';
 import LoadingSpinner from '../../basicComponents/LoadingSpinner';
-import CommonStatusPopUp from '../../basicComponents/CommonStatusPopUp';
+import { showStatusToast } from '../../basicComponents/CommonStatusPopUp';
 
 function CompanySettingsEntry() {
     const [isLoading, setIsLoading] = useState(false)
-    const [statusPopup, setStatusPopup] = useState({
-        show: false,
-        type: "default",
-        title: "",
-        message: "",
-        autoClose: false
-    })
 
     const [companyData, setCompanyData] = useState({
         basicInfo: {},
@@ -197,32 +190,29 @@ function CompanySettingsEntry() {
             console.log('company data sae', res)
 
             if (res?.data?.success) {
-                setStatusPopup({
-                    show: true,
+                showStatusToast({
                     type: "success",
                     title: "Success",
                     message: "Company settings saved successfully!",
-                    autoClose: true
+                    autoClose: true,
                 })
                 setIsEditing(false);
                 setIsViewMode(true);
             } else {
-                setStatusPopup({
-                    show: true,
+                showStatusToast({
                     type: "error",
                     title: "Save Failed",
                     message: `${res.data.data.message}` || "Something went wrong while saving.",
-                    autoClose: false
+                    autoClose: false,
                 })
             }
         } catch (error) {
             console.error("Save failed:", error);
-            setStatusPopup({
-                show: true,
+            showStatusToast({
                 type: "error",
                 title: "Save Failed",
                 message: "Something went wrong while saving.",
-                autoClose: false
+                autoClose: false,
             })
 
         }
@@ -799,16 +789,6 @@ function CompanySettingsEntry() {
                 </div>
             </div>
             {isLoading && <LoadingSpinner />}
-            <CommonStatusPopUp
-                isOpen={statusPopup.show}
-                type={statusPopup.type}
-                title={statusPopup.title}
-                body={statusPopup.message}
-                autoClose={statusPopup.autoClose}
-                onClose={() =>
-                    setStatusPopup(prev => ({ ...prev, show: false }))
-                }
-            />
 
         </div>
     );

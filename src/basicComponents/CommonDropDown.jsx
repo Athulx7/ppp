@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useLayoutEffect } from "react"
 import { ChevronDown, ChevronUp } from "lucide-react"
 import ReactDOM from "react-dom"
+import InlineMasterModal from "./InlineMasterModal"
 
 function CommonDropDown({
     label = "",
@@ -14,8 +15,13 @@ function CommonDropDown({
     className = '',
     style = {},
     errorMessage,
-    loading = false
+    loading = false,
+
+    allowInlineCreate = false,
+    inlineMasterCode = null,
+    onInlineCreated = () => { }
 }) {
+    const [inlineOpen, setInlineOpen] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
     const [isOpen, setIsOpen] = useState(false)
     const [dropdownStyle, setDropdownStyle] = useState({})
@@ -174,10 +180,31 @@ function CommonDropDown({
                                 </div>
                             ))
                         )}
+                        {allowInlineCreate && (
+                            <div
+                                className="p-3 text-sm text-indigo-600 cursor-pointer hover:bg-indigo-50 border-t border-indigo-300 font-medium"
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    setIsOpen(false)
+                                    setInlineOpen(true)
+                                }}
+                            >
+                                + Add New
+                            </div>
+                        )}
                     </div>
                 </div>,
                 document.body
             )}
+            <InlineMasterModal
+                open={inlineOpen}
+                masterCode={inlineMasterCode}
+                onClose={() => setInlineOpen(false)}
+                onCreated={(newRecord) => {
+                    onInlineCreated(newRecord)
+                    setInlineOpen(false)
+                }}
+            />
         </div>
     )
 }

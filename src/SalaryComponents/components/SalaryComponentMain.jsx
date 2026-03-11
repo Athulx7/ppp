@@ -4,7 +4,7 @@ import LoadingSpinner from "../../basicComponents/LoadingSpinner"
 import { Plus, Edit, Trash2 } from "lucide-react"
 import { ApiCall } from "../../library/constants"
 import CommonTable from "../../basicComponents/commonTable"
-import CommonStatusPopUp from "../../basicComponents/CommonStatusPopUp"
+import { showStatusToast } from "../../basicComponents/CommonStatusPopUp"
 
 function SalaryComponentMain({ isLoading, setIsLoading }) {
 
@@ -17,13 +17,6 @@ function SalaryComponentMain({ isLoading, setIsLoading }) {
     const [newComponent, setNewComponent] = useState({})
 
     const [components, setComponents] = useState([])
-    const [statusPopup, setStatusPopup] = useState({
-        show: false,
-        type: "default",
-        title: "",
-        message: "",
-        autoClose: false
-    })
 
     const allComponentCodes = components.map(c => ({
         value: c.component_code,
@@ -169,23 +162,22 @@ function SalaryComponentMain({ isLoading, setIsLoading }) {
                 result = await ApiCall("post", "/salarycomponent/save", payload)
             }
             if (result.data.success) {
-                setStatusPopup({
-                    show: true,
+                showStatusToast({
                     type: "success",
                     title: "Success",
                     message: result.data.message,
-                    autoClose: true
+                    autoClose: true,
+                    onClose: resetModal,
                 })
                 setSelectedComponent(null)
                 await getSalaryComponents()
             }
         } catch (error) {
-            setStatusPopup({
-                show: true,
+            showStatusToast({
                 type: "error",
                 title: "Error",
                 message: error?.response?.data?.message || "Save failed",
-                autoClose: false
+                autoClose: false,
             })
         }
     }
@@ -212,22 +204,20 @@ function SalaryComponentMain({ isLoading, setIsLoading }) {
                 `/salarycomponent/delete/${row.id}`
             )
             if (result.data.success) {
-                setStatusPopup({
-                    show: true,
+                showStatusToast({
                     type: "success",
                     title: "Deleted",
                     message: result.data.message,
-                    autoClose: true
+                    autoClose: true,
                 })
                 await getSalaryComponents()
             }
         } catch (err) {
-            setStatusPopup({
-                show: true,
+            showStatusToast({
                 type: "error",
                 title: "Error",
                 message: "Delete failed",
-                autoClose: false
+                autoClose: false,
             })
         }
     }
@@ -344,20 +334,6 @@ function SalaryComponentMain({ isLoading, setIsLoading }) {
             )}
 
             {isLoading && <LoadingSpinner />}
-
-            <CommonStatusPopUp
-                isOpen={statusPopup.show}
-                type={statusPopup.type}
-                title={statusPopup.title}
-                body={statusPopup.message}
-                autoClose={statusPopup.autoClose}
-                onClose={() => {
-                    setStatusPopup(prev => ({ ...prev, show: false }))
-                    if (statusPopup.type === "success") {
-                        resetModal()
-                    }
-                }}
-            />
         </>
     )
 }
