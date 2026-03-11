@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Grid3X3, Search } from "lucide-react";
+import { Download, Grid3X3, Search } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import { ApiCall, getRoleBasePath } from '../library/constants';
+import { usePwaInstall } from '../usePwaInstall';
 
 function TopHeader({ openMenu, setOpenMenu }) {
     const [showMobileSearch, setShowMobileSearch] = useState(false)
@@ -60,6 +61,19 @@ function TopHeader({ openMenu, setOpenMenu }) {
         }
     };
 
+    function PwaInstallButton() {
+        const { isInstallable, install } = usePwaInstall();
+        if (!isInstallable) return null;
+        return (
+            <button
+                onClick={install} className=' flex bg-indigo-600 text-white px-4 py-2 border-none rounded-lg text-sm font-medium'
+            >
+                <Download className="h-4 w-4 mr-3" />
+                Install App
+            </button>
+        );
+    }
+
     return (
         <>
             <div className="flex items-center justify-between w-full h-full px-2 md:px-2" ref={searchRef}>
@@ -75,9 +89,9 @@ function TopHeader({ openMenu, setOpenMenu }) {
                         />
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                     </div>
-                    
+
                     {showResults && searchResults.length > 0 && (
-                        <div style={{marginTop:'-5px'}} className="absolute top-full left-0 w-full max-w-md bg-white rounded-lg shadow-lg border border-gray-600 z-50 max-h-96 overflow-y-auto scrollbar">
+                        <div style={{ marginTop: '-5px' }} className="absolute top-full left-0 w-full max-w-md bg-white rounded-lg shadow-lg border border-gray-600 z-50 max-h-96 overflow-y-auto scrollbar">
                             <div className="p-2">
                                 <div className="text-xs font-semibold text-gray-500 px-3 py-2">
                                     {searchResults.length} results found
@@ -90,9 +104,9 @@ function TopHeader({ openMenu, setOpenMenu }) {
                                             onClick={() => handleResultClick(result.route)}
                                         >
                                             <div className="flex items-center justify-between cursor-pointer">
-                                                    <div className="font-medium text-gray-900">{result.title}</div>
-                                                    <div className="text-xs text-gray-500 mt-0.5">{result.category}</div>
-                                           
+                                                <div className="font-medium text-gray-900">{result.title}</div>
+                                                <div className="text-xs text-gray-500 mt-0.5">{result.category}</div>
+
                                             </div>
                                         </button>
                                     ))}
@@ -100,10 +114,10 @@ function TopHeader({ openMenu, setOpenMenu }) {
                             </div>
                         </div>
                     )}
-                    
-                    <Grid3X3 
-                        className="text-gray-600 cursor-pointer w-6 h-6 hover:text-indigo-600 transition-colors" 
-                        onClick={() => setOpenMenu(true)} 
+
+                    <Grid3X3
+                        className="text-gray-600 cursor-pointer w-6 h-6 hover:text-indigo-600 transition-colors"
+                        onClick={() => setOpenMenu(true)}
                     />
                 </div>
                 <button
@@ -127,7 +141,7 @@ function TopHeader({ openMenu, setOpenMenu }) {
                             />
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                         </div>
-                        
+
                         {showResults && searchResults.length > 0 && (
                             <div className="mt-2 bg-white rounded-lg border border-gray-200 max-h-64 overflow-y-auto">
                                 <div className="p-2">
@@ -161,6 +175,7 @@ function TopHeader({ openMenu, setOpenMenu }) {
 
                 <div className="flex items-center">
                     {/* messgae, nottificatiom etc..*/}
+                    <PwaInstallButton />
                 </div>
             </div>
         </>

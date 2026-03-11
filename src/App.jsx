@@ -56,7 +56,7 @@ const PublicRoute = ({ children }) => {
       case 'EMPLOYEE':
         return <Navigate to="/employee" replace />
       default:
-        return <Navigate to="/" replace />
+        return <Navigate to="/login" replace />
     }
   }
   return children
@@ -66,7 +66,8 @@ function App() {
   return (
     <>
       <Routes>
-        <Route path='/' element={<PublicRoute><LoginPage /></PublicRoute>} />
+        <Route path='/' element={<AnimatelandingPage />} />
+        <Route path='/login' element={<PublicRoute><LoginPage /></PublicRoute>} />
 
         {/* <Route path='/admin' element={<ProtectedRoute allowedRoles={['ADMIN']}> <Dashboard /> </ProtectedRoute>}> */}
         <Route path='/admin' element={<Dashboard />}>
@@ -163,7 +164,6 @@ function App() {
           <Route path='payslip' element={<PayslipsEntry />} />
         </Route>
 
-        <Route path='/landing' element={<AnimatelandingPage />} />
         <Route path='/dashboard' element={<RoleBasedRedirect />} />
 
         <Route path='*' element={<NotFoundPage />} />
@@ -186,7 +186,7 @@ const RoleBasedRedirect = () => {
     case 'EMPLOYEE':
       return <Navigate to="/employee" replace />
     default:
-      return <Navigate to="/" replace />
+      return <Navigate to="/login" replace />
   }
 }
 

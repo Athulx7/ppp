@@ -6,7 +6,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     const token = sessionStorage.getItem('token')
 
     if (!token) {
-        return <Navigate to="/" replace />;
+        return <Navigate to="/login" replace />;
     }
 
     if (allowedRoles && !allowedRoles.includes(user.role_code)) {
@@ -20,7 +20,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
             case 'EMPLOYEE':
                 return <Navigate to="/employee" replace />
             default:
-                return <Navigate to="/" replace />
+                return <Navigate to="/login" replace />
         }
     }
 
