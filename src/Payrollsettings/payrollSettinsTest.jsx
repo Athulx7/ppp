@@ -32,9 +32,9 @@ import CommonDropDown from '../basicComponents/CommonDropDown';
 import CommonInputField from '../basicComponents/CommonInputField';
 import CommonDatePicker from '../basicComponents/CommonDatePicker';
 import CommonTable from '../basicComponents/commonTable';
-import CommonCheckbox from '../basicComponents/CommonCheckbox';
 import CommonBadge from '../basicComponents/CommonBadge';
 import CommonSwitch from '../basicComponents/CommonSwitch';
+import CommonCheckbox from '../basicComponents/CommonCheckBox';
 
 function PayrollSettings() {
     const navigate = useNavigate();
