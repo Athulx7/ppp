@@ -185,14 +185,14 @@ function AnimatelandingPage() {
 
                 <h1 className="text-5xl md:text-7xl font-extrabold text-indigo-950 leading-tight tracking-tight max-w-5xl">
                     {/* Manage Your Workforce */}
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Laborum
+                    Lorem ipsum dolor sit amet
                     {/* <br />Smarter &amp; Faster */}
                     <br />Lorem ipsum &amp; dolor
                 </h1>
 
                 <p className="text-gray-500 text-lg max-w-3xl leading-relaxed mt-4">
                     {/* From punch-in to payslips — a complete HRMS platform for employees, HR teams, and payroll managers. Multi-tenant, secure, and lightning fast. */}
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Laborum sed nobis consequuntur voluptatem aperiam natus voluptate earum animi, maiores quia inventore provident atque dicta placeat harum vero quasi alias voluptatibus.
+                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Laborum sed nobis consequuntur voluptatem aperiam natus voluptate earum animi, maiores quia
                 </p>
 
                 <div
