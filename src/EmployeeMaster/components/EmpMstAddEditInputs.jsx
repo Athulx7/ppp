@@ -7,7 +7,16 @@ import { ApiCall, getRoleBasePath } from '../../library/constants'
 import CommonToggleButton from '../../basicComponents/CommonToggleButton'
 import { useNavigate } from 'react-router-dom'
 
-function EmpMstAddEditInputs({ isLoading, isDisabled, empMstControls, setIsDisabled, setIsLoading, statusPopup, setStatusPopup, autoCode, employeeId }) {
+function EmpMstAddEditInputs({
+    isLoading,
+    isDisabled,
+    empMstControls,
+    setIsDisabled,
+    setIsLoading,
+    showToast,
+    autoCode,
+    employeeId
+}) {
     const navigate = useNavigate()
 
     const [formData, setFormData] = useState({})
@@ -191,6 +200,8 @@ function EmpMstAddEditInputs({ isLoading, isDisabled, empMstControls, setIsDisab
                         options={dropdownOptions[control.column_name] || []}
                         placeholder={`Select ${control.label}`}
                         errorMessage={errors[control.column_name]}
+                        allowInlineCreate={!control.isInline && !!control.inline_master_code}
+                        inlineMasterCode={control.inline_master_code}
                     />
                 )
 
@@ -262,8 +273,7 @@ function EmpMstAddEditInputs({ isLoading, isDisabled, empMstControls, setIsDisab
         const isValid = validateForm()
 
         if (!isValid) {
-            setStatusPopup({
-                show: true,
+            showToast({
                 type: "error",
                 title: "Validation Error",
                 message: "Please fix the highlighted errors.",
@@ -289,18 +299,17 @@ function EmpMstAddEditInputs({ isLoading, isDisabled, empMstControls, setIsDisab
             const url = employeeId ? `/empmst/updateempmaster/${employeeId}` : `/empmst/saveempmaster`
             const method = employeeId ? 'put' : 'post'
             const res = await ApiCall(method, url, payload)
+            console.log('successs', res)
 
             if (res?.data?.success) {
-                setStatusPopup({
-                    show: true,
+                showToast({
                     type: "success",
                     title: "Success",
                     message: `Employee ${employeeId ? 'Updated' : 'saved'} successfully.`,
                     autoClose: true
                 })
             } else {
-                setStatusPopup({
-                    show: true,
+                showToast({
                     type: "error",
                     title: "Error",
                     message: res?.data?.message || "Something went wrong.",
@@ -309,7 +318,7 @@ function EmpMstAddEditInputs({ isLoading, isDisabled, empMstControls, setIsDisab
             }
 
         } catch (err) {
-            setStatusPopup({
+            showToast({
                 show: true,
                 type: "error",
                 title: "Server Error",

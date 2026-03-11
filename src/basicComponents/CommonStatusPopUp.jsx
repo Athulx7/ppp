@@ -1,18 +1,29 @@
 import { toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 
-/**
- * showStatusToast({ type, title, message, autoClose })
- *
- * Drop-in replacement for the old CommonStatusPopUp modal.
- * Call this function directly instead of using the component + state.
- *
- * @param {"success"|"error"|"info"|"default"} type
- * @param {string} title
- * @param {string} message
- * @param {boolean} autoClose  - false means the toast stays until dismissed
- * @param {Function} [onClose] - optional callback when toast closes
- */
+function createOverlay() {
+    if (document.getElementById("toast-overlay")) return
+
+    const overlay = document.createElement("div")
+    overlay.id = "toast-overlay"
+
+    overlay.style.position = "fixed"
+    overlay.style.top = "0"
+    overlay.style.left = "0"
+    overlay.style.right = "0"
+    overlay.style.bottom = "0"
+    overlay.style.background = "transparent"
+    overlay.style.zIndex = "999"
+    overlay.style.pointerEvents = "all"
+
+    document.body.appendChild(overlay)
+}
+
+function removeOverlay() {
+    const overlay = document.getElementById("toast-overlay")
+    if (overlay) overlay.remove()
+}
+
 export function showStatusToast({
     type = "default",
     title = "",
@@ -20,27 +31,38 @@ export function showStatusToast({
     autoClose = true,
     onClose,
 } = {}) {
+
+    if (type === "success") {
+        createOverlay()
+    }
+
     const toastType =
         type === "success" ? "success"
-        : type === "error"   ? "error"
-        : type === "info"    ? "info"
-        : "default"
+            : type === "error" ? "error"
+                : type === "info" ? "info"
+                    : "default"
 
     const content = (
         <div>
-            {title  && <div style={{ fontWeight: 600, marginBottom: message ? 2 : 0 }}>{title}</div>}
+            {title && <div style={{ fontWeight: 600 }}>{title}</div>}
             {message && <div style={{ fontSize: "0.85em" }}>{message}</div>}
         </div>
     )
 
     const options = {
-        position: "top-right",
+        position: "bottom-right",
         autoClose: autoClose ? 3000 : false,
-        hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
         draggable: true,
-        onClose,
+        onClose: () => {
+
+            if (type === "success") {
+                removeOverlay()
+            }
+
+            if (onClose) onClose()
+        }
     }
 
     if (toastType === "success") toast.success(content, options)
@@ -49,5 +71,4 @@ export function showStatusToast({
     else toast(content, options)
 }
 
-// Keep a default export so any old import still resolves without breaking
 export default showStatusToast

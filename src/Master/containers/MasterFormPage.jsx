@@ -67,13 +67,6 @@ function MasterFormPage() {
                 items={[{ label: `${meta.master_name}`, to: `${getRoleBasePath()}/master/${mastercode}` }, { label: rowId ? "Edit" : "Add New" }]}
                 title={meta.master_name}
                 description={rowId ? `Edit ${meta.master_name}` : `Add ${meta.master_name}`}
-                actions={<button
-                    onClick={() => navigate(`${getRoleBasePath()}/master/${mastercode}/add`)}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 cursor-pointer"
-                >
-                    <Plus className="w-4 h-4" />
-                    Add New
-                </button>}
                 loading={isLoading}
             />
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"
-import { ApiCall } from "../../library/constants"
 import MasterForm from "../Master/components/MasterForm"
+import { ApiCall } from "../library/constants"
 
 function InlineMasterModal({
     open,
@@ -21,7 +21,6 @@ function InlineMasterModal({
             const res = await ApiCall("GET", `/master/${masterCode}/getcontents`)
             const data = res.data.data
 
-            // 🔹 Filter fields for inline mode
             const inlineFields = data.fields.filter(
                 f => f.show_in_inline !== 0
             )
@@ -44,11 +43,11 @@ function InlineMasterModal({
 
     return (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40">
-            <div className="bg-white rounded-lg shadow-lg w-[800px] max-h-[90vh] overflow-auto p-6">
+            <div className="bg-white rounded-lg w-[800px] max-h-[90vh] overflow-auto p-6">
 
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex justify-between items-center mb-4 border-b border-b-gray-400 pb-2">
                     <h2 className="text-lg font-semibold">
-                        Create {meta?.master_name}
+                        Create {meta?.master_name?.replace(/master/i, "").trim()}
                     </h2>
 
                     <button

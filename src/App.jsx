@@ -69,8 +69,8 @@ function App() {
         <Route path='/' element={<AnimatelandingPage />} />
         <Route path='/login' element={<PublicRoute><LoginPage /></PublicRoute>} />
 
-        {/* <Route path='/admin' element={<ProtectedRoute allowedRoles={['ADMIN']}> <Dashboard /> </ProtectedRoute>}> */}
-        <Route path='/admin' element={<Dashboard />}>
+        <Route path='/admin' element={<ProtectedRoute allowedRoles={['ADMIN']}> <Dashboard /> </ProtectedRoute>}>
+        {/* <Route path='/admin' element={<Dashboard />}> */}
           <Route index element={<AdminDashboard />} />
 
           {/* Done fe be */}
