@@ -191,7 +191,7 @@ function AnimatelandingPage() {
                 </h1>
 
                 <p className="text-gray-500 text-lg max-w-3xl leading-relaxed mt-4">
-                    {/* From punch-in to payslips — a complete HRMS platform for employees, HR teams, and payroll managers. Multi-tenant, secure, and lightning fast. */}
+                    {/* From punch-in to payslips — a complete HRMS platform for employees, HR teams, and payroll managers. Multi-tenant, secure, and lightning fast. */} 
                     Lorem ipsum dolor sit amet consectetur adipisicing elit. Laborum sed nobis consequuntur voluptatem aperiam natus voluptate earum animi, maiores quia
                 </p>
 
