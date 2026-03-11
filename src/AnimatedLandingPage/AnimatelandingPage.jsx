@@ -179,16 +179,20 @@ function AnimatelandingPage() {
                         background: '#6366f1', boxShadow: '0 0 8px #6366f1',
                         display: 'inline-block', animation: 'hrms-pulse 2s infinite',
                     }} />
-                    Human Resource Management System
+                    {/* Human Resource Management System */}
+                    Lorem ipsum dolor sit amet consectetur
                 </div>
 
                 <h1 className="text-5xl md:text-7xl font-extrabold text-indigo-950 leading-tight tracking-tight max-w-5xl">
-                    Manage Your Workforce
-                    <br />Smarter &amp; Faster
+                    {/* Manage Your Workforce */}
+                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Laborum
+                    {/* <br />Smarter &amp; Faster */}
+                    <br />Lorem ipsum &amp; dolor
                 </h1>
 
                 <p className="text-gray-500 text-lg max-w-3xl leading-relaxed mt-4">
-                    From punch-in to payslips — a complete HRMS platform for employees, HR teams, and payroll managers. Multi-tenant, secure, and lightning fast.
+                    {/* From punch-in to payslips — a complete HRMS platform for employees, HR teams, and payroll managers. Multi-tenant, secure, and lightning fast. */}
+                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Laborum sed nobis consequuntur voluptatem aperiam natus voluptate earum animi, maiores quia inventore provident atque dicta placeat harum vero quasi alias voluptatibus.
                 </p>
 
                 <div
