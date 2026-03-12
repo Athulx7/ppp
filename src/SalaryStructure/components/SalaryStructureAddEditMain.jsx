@@ -5,6 +5,7 @@ import CommonDropDown from '../../basicComponents/CommonDropDown'
 import StructureBasicInformation from './StructureBasicInformation';
 import StructureComponents from './StructureComponents';
 import SalaryStructureCoastSummurySaveButtons from './SalaryStructureCoastSummurySaveButtons';
+import { ApiCall } from '../../library/constants';
 
 function SalaryStructureAddEditMain({ isLoading, setIsLoading, isEditMode, id, navigate }) {
     const [structure, setStructure] = useState({
@@ -20,20 +21,6 @@ function SalaryStructureAddEditMain({ isLoading, setIsLoading, isEditMode, id, n
     // Loading state
     const [isSaving, setIsSaving] = useState(false);
     console.log(setIsSaving)
-
-    // Sample salary components (in real app, fetch from API)
-    const salaryComponents = [
-        { id: 1, name: 'Basic Salary', code: 'BASIC', type: 'earning', minAmount: 15000, maxAmount: 500000 },
-        { id: 2, name: 'House Rent Allowance', code: 'HRA', type: 'earning', minAmount: 0, maxAmount: 100 },
-        { id: 3, name: 'Special Allowance', code: 'SA', type: 'earning', minAmount: 0, maxAmount: 500000 },
-        { id: 4, name: 'Conveyance Allowance', code: 'CA', type: 'earning', minAmount: 0, maxAmount: 19200 },
-        { id: 5, name: 'Medical Allowance', code: 'MA', type: 'earning', minAmount: 0, maxAmount: 15000 },
-        { id: 6, name: 'Performance Bonus', code: 'BONUS', type: 'earning', minAmount: 0, maxAmount: 100 },
-        { id: 7, name: 'Employee PF', code: 'EPF', type: 'deduction', minAmount: 0, maxAmount: 12 },
-        { id: 8, name: 'Professional Tax', code: 'PT', type: 'deduction', minAmount: 0, maxAmount: 2500 },
-        { id: 9, name: 'TDS', code: 'TDS', type: 'deduction', minAmount: 0, maxAmount: 100 },
-        { id: 10, name: 'Loan Recovery', code: 'LOAN', type: 'deduction', minAmount: 0, maxAmount: 100000 },
-    ];
 
     // Fetch structure data in edit mode
     useEffect(() => {
@@ -140,19 +127,72 @@ function SalaryStructureAddEditMain({ isLoading, setIsLoading, isEditMode, id, n
         }
     };
 
+    const [calculationOptions, setCalculationOptions] = useState([])
+    const [baseOptions, setBaseOptions] = useState([])
+    const [salaryComponents, setSalaryComponents] = useState([])
+    useEffect(() => {
+        getDropdownDataForComponentType()
+        getDropdownDataForCalculationType()
+    }, [])
+
+    async function getDropdownDataForComponentType() {
+        try {
+            const result = await ApiCall("get", "/salarystructure/dropdownCcomponent")
+
+            const components = result.data.data
+
+            const formatted = components.map(c => ({
+                id: c.id,
+                label: c.component_name,
+                value: c.component_code,
+                type: c.type_code
+            }))
+
+            setSalaryComponents(formatted)
+
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    async function getDropdownDataForCalculationType() {
+        try {
+
+            const result = await ApiCall(
+                "get",
+                "/salarystructure/dropdownCalculationtype"
+            )
+
+            const data = result.data.data
+            console.log(data, 'datatata')
+
+            const formatted = data.map(c => ({
+                value: c.value,
+                label: c.label,
+                requires_formula: c.requires_formula,
+                requires_percentage: c.requires_percentage
+            }))
+
+            setCalculationOptions(formatted)
+
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
     // Component calculation type options
-    const calculationOptions = [
-        { value: 'fixed', label: 'Fixed Amount' },
-        { value: 'percentage', label: 'Percentage' },
-        { value: 'formula', label: 'Formula Based' }
-    ];
+    // const calculationOptions = [
+    //     { value: 'fixed', label: 'Fixed Amount' },
+    //     { value: 'percentage', label: 'Percentage' },
+    //     { value: 'formula', label: 'Formula Based' }
+    // ];
 
     // Base component options for percentage calculation
-    const baseOptions = [
-        { value: 'BASIC', label: 'Basic Salary (BASIC)' },
-        { value: 'GROSS', label: 'Gross Salary' },
-        { value: 'CTC', label: 'Cost to Company' }
-    ];
+    // const baseOptions = [
+    //     { value: 'BASIC', label: 'Basic Salary (BASIC)' },
+    //     { value: 'GROSS', label: 'Gross Salary' },
+    //     { value: 'CTC', label: 'Cost to Company' }
+    // ];
 
     if (isLoading.spinner) {
         return (
@@ -169,10 +209,8 @@ function SalaryStructureAddEditMain({ isLoading, setIsLoading, isEditMode, id, n
             <form onSubmit={''}>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2 space-y-6">
-                        {/* Left Column - Structure Details */}
                         <StructureBasicInformation isLoading={isLoading} structure={structure} handleChange={handleChange} />
 
-                        {/* Salary Components */}
                         <StructureComponents isLoading={isLoading} addComponent={addComponent} structure={structure} removeComponent={removeComponent} salaryComponents={salaryComponents} updateComponent={updateComponent} calculationOptions={calculationOptions} baseOptions={baseOptions} />
                     </div>
 

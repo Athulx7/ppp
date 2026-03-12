@@ -66,10 +66,11 @@ function StructureComponents({ isLoading, addComponent, structure, removeCompone
                                     />
 
                                     <CommonDropDown
-                                        label="Calculation Type *"
+                                        label="Calculation Type"
                                         value={component.calculation}
                                         options={calculationOptions}
                                         onChange={v => updateComponent(index, 'calculation', v)}
+                                        required
                                     />
 
                                     <CommonInputField
