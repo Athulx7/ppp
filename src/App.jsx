@@ -36,7 +36,6 @@ import MenuMappingEntry from './MenuMapping/container/MenuMappingEntry'
 import CtcReportEntry from './CtcReport/container/CtcReportEntry'
 import PayslipsEntry from './Payslips/container/PayslipsEntry'
 import PayrollSettings from './Payrollsettings/payrollSettinsTest'
-import SalaryStructureAssignment from './SalaryStructure/container/SalaryStructureAssignmentTest'
 import JobTrackingTest from './JobTracking/JobTrackingTest'
 import AnimatelandingPage from './AnimatedLandingPage/AnimatelandingPage'
 import JobTrackingMain from './JobTracking/JobTrackingMain'
@@ -69,8 +68,8 @@ function App() {
         <Route path='/' element={<AnimatelandingPage />} />
         <Route path='/login' element={<PublicRoute><LoginPage /></PublicRoute>} />
 
-        <Route path='/admin' element={<ProtectedRoute allowedRoles={['ADMIN']}> <Dashboard /> </ProtectedRoute>}>
-        {/* <Route path='/admin' element={<Dashboard />}> */}
+        {/* <Route path='/admin' element={<ProtectedRoute allowedRoles={['ADMIN']}> <Dashboard /> </ProtectedRoute>}> */}
+        <Route path='/admin' element={<Dashboard />}>
           <Route index element={<AdminDashboard />} />
 
           {/* Done fe be */}
@@ -91,8 +90,6 @@ function App() {
           <Route path='salary_structure' element={<SalaryStructureEntry />} />
           <Route path='salary_structure/create' element={<SalaryStructureAddEditEntry />} />
           <Route path='salary_structure/edit/:id' element={<SalaryStructureAddEditEntry />} />
-          <Route path="salary_structure/assign" element={<SalaryStructureAssignment />} />
-          <Route path="salary_structure/assign/:id" element={<SalaryStructureAssignment />} />
 
           <Route path='profile' element={<UserProfileEntry />} />
 
