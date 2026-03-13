@@ -12,7 +12,7 @@ const TABS = [
 ];
 
 function JobTrackingTest() {
-    const [activeTab, setActiveTab] = useState('calendar');
+    const [activeTab, setActiveTab] = useState('jobs');
 
     // Shared state: all jobs and lunch break config live here
     const [jobs, setJobs] = useState([]);
