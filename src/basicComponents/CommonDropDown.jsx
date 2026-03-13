@@ -1,18 +1,17 @@
-import React, { useState, useRef, useEffect, useLayoutEffect } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import { ChevronDown, ChevronUp } from "lucide-react"
-import ReactDOM from "react-dom"
 import InlineMasterModal from "./InlineMasterModal"
 
 function CommonDropDown({
     label = "",
     required = false,
     options = [],
-    value = '',
+    value = "",
     onChange = () => { },
-    placeholder = 'Select an option',
+    placeholder = "Select an option",
     showSearch = true,
     disabled = false,
-    className = '',
+    className = "",
     style = {},
     errorMessage,
     loading = false,
@@ -22,68 +21,40 @@ function CommonDropDown({
     onInlineCreated = () => { }
 }) {
     const [inlineOpen, setInlineOpen] = useState(false)
-    const [searchTerm, setSearchTerm] = useState('')
+    const [searchTerm, setSearchTerm] = useState("")
     const [isOpen, setIsOpen] = useState(false)
-    const [dropdownStyle, setDropdownStyle] = useState({})
+
     const containerRef = useRef(null)
-    const dropdownRef = useRef(null)
 
     const filteredOptions = options.filter(option =>
         option.label.toLowerCase().includes(searchTerm.toLowerCase())
     )
 
-    useLayoutEffect(() => {
-        if (isOpen && containerRef.current) {
-            const containerRect = containerRef.current.getBoundingClientRect()
-            const dropdownHeight = 240
-            const spaceBelow = window.innerHeight - containerRect.bottom
-            const spaceAbove = containerRect.top
-
-            let top
-            let left = containerRect.left
-
-            if (spaceBelow >= dropdownHeight || spaceBelow >= spaceAbove) {
-                top = containerRect.bottom + 4
-            } else {
-                top = containerRect.top - dropdownHeight - 4
-            }
-
-            setDropdownStyle({
-                position: 'fixed',
-                top,
-                left,
-                width: containerRect.width,
-                zIndex: 9999
-            })
-        }
-    }, [isOpen])
-
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (
                 containerRef.current &&
-                !containerRef.current.contains(event.target) &&
-                dropdownRef.current &&
-                !dropdownRef.current.contains(event.target)
+                !containerRef.current.contains(event.target)
             ) {
                 setIsOpen(false)
-                setSearchTerm('')
+                setSearchTerm("")
             }
         }
 
         if (isOpen) {
-            document.addEventListener('mousedown', handleClickOutside)
+            document.addEventListener("mousedown", handleClickOutside)
         }
 
         return () => {
-            document.removeEventListener('mousedown', handleClickOutside)
+            document.removeEventListener("mousedown", handleClickOutside)
         }
     }, [isOpen])
 
     const handleSelect = (selectedValue) => {
         onChange(selectedValue)
         setIsOpen(false)
-        setSearchTerm('')
+        setSearchTerm("")
+
     }
 
     return (
@@ -107,12 +78,12 @@ function CommonDropDown({
             ) : (
                 <div
                     className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all
-            ${disabled
+                    ${disabled
                             ? "bg-gray-100 text-gray-900 border border-indigo-500"
                             : "bg-white border border-indigo-500 hover:border-indigo-400"}
-            ${isOpen ? "ring-1 ring-indigo-500" : ""}
-            ${errorMessage ? "border-red-500 focus:ring-red-500" : ""}
-        `}
+                    ${isOpen ? "ring-1 ring-indigo-500" : ""}
+                    ${errorMessage ? "border-red-500" : ""}
+                `}
                     onClick={() => !disabled && !loading && setIsOpen(!isOpen)}
                 >
                     {isOpen && showSearch ? (
@@ -134,28 +105,23 @@ function CommonDropDown({
                     )}
 
                     <div className="ml-2 pl-2 border-l border-gray-200">
-                        {isOpen ? (
-                            <ChevronUp size={16} className="text-indigo-500" />
-                        ) : (
+                        {isOpen ?
+                            <ChevronUp size={16} className="text-indigo-500" /> :
                             <ChevronDown size={16} className="text-indigo-500" />
-                        )}
+                        }
                     </div>
                 </div>
             )}
             {errorMessage && (
-                loading ? (
-                    <div className="mb-2 h-4 w-24 bg-gray-200 rounded animate-pulse mt-1"></div>
-                ) :
-                    <div className="mt-1 text-xs text-red-500">
-                        {errorMessage}
-                    </div>
+                <div className="mt-1 text-xs text-red-500">
+                    {errorMessage}
+                </div>
             )}
 
-            {isOpen && ReactDOM.createPortal(
+            {isOpen && (
+
                 <div
-                    ref={dropdownRef}
-                    className="absolute bg-white rounded-lg shadow-xl border border-indigo-500"
-                    style={dropdownStyle}
+                    className="absolute left-0 top-full mt-1 w-full bg-white rounded-lg shadow-xl border border-indigo-500 z-50"
                 >
                     <div className="max-h-60 overflow-y-auto scrollbar">
                         {filteredOptions.length === 0 ? (
@@ -166,8 +132,8 @@ function CommonDropDown({
                             filteredOptions.map(option => (
                                 <div
                                     key={option.value}
-                                    className={`p-3 text-sm cursor-pointer hover:bg-indigo-50 border-b border-indigo-400 last:border-b-0
-                                        ${value === option.value
+                                    className={`p-3 text-sm cursor-pointer hover:bg-indigo-50 border-b border-indigo-100
+                                    ${value === option.value
                                             ? "bg-indigo-100 text-indigo-700 font-medium"
                                             : "text-gray-700"}
                                     `}
@@ -180,21 +146,24 @@ function CommonDropDown({
                                 </div>
                             ))
                         )}
-                        {allowInlineCreate && (
-                            <div
-                                className="p-3 text-sm text-indigo-600 cursor-pointer hover:bg-indigo-50 border-t border-indigo-300 font-medium"
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    setIsOpen(false)
-                                    setInlineOpen(true)
-                                }}
-                            >
-                                + Add New
-                            </div>
-                        )}
+
                     </div>
-                </div>,
-                document.body
+
+                    {allowInlineCreate && (
+                        <div
+                            className="p-3 text-sm text-indigo-600 cursor-pointer hover:bg-indigo-50 border-t border-indigo-200 font-medium"
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                setIsOpen(false)
+                                setInlineOpen(true)
+                            }}
+                        >
+                            + Add New
+                        </div>
+                    )}
+
+                </div>
+
             )}
             <InlineMasterModal
                 open={inlineOpen}

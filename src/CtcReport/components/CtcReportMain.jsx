@@ -376,16 +376,13 @@ function CtcReportMain({ isLoading, setIsLoading }) {
     const RoleIcon = roleBadge.icon;
     return (
         <>
-            <div className="bg-white rounded-xl shadow-sm mb-6">
-                <div className="flex overflow-x-auto p-2 gap-1">
+            <div className='flex justify-between border-b border-gray-200 bg-white rounded-t-md mb-4'>
+                <div className="flex overflow-x-auto">
                     {availableViewModes.map(mode => (
                         <button
                             key={mode.value}
                             onClick={() => setViewMode(mode.value)}
-                            className={`px-4 py-2 font-medium text-sm whitespace-nowrap flex items-center gap-2 rounded-lg transition-all ${viewMode === mode.value
-                                ? 'bg-indigo-600 text-white shadow-sm'
-                                : 'text-gray-600 hover:bg-gray-100'
-                                }`}
+                            className={`px-6 py-3 font-medium text-sm whitespace-nowrap flex items-center gap-2 transition-colors rounded-t-md ${viewMode === mode.value ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
                         >
                             {mode.value === 'own' && <User className="w-4 h-4" />}
                             {mode.value === 'team' && <Users className="w-4 h-4" />}
