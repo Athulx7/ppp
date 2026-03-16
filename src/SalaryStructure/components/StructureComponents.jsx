@@ -1,122 +1,128 @@
-import React from 'react'
-import CommonDropDown from '../../basicComponents/CommonDropDown'
-import CommonInputField from '../../basicComponents/CommonInputField'
-import { Package, Plus, X } from 'lucide-react'
+import React, { useState } from "react"
+import ComponentCard from "./StructureComponents/ComponentCard"
+import ComponentModal from "./StructureComponents/ComponentModal"
+import { buildTypeMap, FALLBACK_COLOR, TYPE_COLOR_PALETTE } from "./StructureComponents/typeUtils"
+import { Package, Plus } from "lucide-react"
 
-function StructureComponents({ isLoading, addComponent, structure, removeComponent, salaryComponents, updateComponent, calculationOptions, baseOptions }) {
+
+function StructureComponents({ structure, addComponent, updateComponent, removeComponent, salaryComponents,
+    calculationOptions, componentTypes, baseOptions, isLoading
+}) {
+
+
+    const [modalOpen, setModalOpen] = useState(false)
+    const [editIndex, setEditIndex] = useState(null)
+    const [initialData, setInitialData] = useState(null)
+
+    const typeMap = buildTypeMap(componentTypes)
+
+    const handleOpenAdd = () => {
+        setEditIndex(null)
+        setInitialData(null)
+        setModalOpen(true)
+    }
+
+    const handleOpenEdit = (index) => {
+        setEditIndex(index)
+        setInitialData(structure.components[index])
+        setModalOpen(true)
+    }
+
+    const handleModalSave = (formData, index) => {
+        if (index !== null) {
+            updateComponent(index, "__bulk__", formData)
+        } else {
+            addComponent(formData)
+        }
+    }
+
+    const countByType = {}
+    structure.components.forEach(c => {
+        if (c.type_code) countByType[c.type_code] = (countByType[c.type_code] || 0) + 1
+    })
+
     return (
         <>
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                        <Package className="w-5 h-5 text-indigo-600" />
-                        Salary Components
-                    </h2>
-                    <button
-                        type="button"
-                        onClick={addComponent}
-                        className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2"
-                    >
-                        <Plus size={16} />
+                <div className="flex items-start justify-between mb-6">
+                    <div>
+                        <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                            <Package className="w-5 h-5 text-indigo-600" />
+                            Salary Components
+                        </h2>
+                        <p className="text-sm text-gray-500 mt-0.5">
+                            Add earnings, deductions and employer contributions
+                        </p>
+                    </div>
+                    <button type="button" onClick={handleOpenAdd}
+                        className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-semibold
+                                    hover:bg-indigo-700 active:bg-indigo-800 transition-colors
+                                    flex items-center gap-2 shadow-sm flex-shrink-0">
+                        <Plus size={15} />
                         Add Component
                     </button>
                 </div>
-
-                <div className="space-y-4 max-h-96 overflow-y-auto scrollbar">
+                <div className="space-y-2.5">
                     {structure.components.length === 0 ? (
-                        <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">
-                            <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                            <p className="text-gray-500 font-medium">No components added</p>
-                            <p className="text-sm text-gray-400 mt-1">
-                                Click "Add Component" to start building your salary structure
+                        <div className="text-center py-14 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
+                            <Package className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                            <p className="text-sm font-semibold text-gray-500">No components yet</p>
+                            <p className="text-xs text-gray-400 mt-1">
+                                Click{' '}
+                                <button type="button" onClick={handleOpenAdd}
+                                    className="text-indigo-500 font-semibold hover:underline">
+                                    Add Component
+                                </button>{' '}
+                                to start building your salary structure
                             </p>
                         </div>
                     ) : (
                         structure.components.map((component, index) => (
-                            <div key={index} className="p-4 border border-gray-200 rounded-lg bg-gray-50">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-sm font-medium text-gray-900">
-                                            Component #{index + 1}
-                                        </span>
-                                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${component.type === 'earning' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                                            }`}>
-                                            {component.type === 'earning' ? 'Earning' : 'Deduction'}
-                                        </span>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => removeComponent(index)}
-                                        className="p-1 hover:bg-red-50 text-red-600 hover:text-red-800 rounded"
-                                    >
-                                        <X size={16} />
-                                    </button>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                                    <CommonDropDown
-                                        label="Component *"
-                                        value={component.componentId?.toString() || ''}
-                                        options={salaryComponents.map(c => ({
-                                            value: c.id.toString(),
-                                            label: `${c.name} (${c.code})`
-                                        }))}
-                                        onChange={v => updateComponent(index, 'componentId', v)}
-                                        loading={isLoading.normal}
-                                    />
-
-                                    <CommonDropDown
-                                        label="Calculation Type"
-                                        value={component.calculation}
-                                        options={calculationOptions}
-                                        onChange={v => updateComponent(index, 'calculation', v)}
-                                        required
-                                    />
-
-                                    <CommonInputField
-                                        label={component.calculation === 'percentage' ? 'Percentage *' : 'Amount *'}
-                                        value={component.amount?.toString() || ''}
-                                        onChange={v => updateComponent(index, 'amount', parseFloat(v) || 0)}
-                                        placeholder={component.calculation === 'percentage' ? 'e.g., 40' : 'e.g., 50000'}
-                                        type="number"
-                                        required
-                                    />
-
-                                    {component.calculation === 'percentage' && (
-                                        <CommonDropDown
-                                            label="Based On *"
-                                            value={component.basedOn || ''}
-                                            options={baseOptions}
-                                            onChange={v => updateComponent(index, 'basedOn', v)}
-                                        />
-                                    )}
-                                </div>
-
-                                {/* Component Preview */}
-                                <div className="mt-3 p-3 bg-white border border-gray-200 rounded">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <span className="font-medium text-gray-900">{component.name || 'Unnamed Component'}</span>
-                                            <span className="ml-2 text-sm text-gray-500 font-mono">({component.code || 'CODE'})</span>
-                                        </div>
-                                        <div className="text-right">
-                                            <span className="font-medium text-gray-900">
-                                                {component.calculation === 'percentage'
-                                                    ? `${component.amount || 0}%`
-                                                    : `₹${(component.amount || 0).toLocaleString()}`
-                                                }
-                                            </span>
-                                            {component.calculation === 'percentage' && component.basedOn && (
-                                                <div className="text-xs text-gray-500">of {component.basedOn}</div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <ComponentCard
+                                key={index}
+                                component={component}
+                                index={index}
+                                calculationOptions={calculationOptions}
+                                typeMap={typeMap}
+                                onEdit={handleOpenEdit}
+                                onRemove={removeComponent}
+                            />
                         ))
                     )}
                 </div>
+                {structure.components.length > 0 && (
+                    <div className="mt-5 pt-4 border-t border-gray-100 flex items-center justify-between flex-wrap gap-2">
+                        <span className="text-xs text-gray-400">
+                            {structure.components.length} component{structure.components.length !== 1 ? 's' : ''}
+                        </span>
+                        <div className="flex items-center gap-4 flex-wrap">
+                            {componentTypes.map((type, i) => {
+                                const count = countByType[type.value] || 0
+                                const colors = TYPE_COLOR_PALETTE[i] || FALLBACK_COLOR
+                                if (count === 0) return null
+                                return (
+                                    <span key={type.value} className="flex items-center gap-1.5 text-xs text-gray-400">
+                                        <span className={`w-2 h-2 rounded-full ${colors.dot} inline-block`} />
+                                        {count} {type.label.toLowerCase()}
+                                    </span>
+                                )
+                            })}
+                        </div>
+                    </div>
+                )}
             </div>
+            <ComponentModal
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                onSave={handleModalSave}
+                initialData={initialData}
+                editIndex={editIndex}
+                salaryComponents={salaryComponents}
+                calculationOptions={calculationOptions}
+                componentTypes={componentTypes}
+                baseOptions={baseOptions}
+                isLoading={isLoading}
+            />
         </>
     )
 }

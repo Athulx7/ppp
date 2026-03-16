@@ -2,6 +2,7 @@ import { Layers } from 'lucide-react'
 import React from 'react'
 import CommonInputField from '../../basicComponents/CommonInputField'
 import CommonDropDown from '../../basicComponents/CommonDropDown'
+import CommonDatePicker from '../../basicComponents/CommonDatePicker'
 
 function StructureBasicInformation({ isLoading, structure, handleChange }) {
     return (
@@ -14,20 +15,21 @@ function StructureBasicInformation({ isLoading, structure, handleChange }) {
 
                 <div className="space-y-4">
                     <CommonInputField
-                        label="Structure Name *"
+                        label="Structure Code"
+                        value={structure.code}
+                        onChange={v => handleChange('code', v.toUpperCase())}
+                        placeholder="e.g., JSE-STR"
+                        required
+                        disabled
+                    />
+
+                    <CommonInputField
+                        label="Structure Name"
                         value={structure.name}
                         onChange={v => handleChange('name', v)}
                         placeholder="e.g., Junior Software Engineer Structure"
                         required
                         loading={isLoading.normal}
-                    />
-
-                    <CommonInputField
-                        label="Structure Code *"
-                        value={structure.code}
-                        onChange={v => handleChange('code', v.toUpperCase())}
-                        placeholder="e.g., JSE-STR"
-                        required
                     />
 
                     <div>
@@ -44,12 +46,12 @@ function StructureBasicInformation({ isLoading, structure, handleChange }) {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <CommonInputField
+                        <CommonDatePicker
                             label="Effective Date *"
                             value={structure.effectiveDate}
                             onChange={v => handleChange('effectiveDate', v)}
-                            type="date"
                             required
+                            loading={isLoading.normal}
                         />
 
                         <CommonDropDown
