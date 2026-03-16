@@ -8,11 +8,13 @@ function ComponentCard({
     typeMap,
     calculationOptions,
     onEdit,
-    onRemove
+    onRemove,
+    calculatedValues
 }) {
 
     const calcType = calculationOptions.find(c => c.value === component.calc_code)
     const borderColor = typeMap[component.type_code]?.colors?.border || FALLBACK_COLOR.border
+    const value = calculatedValues?.values?.[component.component_code] ?? 0
 
     return (
         <div className={`border border-gray-200 border-l-4 ${borderColor} rounded-xl p-4`}>
@@ -24,6 +26,9 @@ function ComponentCard({
 
                     <p className="text-xs text-gray-400">
                         {component.component_code}
+                    </p>
+                    <p className="text-sm text-green-600 font-semibold">
+                        ₹ {value.toLocaleString()}
                     </p>
                 </div>
 

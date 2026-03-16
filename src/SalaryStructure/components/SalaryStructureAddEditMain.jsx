@@ -3,7 +3,8 @@ import useSalaryDropdowns from "../hooks/useSalaryDropdowns"
 import StructureBasicInformation from "./StructureBasicInformation"
 import StructureComponents from "./StructureComponents"
 import SalaryStructureCoastSummurySaveButtons from "./SalaryStructureCoastSummurySaveButtons"
-import { useCallback } from "react"
+import { useCallback, useMemo } from "react"
+import { calculateSalaryComponents } from "./StructureComponents/calculateSalaryComponents"
 
 function SalaryStructureAddEditMain({ isLoading, setIsLoading }) {
 
@@ -48,6 +49,10 @@ function SalaryStructureAddEditMain({ isLoading, setIsLoading }) {
         return total
     }, [structure.components, calculationOptions])
 
+    const { values, netCost, breakdown } = useMemo(() => {
+        return calculateSalaryComponents(structure.components, componentTypes, calculationOptions)
+    }, [structure.components, componentTypes, calculationOptions])
+
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
@@ -64,6 +69,7 @@ function SalaryStructureAddEditMain({ isLoading, setIsLoading }) {
                     addComponent={addComponent}
                     updateComponent={updateComponent}
                     removeComponent={removeComponent}
+                    calculatedValues={values}
                     salaryComponents={salaryComponents}
                     calculationOptions={calculationOptions}
                     componentTypes={componentTypes}
@@ -77,7 +83,12 @@ function SalaryStructureAddEditMain({ isLoading, setIsLoading }) {
                 structure={structure}
                 calculationOptions={calculationOptions}
                 componentTypes={componentTypes}
-                calculateTotalCost={calculateTotalCost}
+                calculatedValues={values}
+                netCost={netCost}
+                breakdown={breakdown}
+            // isSaving={isSaving}
+            // isEditMode={isEditMode}
+            // handleCancel={handleCancel}
             />
 
         </div>

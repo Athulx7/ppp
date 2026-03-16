@@ -16,7 +16,7 @@ const DOT_COLOR_POOL = [
     'bg-violet-400', 'bg-amber-400', 'bg-cyan-400',
 ]
 
-function compValueDisplay(comp, calculationOptions) {
+function compValueDisplay(comp, calculationOptions, values) {
     const calcType = calculationOptions.find(c => c.value === comp.calc_code)
     if (!calcType) return '—'
     if (!calcType.requires_formula && !calcType.requires_percentage) {
@@ -39,14 +39,19 @@ function compValueDisplay(comp, calculationOptions) {
 
 function SalaryStructureCoastSummurySaveButtons({
     structure,
-    calculateTotalCost,
     calculationOptions,
     componentTypes,
+    calculatedValues,
+    netCost,
+    breakdown,
     isSaving,
     isEditMode,
     handleCancel,
 }) {
-    const totalCost = calculateTotalCost()
+    const totalCost = Object.values(calculatedValues).reduce(
+        (sum, value) => sum + (Number(value) || 0),
+        0
+    )
 
     const countByType = {}
     structure.components.forEach(c => {
@@ -89,7 +94,7 @@ function SalaryStructureCoastSummurySaveButtons({
                             </span>
                             <div className="text-right">
                                 <div className="text-2xl font-bold text-indigo-600 leading-none">
-                                    ₹{totalCost.toLocaleString('en-IN')}
+                                    ₹{netCost.toLocaleString('en-IN')}
                                 </div>
                                 <p className="text-xs text-gray-400 mt-0.5">fixed + percentage only</p>
                             </div>
