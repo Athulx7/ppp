@@ -6,7 +6,7 @@ import { Package, Plus } from "lucide-react"
 
 
 function StructureComponents({ structure, addComponent, updateComponent, removeComponent, salaryComponents,
-    calculationOptions, componentTypes, baseOptions, isLoading
+    calculationOptions, componentTypes, baseOptions, isLoading, calculatedValues
 }) {
 
 
@@ -86,6 +86,7 @@ function StructureComponents({ structure, addComponent, updateComponent, removeC
                                 typeMap={typeMap}
                                 onEdit={handleOpenEdit}
                                 onRemove={removeComponent}
+                                calculatedValues={calculatedValues}
                             />
                         ))
                     )}
