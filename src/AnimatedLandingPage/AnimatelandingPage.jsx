@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { Download } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import ZCursorTracker from '../ZCursorTracker'
+import { usePwaInstall } from '../usePwaInstall'
 
 function ParticleCanvas({ mousePos }) {
     const canvasRef = useRef(null)
@@ -116,6 +118,19 @@ function ParticleCanvas({ mousePos }) {
     )
 }
 
+function PwaInstallButton() {
+    const { isInstallable, install } = usePwaInstall();
+    if (!isInstallable) return null;
+    return (
+        <button
+            onClick={install} className=' flex bg-indigo-600 text-white px-4 py-2 border-none rounded-lg text-sm font-medium'
+        >
+            <Download className="h-4 w-4 mr-3" />
+            Install App
+        </button>
+    );
+}
+
 function AnimatelandingPage() {
     const navigate = useNavigate()
     const mousePos = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 })
@@ -202,9 +217,7 @@ function AnimatelandingPage() {
                         className='bg-indigo-600 text-white px-4 py-2 border-none rounded-lg text-sm font-medium hover:bg-indigo-700 cursor-pointer'>
                         Get Started →
                     </button>
-                    <button className='bg-white text-indigo-600 px-4 py-2 border-none rounded-lg text-sm font-medium hover:bg-indigo-50 cursor-pointer'>
-                        Learn More
-                    </button>
+                    <PwaInstallButton />
                 </div>
             </section>
 
