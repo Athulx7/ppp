@@ -131,6 +131,11 @@ function App() {
           <Route path='mycalendar' element={<MyCalendarEntry />} />
           <Route path='ctcreport' element={<CtcReportEntry />} />
           <Route path='payslip' element={<PayslipsEntry />} />
+          <Route path='leaveRequest' element={<LeaveRequest />} />
+          <Route path='myleves' element={<MyLeaves />} />
+          <Route path='salaryadvanceRequest' element={<SalaryAdvanceRequest />} />
+          {/* fot the Manager */}
+          <Route path='leaveapproval' element={<LeaveApproval />} />
         </Route>
 
         <Route path='/hr' element={<ProtectedRoute allowedRoles={['HR']}><Dashboard /> </ProtectedRoute>}>

@@ -18,10 +18,25 @@
  }
 
  .hide-scrollbar::-webkit-scrollbar {
-  display: none;
-}
+     display: none;
+ }
 
-.hide-scrollbar:hover::-webkit-scrollbar {
-  display: block;
-  height: 5px;
-}
+ .hide-scrollbar:hover::-webkit-scrollbar {
+     display: block;
+     height: 5px;
+ }
+
+ .hide-scrollbar {
+     -ms-overflow-style: none;
+     /* IE / Edge */
+     scrollbar-width: none;
+     /* Firefox */
+     overflow-y: auto;
+ }
+
+ .hide-scrollbar::-webkit-scrollbar {
+     width: 0;
+     /* Chrome / Safari / Opera */
+     height: 0;
+     display: none;
+ }

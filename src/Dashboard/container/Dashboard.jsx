@@ -2,19 +2,22 @@ import React, { useState, useEffect } from "react";
 import SideBar from "../../HeaderAndFooter/SideBar";
 import TopHeader from "../../HeaderAndFooter/TopHeader";
 import { Outlet } from "react-router-dom";
+import { useIsMobile } from "../Hooks/useIsMobile";
 
 function Dashboard() {
+    const isPWAMobile = useIsMobile()
+
     const [isCollapsed, setIsCollapsed] = useState(true);
     const [isMobileOpen, setIsMobileOpen] = useState(false);
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+    const [isSidebar, setIsSidebar] = useState(window.innerWidth < 1024)
     const [openMenu, setOpenMenu] = useState(false)
 
     useEffect(() => {
         const handleResize = () => {
-            const mobile = window.innerWidth < 1024;
-            setIsMobile(mobile);
-            if (mobile) setIsCollapsed(false);
-            else setIsMobileOpen(false);
+            const sidebarMobile = window.innerWidth < 1024
+            setIsSidebar(sidebarMobile)
+            if (sidebarMobile) setIsCollapsed(false)
+            else setIsMobileOpen(false)
         };
         handleResize();
         window.addEventListener("resize", handleResize);
@@ -22,9 +25,17 @@ function Dashboard() {
     }, []);
 
     const handleToggle = () => {
-        if (isMobile) setIsMobileOpen((p) => !p);
-        else setIsCollapsed((p) => !p);
+        if (isSidebar) setIsMobileOpen(p => !p)
+        else setIsCollapsed(p => !p)
     };
+
+    if (isPWAMobile) {
+        return (
+            <div className="h-screen w-screen overflow-hidden bg-white">
+                <Outlet />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -32,14 +43,15 @@ function Dashboard() {
                 <SideBar
                     isCollapsed={isCollapsed}
                     isMobileOpen={isMobileOpen}
-                    isMobile={isMobile}
+                    isMobile={isSidebar}
                     handleToggle={handleToggle}
                     setIsMobileOpen={setIsMobileOpen}
                     openMenu={openMenu}
                     setOpenMenu={setOpenMenu}
                 />
 
-                <div className={`flex-1 flex flex-col transition-all duration-300 ${isMobile ? "ml-0" : isCollapsed ? "ml-20" : "ml-64"}`}>
+                <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebar ? "ml-0" : isCollapsed ? "ml-20" : "ml-64"
+                    }`}>
                     <div className="hidden lg:block sticky top-0 z-30 bg-white border-b border-gray-300">
                         <TopHeader openMenu={openMenu} setOpenMenu={setOpenMenu} />
                     </div>

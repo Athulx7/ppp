@@ -11,8 +11,11 @@ import LoadingSpinner from '../../basicComponents/LoadingSpinner';
 import CalendarSection from '../common/CalendarSection';
 import Greetings from '../common/Greetings';
 import CommonButton from '../../basicComponents/CommonButton';
+import { useIsMobile } from '../Hooks/useIsMobile';
+import EmployeeDashboardMobile from '../Mobile/EmployeeDashboardMobile';
 
 function EmployeeDashboard() {
+    const isMobile = useIsMobile()
     const [isLoading, setIsLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('overview');
     const [selectedYear, setSelectedYear] = useState('2024');
@@ -232,7 +235,7 @@ function EmployeeDashboard() {
         // Advance request logic
     };
 
-    return (
+    return isMobile ? <EmployeeDashboardMobile /> :
         <div className="bg-gray-50 min-h-screen">
             {isLoading && <LoadingSpinner message="Loading dashboard..." />}
 
@@ -498,7 +501,6 @@ function EmployeeDashboard() {
                 </div>
             </div>
         </div>
-    )
 }
 
 export default EmployeeDashboard
