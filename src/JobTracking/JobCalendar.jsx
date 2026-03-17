@@ -509,7 +509,7 @@ function JobCalendar() {
                                 </div>
                                 <div className="grid grid-cols-7">
                                     {Array.from({ length: firstDay }).map((_, i) => (
-                                        <div key={`e${i}`} className="h-20 border-b border-r border-gray-100 bg-gray-50" />
+                                        <div style={{height:'100px'}} key={`e${i}`} className="h-20 border-b border-r border-gray-100 bg-gray-50" />
                                     ))}
                                     {Array.from({ length: daysInMonth }).map((_, i) => {
                                         const day = i + 1;
@@ -520,8 +520,8 @@ function JobCalendar() {
                                         const isSelected = selectedDay === day;
 
                                         return (
-                                            <div key={day} onClick={() => setSelectedDay(isSelected ? null : day)}
-                                                className={`h-20 border-b border-r border-gray-100 p-1.5 flex flex-col cursor-pointer transition-all relative
+                                            <div key={day} onClick={() => setSelectedDay(isSelected ? null : day)} style={{height:'100px'}}
+                                                className= {`h-20 border-b border-r border-gray-100 p-1.5 flex flex-col cursor-pointer transition-all relative
                                                     ${isSelected ? 'ring-2 ring-indigo-500 ring-inset z-10' : ''}
                                                     ${count > 0 ? getDensityColor(count) : 'hover:bg-gray-50'}
                                                 `}>

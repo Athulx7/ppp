@@ -37,9 +37,9 @@ import CtcReportEntry from './CtcReport/container/CtcReportEntry'
 import PayslipsEntry from './Payslips/container/PayslipsEntry'
 import PayrollSettings from './Payrollsettings/payrollSettinsTest'
 import AnimatelandingPage from './AnimatedLandingPage/AnimatelandingPage'
-import JobTrackingMain from './JobTracking/JobTrackingMain'
 import JobCalendar from './JobTracking/JobCalendar'
 import AdminJobDashboard from './JobTracking/JobAdminView'
+import JobTrackingEntry from './JobTracking/container/JobTrackingEntry'
 
 const PublicRoute = ({ children }) => {
   const token = sessionStorage.getItem('token')
@@ -119,7 +119,8 @@ function App() {
           <Route path='payrollruns' element={<PayrollRun />} />
           <Route path='payrollinputs' element={<PayrollInputstest />} />
           <Route path='payrollsettings' element={<PayrollSettings />} />
-          <Route path='jobtracking' element={<JobTrackingMain />} />
+
+          <Route path='jobtracking' element={<JobTrackingEntry />} />
           <Route path='jobcalendar' element={<JobCalendar />} />
           <Route path='adminjobtracking' element={<AdminJobDashboard />} />
 
