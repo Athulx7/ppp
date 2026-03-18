@@ -31,7 +31,7 @@ function Dashboard() {
 
     if (isPWAMobile) {
         return (
-            <div className="h-screen w-screen overflow-hidden bg-white">
+            <div className="h-screen w-screen overflow-y-auto bg-white hide-scrollbar">
                 <Outlet />
             </div>
         );
@@ -56,7 +56,7 @@ function Dashboard() {
                         <TopHeader openMenu={openMenu} setOpenMenu={setOpenMenu} />
                     </div>
 
-                    <main className="flex-1 p-6">
+                    <main className="flex-1 p-6 max-h-[calc(100vh-64px)] overflow-y-auto scrollbar">
                         <Outlet />
                     </main>
                 </div>

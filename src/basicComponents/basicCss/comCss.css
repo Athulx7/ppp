@@ -1,42 +1,51 @@
- .scrollbar::-webkit-scrollbar {
-     width: 7px;
-     height: 7px;
- }
+:root {
+    --scrollbar-track: #f1f1f1;
+    --scrollbar-thumb: #7077ff;
+    --scrollbar-thumb-hover: #5b64e8;
+}
 
- .scrollbar::-webkit-scrollbar-track {
-     background: #f1f1f1;
-     border-radius: 4px;
- }
+html.dark {
+    --scrollbar-track: #313244;
+    --scrollbar-thumb: #585b70;
+    --scrollbar-thumb-hover: #7f849c;
+}
 
- .scrollbar::-webkit-scrollbar-thumb {
-     background: #7077ff;
-     border-radius: 4px;
- }
+.scrollbar::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
 
- .scrollbar::-webkit-scrollbar-thumb:hover {
-     background: #5b64e8;
- }
+.scrollbar::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+    border-radius: 4px;
+}
 
- .hide-scrollbar::-webkit-scrollbar {
-     display: none;
- }
+.scrollbar::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 4px;
+}
 
- .hide-scrollbar:hover::-webkit-scrollbar {
-     display: block;
-     height: 5px;
- }
+.scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+}
 
- .hide-scrollbar {
-     -ms-overflow-style: none;
-     /* IE / Edge */
-     scrollbar-width: none;
-     /* Firefox */
-     overflow-y: auto;
- }
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
 
- .hide-scrollbar::-webkit-scrollbar {
-     width: 0;
-     /* Chrome / Safari / Opera */
-     height: 0;
-     display: none;
- }
+.hide-scrollbar:hover::-webkit-scrollbar {
+    display: block;
+    height: 5px;
+}
+
+.hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    overflow-y: auto;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+}
