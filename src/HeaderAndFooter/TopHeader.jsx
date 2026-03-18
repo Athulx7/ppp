@@ -1,10 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Download, Grid3X3, Search } from "lucide-react";
+import { Download, Grid3X3, Search, Sun, Moon } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import { ApiCall, getRoleBasePath } from '../library/constants';
 import { usePwaInstall } from '../usePwaInstall';
+import Notifications from './Notifications';
+import { useTheme } from '../context/useTheme';
 
 function TopHeader({ openMenu, setOpenMenu }) {
+    const { isDark, toggleTheme } = useTheme()
     const [showMobileSearch, setShowMobileSearch] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
     const [searchResults, setSearchResults] = useState([])
@@ -173,8 +176,16 @@ function TopHeader({ openMenu, setOpenMenu }) {
                     </div>
                 )}
 
-                <div className="flex items-center">
+                <div className="flex items-center gap-2">
                     {/* messgae, nottificatiom etc..*/}
+                    <Notifications />
+                    <button
+                        onClick={toggleTheme}
+                        title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                        className="p-2 rounded-lg text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                    >
+                        {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                    </button>
                     <PwaInstallButton />
                 </div>
             </div>

@@ -1,9 +1,10 @@
-import React, { useEffect, useState, useMemo } from "react";
-import { ChevronRight, ChevronLeft, X, Building2, LogOut, Grid3X3, Home, Rows3, LayoutDashboard } from "lucide-react"
+import React, { useEffect, useState, useMemo, useCallback } from "react";
+import { ChevronRight, ChevronLeft, X, Building2, LogOut, Grid3X3, Home, Rows3, LayoutDashboard, Sun, Moon } from "lucide-react"
 import { NavLink, Link, useLocation } from "react-router-dom"
 import * as Icons from "lucide-react"
 import MainMenu from "./MainMenu";
 import { ApiCall } from "../library/constants"
+import { useTheme } from '../context/useTheme'
 
 function SideBar({
     isCollapsed,
@@ -15,8 +16,8 @@ function SideBar({
     setOpenMenu
 }) {
     const location = useLocation()
+    const { isDark, toggleTheme } = useTheme()
 
-    const [menuData, setMenuData] = useState([])
     const [groupedMenus, setGroupedMenus] = useState({})
     const [settingsItems, setSettingsItems] = useState([])
     const [isLogoHovered, setIsLogoHovered] = useState(false);
@@ -49,7 +50,7 @@ function SideBar({
         return Icons[iconName] || LayoutDashboard
     }
 
-    const buildRoleRoute = (routePath) => {
+    const buildRoleRoute = useCallback((routePath) => {
         if (!routePath) return basePath
 
         if (!routePath.startsWith("/")) {
@@ -59,7 +60,7 @@ function SideBar({
         if (routePath.startsWith(basePath)) return routePath
 
         return `${basePath}${routePath}`
-    }
+    }, [basePath])
 
     const isActivePath = (menuPath) => {
         const currentPath = location.pathname
@@ -74,11 +75,7 @@ function SideBar({
         )
     }
 
-    useEffect(() => {
-        fetchSideMenu()
-    }, [basePath])
-
-    async function fetchSideMenu() {
+    const fetchSideMenu = useCallback(async () => {
         try {
             const response = await ApiCall("GET", "/side-menu")
             if (response.status !== 200) return
@@ -87,8 +84,6 @@ function SideBar({
                 ...item,
                 route_path: buildRoleRoute(item.route_path)
             }))
-
-            setMenuData(processed)
 
             const grouped = processed.reduce((acc, item) => {
                 if (!acc[item.main_menu_name]) acc[item.main_menu_name] = []
@@ -106,7 +101,11 @@ function SideBar({
         } catch (err) {
             console.error("Side menu error:", err)
         }
-    }
+    }, [basePath, buildRoleRoute])
+
+    useEffect(() => {
+        fetchSideMenu()
+    }, [fetchSideMenu])
 
     const handleLogout = () => {
         sessionStorage.clear()
@@ -115,12 +114,21 @@ function SideBar({
 
     return (
         <>
-            <div className="lg:hidden flex items-center justify-between p-4 bg-white border-b border-gray-300 sticky top-0 z-50">
+            <div className="lg:hidden flex items-center justify-between p-4 bg-white border-b border-gray-300 sticky top-0 z-50 text-gray-900">
                 <Link to={basePath} className="flex items-center">
                     <Building2 className="text-indigo-500" />
-                    <span className="ml-2 font-bold">PPP</span>
+                    <span className="ml-2 font-bold text-gray-900">PPP</span>
                 </Link>
-                <Grid3X3 size={30} onClick={() => setOpenMenu(true)} />
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={toggleTheme}
+                        title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                        className="p-2 rounded-lg text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                    >
+                        {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                    </button>
+                    <Grid3X3 size={30} onClick={() => setOpenMenu(true)} />
+                </div>
             </div>
 
             <div
@@ -138,20 +146,20 @@ function SideBar({
                     >
                         {isCollapsed ? (
                             isLogoHovered ? (
-                                <ChevronRight className="text-black w-6 h-6 transition-all duration-200" />
+                                <ChevronRight className="text-gray-900 w-6 h-6 transition-all duration-200" />
                             ) : (
                                 <Building2 className="text-indigo-500 w-6 h-6 transition-all duration-200" />
                             )
                         ) : (
                             <div className="flex items-center p-2">
                                 <Building2 className="text-indigo-500 w-6 h-6" />
-                                <span className="ml-2 font-bold">PPP</span>
+                                <span className="ml-2 font-bold text-gray-900">PPP</span>
                             </div>
                         )}
                     </div>
 
                     {!isCollapsed && (
-                        <button onClick={handleToggle}>
+                        <button onClick={handleToggle} className="text-gray-600 hover:text-indigo-600 transition-colors">
                             {isMobile ? (
                                 isMobileOpen ? <X /> : <Rows3 />
                             ) : (
