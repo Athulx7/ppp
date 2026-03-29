@@ -6,7 +6,7 @@ import { Package, Plus } from "lucide-react"
 
 
 function StructureComponents({ structure, addComponent, updateComponent, removeComponent, salaryComponents,
-    calculationOptions, componentTypes, baseOptions, isLoading, calculatedValues
+    calculationOptions, componentTypes, baseOptions, isLoading, calculatedValues, isBasicInfoComplete, isViewMode
 }) {
 
 
@@ -54,27 +54,37 @@ function StructureComponents({ structure, addComponent, updateComponent, removeC
                             Add earnings, deductions and employer contributions
                         </p>
                     </div>
-                    <button type="button" onClick={handleOpenAdd}
-                        className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-semibold
-                                    hover:bg-indigo-700 active:bg-indigo-800 transition-colors
-                                    flex items-center gap-2 shadow-sm flex-shrink-0">
-                        <Plus size={15} />
-                        Add Component
-                    </button>
+                    <div
+                        title={!isBasicInfoComplete ? 'Please fill in Structure Name and Effective Date first' : undefined}
+                    >
+                        {!isViewMode && (
+                            <button type="button" onClick={handleOpenAdd}
+                                disabled={!isBasicInfoComplete}
+                                className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-semibold
+                                            hover:bg-indigo-700 active:bg-indigo-800 transition-colors
+                                            flex items-center gap-2 shadow-sm flex-shrink-0
+                                            disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none">
+                                <Plus size={15} />
+                                Add Component
+                            </button>
+                        )}
+                    </div>
                 </div>
                 <div className="space-y-2.5">
                     {structure.components.length === 0 ? (
                         <div className="text-center py-14 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
                             <Package className="w-10 h-10 text-gray-300 mx-auto mb-3" />
                             <p className="text-sm font-semibold text-gray-500">No components yet</p>
-                            <p className="text-xs text-gray-400 mt-1">
-                                Click{' '}
-                                <button type="button" onClick={handleOpenAdd}
-                                    className="text-indigo-500 font-semibold hover:underline">
-                                    Add Component
-                                </button>{' '}
-                                to start building your salary structure
-                            </p>
+                            {!isViewMode && (
+                                <p className="text-xs text-gray-400 mt-1">
+                                    Click{' '}
+                                    <button type="button" onClick={handleOpenAdd}
+                                        className="text-indigo-500 font-semibold hover:underline">
+                                        Add Component
+                                    </button>{' '}
+                                    to start building your salary structure
+                                </p>
+                            )}
                         </div>
                     ) : (
                         structure.components.map((component, index) => (
@@ -87,6 +97,7 @@ function StructureComponents({ structure, addComponent, updateComponent, removeC
                                 onEdit={handleOpenEdit}
                                 onRemove={removeComponent}
                                 calculatedValues={calculatedValues}
+                                isViewMode={isViewMode}
                             />
                         ))
                     )}
@@ -123,6 +134,7 @@ function StructureComponents({ structure, addComponent, updateComponent, removeC
                 componentTypes={componentTypes}
                 baseOptions={baseOptions}
                 isLoading={isLoading}
+                existingComponents={structure.components}
             />
         </>
     )

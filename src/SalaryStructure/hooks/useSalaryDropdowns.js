@@ -48,7 +48,8 @@ export default function useSalaryDropdowns(setIsLoading) {
         setComponentTypes(
             result.data.data.map(t => ({
                 value: t.value,
-                label: t.label
+                label: t.label,
+                payrollImpact: t.payrollImpact  // required by calculateSalaryComponents to classify earnings/deductions
             }))
         )
     }
