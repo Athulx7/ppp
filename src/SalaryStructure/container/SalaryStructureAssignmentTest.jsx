@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Save, X, User, Award,
-    Building, Users, ChevronDown, Search, Info,
-    AlertCircle, CheckCircle, Link as LinkIcon, RefreshCw
+    Save, X, User, Award, Calendar, FileText,
+    CheckCircle, AlertCircle, Loader2, Link2,
+    Building2, Clock, BadgeCheck
 } from 'lucide-react';
-import CommonInputField from '../../basicComponents/CommonInputField';
 import CommonDropDown from '../../basicComponents/CommonDropDown';
+import CommonDatePicker from '../../basicComponents/CommonDatePicker';
 
 function SalaryStructureAssignment({ isOpen, onClose, assignmentId }) {
     const isEditMode = !!assignmentId;
 
-    // State for form data
-    const [formData, setFormData] = useState({
-        assignmentType: 'designation', // 'designation' or 'employee'
+    const BLANK = {
+        assignmentType: 'designation',
         targetId: '',
         targetName: '',
         structureId: '',
@@ -22,23 +21,19 @@ function SalaryStructureAssignment({ isOpen, onClose, assignmentId }) {
         isPermanent: true,
         reason: '',
         status: 'active'
-    });
+    };
 
-    // State for dropdown options
+    const [formData, setFormData] = useState({ ...BLANK });
     const [designations, setDesignations] = useState([]);
     const [employees, setEmployees] = useState([]);
     const [structures, setStructures] = useState([]);
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
-
-    // State for UI
     const [selectedTarget, setSelectedTarget] = useState(null);
     const [selectedStructure, setSelectedStructure] = useState(null);
     const [showSuccess, setShowSuccess] = useState(false);
 
-    // Sample data - In real app, fetch from API
     useEffect(() => {
-        // Sample designations
         setDesignations([
             { id: 1, name: 'Junior Software Engineer', code: 'JSE', department: 'Engineering' },
             { id: 2, name: 'Senior Software Engineer', code: 'SSE', department: 'Engineering' },
@@ -46,16 +41,12 @@ function SalaryStructureAssignment({ isOpen, onClose, assignmentId }) {
             { id: 4, name: 'HR Executive', code: 'HRE', department: 'Human Resources' },
             { id: 5, name: 'Sales Executive', code: 'SE', department: 'Sales' },
         ]);
-
-        // Sample employees
         setEmployees([
             { id: 101, name: 'John Smith', employeeCode: 'EMP001', designation: 'Junior Software Engineer', department: 'Engineering' },
             { id: 102, name: 'Sarah Johnson', employeeCode: 'EMP002', designation: 'Senior Software Engineer', department: 'Engineering' },
             { id: 103, name: 'Mike Chen', employeeCode: 'EMP003', designation: 'HR Executive', department: 'Human Resources' },
             { id: 104, name: 'Priya Sharma', employeeCode: 'EMP004', designation: 'Junior Software Engineer', department: 'Engineering' },
         ]);
-
-        // Sample salary structures
         setStructures([
             { id: 1, name: 'Junior Software Engineer', code: 'JSE-STR', totalCost: 65200 },
             { id: 2, name: 'Senior Software Engineer', code: 'SSE-STR', totalCost: 110400 },
@@ -66,170 +57,89 @@ function SalaryStructureAssignment({ isOpen, onClose, assignmentId }) {
 
     useEffect(() => {
         if (!isOpen) {
-            // Reset form when closed
-            setFormData({
-                assignmentType: 'designation',
-                targetId: '',
-                targetName: '',
-                structureId: '',
-                structureName: '',
-                effectiveDate: new Date().toISOString().split('T')[0],
-                endDate: '',
-                isPermanent: true,
-                reason: '',
-                status: 'active'
-            });
+            setFormData({ ...BLANK });
             setSelectedTarget(null);
             setSelectedStructure(null);
             setErrors({});
             setShowSuccess(false);
             return;
         }
+        if (isEditMode && assignmentId) fetchAssignmentData(assignmentId);
+    }, [isOpen, isEditMode, assignmentId]);
 
-        // If edit mode and modal is opened, fetch assignment data
-        if (isEditMode && assignmentId) {
-            fetchAssignmentData(assignmentId);
-        }
-    }, [isEditMode, assignmentId, isOpen]);
-
-    // Fetch assignment data for edit mode
-    const fetchAssignmentData = (assignmentId) => {
+    const fetchAssignmentData = (id) => {
         setLoading(true);
-        console.log("Fetching assignment data for id:", assignmentId);
-        // Simulate API call
         setTimeout(() => {
-            // Sample assignment data
-            const sampleAssignment = {
-                id: 1,
-                type: 'employee',
-                targetId: 101,
-                targetName: 'John Smith',
-                employeeCode: 'EMP001',
-                structureId: 1,
+            const sample = {
+                id: 1, type: 'employee', targetId: 101, targetName: 'John Smith',
+                employeeCode: 'EMP001', structureId: 1,
                 structureName: 'Junior Software Engineer',
-                effectiveDate: '2023-06-15',
-                endDate: '',
-                isPermanent: true,
-                reason: 'Initial assignment on joining',
-                status: 'active'
+                effectiveDate: '2023-06-15', endDate: '', isPermanent: true,
+                reason: 'Initial assignment on joining', status: 'active'
             };
-
             setFormData({
-                assignmentType: sampleAssignment.type,
-                targetId: sampleAssignment.targetId,
-                targetName: sampleAssignment.targetName,
-                structureId: sampleAssignment.structureId,
-                structureName: sampleAssignment.structureName,
-                effectiveDate: sampleAssignment.effectiveDate,
-                endDate: sampleAssignment.endDate || '',
-                isPermanent: !sampleAssignment.endDate,
-                reason: sampleAssignment.reason || '',
-                status: sampleAssignment.status
+                assignmentType: sample.type,
+                targetId: sample.targetId,
+                targetName: sample.targetName,
+                structureId: sample.structureId,
+                structureName: sample.structureName,
+                effectiveDate: sample.effectiveDate,
+                endDate: sample.endDate || '',
+                isPermanent: !sample.endDate,
+                reason: sample.reason || '',
+                status: sample.status
             });
-
-            setSelectedTarget({
-                id: sampleAssignment.targetId,
-                name: sampleAssignment.targetName,
-                ...(sampleAssignment.type === 'employee'
-                    ? { employeeCode: sampleAssignment.employeeCode }
-                    : {})
-            });
-
-            setSelectedStructure({
-                id: sampleAssignment.structureId,
-                name: sampleAssignment.structureName
-            });
-
+            setSelectedTarget({ id: sample.targetId, name: sample.targetName, employeeCode: sample.employeeCode });
+            setSelectedStructure({ id: sample.structureId, name: sample.structureName });
             setLoading(false);
         }, 500);
     };
 
-    // Handle input changes
-    const handleInputChange = (field, value) => {
+    const handleChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
-
-        // Clear error for this field
-        if (errors[field]) {
-            setErrors(prev => ({ ...prev, [field]: null }));
-        }
-
-        // Reset dependent fields when assignment type changes
+        if (errors[field]) setErrors(prev => ({ ...prev, [field]: null }));
         if (field === 'assignmentType') {
-            setFormData(prev => ({
-                ...prev,
-                targetId: '',
-                targetName: '',
-                [field]: value
-            }));
+            setFormData(prev => ({ ...prev, assignmentType: value, targetId: '', targetName: '' }));
             setSelectedTarget(null);
         }
     };
 
-    // Handle target selection
-    const handleTargetSelect = (target) => {
-        setSelectedTarget(target);
-        setFormData(prev => ({
-            ...prev,
-            targetId: target.id,
-            targetName: target.name
-        }));
-
-        if (errors.targetId) {
-            setErrors(prev => ({ ...prev, targetId: null }));
-        }
+    const handleTargetSelect = (id) => {
+        const list = formData.assignmentType === 'designation' ? designations : employees;
+        const found = list.find(i => i.id === id || i.id === Number(id));
+        if (!found) return;
+        setSelectedTarget(found);
+        setFormData(prev => ({ ...prev, targetId: found.id, targetName: found.name }));
+        if (errors.targetId) setErrors(prev => ({ ...prev, targetId: null }));
     };
 
-    // Handle structure selection
-    const handleStructureSelect = (structure) => {
-        setSelectedStructure(structure);
-        setFormData(prev => ({
-            ...prev,
-            structureId: structure.id,
-            structureName: structure.name
-        }));
-
-        if (errors.structureId) {
-            setErrors(prev => ({ ...prev, structureId: null }));
-        }
+    const handleStructureSelect = (id) => {
+        const found = structures.find(s => s.id === id || s.id === Number(id));
+        if (!found) return;
+        setSelectedStructure(found);
+        setFormData(prev => ({ ...prev, structureId: found.id, structureName: found.name }));
+        if (errors.structureId) setErrors(prev => ({ ...prev, structureId: null }));
     };
 
-    // Validate form
-    const validateForm = () => {
-        const newErrors = {};
-
-        if (!formData.targetId) {
-            newErrors.targetId = 'Please select a target';
-        }
-        if (!formData.structureId) {
-            newErrors.structureId = 'Please select a salary structure';
-        }
-        if (!formData.effectiveDate) {
-            newErrors.effectiveDate = 'Effective date is required';
-        }
-        if (!formData.isPermanent && !formData.endDate) {
-            newErrors.endDate = 'End date is required for temporary assignments';
-        }
-        if (formData.endDate && formData.endDate < formData.effectiveDate) {
-            newErrors.endDate = 'End date cannot be before effective date';
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+    const validate = () => {
+        const e = {};
+        if (!formData.targetId) e.targetId = 'Please select a target';
+        if (!formData.structureId) e.structureId = 'Please select a salary structure';
+        if (!formData.effectiveDate) e.effectiveDate = 'Effective date is required';
+        if (!formData.isPermanent && !formData.endDate)
+            e.endDate = 'End date required for temporary assignments';
+        if (formData.endDate && formData.endDate < formData.effectiveDate)
+            e.endDate = 'End date cannot be before effective date';
+        setErrors(e);
+        return Object.keys(e).length === 0;
     };
 
-    // Handle form submission
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        if (!validateForm()) {
-            return;
-        }
-
+    const handleSubmit = async (ev) => {
+        ev.preventDefault();
+        if (!validate()) return;
         setLoading(true);
-
         try {
-            // Prepare data for API
-            const assignmentData = {
+            const payload = {
                 type: formData.assignmentType,
                 targetId: formData.targetId,
                 targetName: formData.targetName,
@@ -240,370 +150,295 @@ function SalaryStructureAssignment({ isOpen, onClose, assignmentId }) {
                 reason: formData.reason,
                 status: formData.status
             };
-
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            console.log('Assignment saved:', assignmentData);
-
-            // Show success message
+            await new Promise(r => setTimeout(r, 900));
+            console.log('Assignment saved:', payload);
             setShowSuccess(true);
-
-            // Close after 2 seconds
-            setTimeout(() => {
-                setShowSuccess(false);
-                onClose();
-            }, 2000);
-
-        } catch (error) {
-            console.error('Error saving assignment:', error);
-            setErrors({ submit: 'Failed to save assignment. Please try again.' });
+            setTimeout(() => { setShowSuccess(false); onClose(); }, 2000);
+        } catch {
+            setErrors(prev => ({ ...prev, submit: 'Failed to save assignment. Please try again.' }));
         } finally {
             setLoading(false);
         }
     };
 
-    // Handle cancel
-    const handleCancel = () => {
-        onClose();
-    };
+    const targetOptions = formData.assignmentType === 'designation'
+        ? designations.map(d => ({ value: d.id, label: `${d.name} • ${d.department}` }))
+        : employees.map(e => ({ value: e.id, label: `${e.name} (${e.employeeCode})` }));
 
-    // Get target options based on assignment type
-    const getTargetOptions = () => {
-        if (formData.assignmentType === 'designation') {
-            return designations.map(d => ({
-                value: d.id,
-                label: `${d.name} (${d.department})`,
-                data: d
-            }));
-        } else {
-            return employees.map(e => ({
-                value: e.id,
-                label: `${e.name} (${e.employeeCode}) - ${e.designation}`,
-                data: e
-            }));
-        }
-    };
+    const structureOptions = structures.map(s => ({
+        value: s.id,
+        label: `${s.name} — ₹${s.totalCost?.toLocaleString('en-IN')}/mo`
+    }));
 
-    // Get structure options
-    const getStructureOptions = () => {
-        return structures.map(s => ({
-            value: s.id,
-            label: `${s.name} (${s.code}) - ₹${s.totalCost?.toLocaleString()}`,
-            data: s
-        }));
-    };
+    const canPreview = selectedTarget && selectedStructure;
 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div className="bg-gray-50 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-4 md:p-6 relative">
-                {/* Header */}
-                <div className="mb-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900">
-                                {isEditMode ? 'Edit Assignment' : 'Assign Salary Structure'}
-                            </h1>
-                            <p className="text-gray-600">
-                                {isEditMode
-                                    ? 'Modify salary structure assignment details'
-                                    : 'Assign a salary structure to a designation or employee'}
-                            </p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            onClick={e => { if (e.target === e.currentTarget) onClose() }}>
+
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+
+            <div className="relative w-full max-w-2xl bg-white rounded-md shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
+
+                <div className="flex-shrink-0 bg-gradient-to-r from-indigo-600 to-indigo-500 px-6 py-5">
+                    <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-white/20 rounded-md flex items-center justify-center">
+                                <Link2 className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                                <h2 className="text-white font-bold text-lg leading-tight">
+                                    {isEditMode ? 'Edit Assignment' : 'Assign Salary Structure'}
+                                </h2>
+                                <p className="text-indigo-200 text-xs mt-0.5">
+                                    {isEditMode
+                                        ? 'Modify salary structure assignment details'
+                                        : 'Link a salary structure to a designation or employee'}
+                                </p>
+                            </div>
                         </div>
-                        <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-                            <X size={24} />
+                        <button type="button" onClick={onClose}
+                            className="p-1.5 text-white/70 hover:text-white hover:bg-white/20 rounded-lg transition-colors">
+                            <X size={18} />
                         </button>
                     </div>
                 </div>
 
-                {/* Success Message */}
                 {showSuccess && (
-                    <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">
-                        <CheckCircle size={20} className="text-green-500" />
+                    <div className="flex-shrink-0 flex items-center gap-3 px-6 py-3 bg-emerald-50 border-b border-emerald-200">
+                        <CheckCircle size={18} className="text-emerald-500 flex-shrink-0" />
                         <div>
-                            <h3 className="font-medium text-green-800">Assignment Saved Successfully!</h3>
-                            <p className="text-sm text-green-600">
-                                Redirecting to salary structure list...
-                            </p>
+                            <p className="text-sm font-semibold text-emerald-800">Assignment saved successfully!</p>
+                            <p className="text-xs text-emerald-600">Closing in a moment…</p>
                         </div>
                     </div>
                 )}
 
-                {/* Main Form */}
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Assignment Type Selection */}
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4">Assignment Type</h2>
+                <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto scrollbar">
+                    <div className="p-6 space-y-6">
 
-                        <div className="flex gap-4">
-                            <label className={`flex-1 p-4 border rounded-lg cursor-pointer transition-all ${formData.assignmentType === 'designation'
-                                ? 'border-indigo-500 bg-indigo-50'
-                                : 'border-gray-200 hover:border-gray-300'
-                                }`}>
-                                <input
-                                    type="radio"
-                                    name="assignmentType"
-                                    value="designation"
-                                    checked={formData.assignmentType === 'designation'}
-                                    onChange={(e) => handleInputChange('assignmentType', e.target.value)}
-                                    className="sr-only"
-                                />
-                                <div className="flex items-center gap-3">
-                                    <div className={`p-2 rounded-lg ${formData.assignmentType === 'designation'
-                                        ? 'bg-indigo-100 text-indigo-600'
-                                        : 'bg-gray-100 text-gray-600'
-                                        }`}>
-                                        <Award size={24} />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-medium text-gray-900">Designation Based</h3>
-                                        <p className="text-sm text-gray-500">
-                                            Assign structure to all employees with a specific designation
-                                        </p>
-                                    </div>
-                                </div>
-                            </label>
-
-                            <label className={`flex-1 p-4 border rounded-lg cursor-pointer transition-all ${formData.assignmentType === 'employee'
-                                ? 'border-indigo-500 bg-indigo-50'
-                                : 'border-gray-200 hover:border-gray-300'
-                                }`}>
-                                <input
-                                    type="radio"
-                                    name="assignmentType"
-                                    value="employee"
-                                    checked={formData.assignmentType === 'employee'}
-                                    onChange={(e) => handleInputChange('assignmentType', e.target.value)}
-                                    className="sr-only"
-                                />
-                                <div className="flex items-center gap-3">
-                                    <div className={`p-2 rounded-lg ${formData.assignmentType === 'employee'
-                                        ? 'bg-indigo-100 text-indigo-600'
-                                        : 'bg-gray-100 text-gray-600'
-                                        }`}>
-                                        <User size={24} />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-medium text-gray-900">Individual Employee</h3>
-                                        <p className="text-sm text-gray-500">
-                                            Assign structure to a specific employee
-                                        </p>
-                                    </div>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-
-                    {/* Target Selection */}
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                            Select {formData.assignmentType === 'designation' ? 'Designation' : 'Employee'}
-                        </h2>
-
-                        <CommonDropDown
-                            label={formData.assignmentType === 'designation' ? 'Designation' : 'Employee'}
-                            options={getTargetOptions()}
-                            value={formData.targetId}
-                            onChange={(value, option) => handleTargetSelect(option.data)}
-                            placeholder={`Select ${formData.assignmentType === 'designation' ? 'designation' : 'employee'}`}
-                            error={errors.targetId}
-                            required
-                        />
-
-                        {selectedTarget && formData.assignmentType === 'employee' && (
-                            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                                <h3 className="text-sm font-medium text-gray-700 mb-2">Selected Employee Details</h3>
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                    <div>
-                                        <p className="text-xs text-gray-500">Employee Code</p>
-                                        <p className="text-sm font-medium text-gray-900">{selectedTarget.employeeCode}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-gray-500">Designation</p>
-                                        <p className="text-sm font-medium text-gray-900">{selectedTarget.designation}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-gray-500">Department</p>
-                                        <p className="text-sm font-medium text-gray-900">{selectedTarget.department}</p>
-                                    </div>
-                                </div>
+                        <section>
+                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Assignment Type</p>
+                            <div className="grid grid-cols-2 gap-3">
+                                {[
+                                    { value: 'designation', icon: Building2, label: 'Designation', sub: 'All employees with this role' },
+                                    { value: 'employee', icon: User, label: 'Individual Employee', sub: 'A specific person' },
+                                ].map(opt => {
+                                    const Icon = opt.icon;
+                                    const active = formData.assignmentType === opt.value;
+                                    return (
+                                        <button key={opt.value} type="button"
+                                            onClick={() => handleChange('assignmentType', opt.value)}
+                                            className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all
+                                                ${active
+                                                    ? 'border-indigo-500 bg-indigo-50'
+                                                    : 'border-gray-200 hover:border-gray-300 bg-white'}`}>
+                                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0
+                                                ${active ? 'bg-indigo-100' : 'bg-gray-100'}`}>
+                                                <Icon size={18} className={active ? 'text-indigo-600' : 'text-gray-500'} />
+                                            </div>
+                                            <div>
+                                                <p className={`text-sm font-semibold ${active ? 'text-indigo-700' : 'text-gray-800'}`}>
+                                                    {opt.label}
+                                                </p>
+                                                <p className="text-xs text-gray-400 mt-0.5">{opt.sub}</p>
+                                            </div>
+                                            {active && (
+                                                <BadgeCheck size={16} className="text-indigo-500 ml-auto flex-shrink-0" />
+                                            )}
+                                        </button>
+                                    );
+                                })}
                             </div>
-                        )}
-                    </div>
+                        </section>
 
-                    {/* Structure Selection */}
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4">Select Salary Structure</h2>
-
-                        <CommonDropDown
-                            label="Salary Structure"
-                            options={getStructureOptions()}
-                            value={formData.structureId}
-                            onChange={(value, option) => handleStructureSelect(option.data)}
-                            placeholder="Select salary structure"
-                            error={errors.structureId}
-                            required
-                        />
-
-                        {selectedStructure && (
-                            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                                <h3 className="text-sm font-medium text-gray-700 mb-2">Structure Details</h3>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <p className="text-xs text-gray-500">Structure Code</p>
-                                        <p className="text-sm font-medium text-gray-900">
-                                            {structures.find(s => s.id === selectedStructure.id)?.code}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-gray-500">Total Monthly Cost</p>
-                                        <p className="text-sm font-medium text-gray-900">
-                                            ₹{structures.find(s => s.id === selectedStructure.id)?.totalCost?.toLocaleString()}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Assignment Details */}
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4">Assignment Details</h2>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <CommonInputField
-                                label="Effective Date"
-                                type="date"
-                                value={formData.effectiveDate}
-                                onChange={(e) => handleInputChange('effectiveDate', e.target.value)}
-                                error={errors.effectiveDate}
+                        <section>
+                            <CommonDropDown
+                                label={formData.assignmentType === 'designation' ? 'Designation' : 'Employee'}
+                                options={targetOptions}
+                                value={formData.targetId}
+                                onChange={handleTargetSelect}
+                                placeholder={`Choose a ${formData.assignmentType === 'designation' ? 'designation' : 'employee'}…`}
                                 required
                             />
+                            {errors.targetId && <ErrorMsg msg={errors.targetId} />}
 
-                            <div className="space-y-4">
-                                <label className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        checked={formData.isPermanent}
-                                        onChange={(e) => handleInputChange('isPermanent', e.target.checked)}
-                                        className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                    />
-                                    <span className="text-sm text-gray-700">Permanent Assignment (No end date)</span>
-                                </label>
+                            {selectedTarget && formData.assignmentType === 'employee' && (
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                    <Chip label="Code" value={selectedTarget.employeeCode} />
+                                    <Chip label="Role" value={selectedTarget.designation} />
+                                    <Chip label="Dept" value={selectedTarget.department} />
+                                </div>
+                            )}
 
-                                {!formData.isPermanent && (
-                                    <CommonInputField
-                                        label="End Date"
-                                        type="date"
-                                        value={formData.endDate}
-                                        onChange={(e) => handleInputChange('endDate', e.target.value)}
-                                        error={errors.endDate}
-                                        required
-                                    />
-                                )}
-                            </div>
-                        </div>
+                            {selectedTarget && formData.assignmentType === 'designation' && (
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                    <Chip label="Code" value={selectedTarget.code} />
+                                    <Chip label="Dept" value={selectedTarget.department} />
+                                </div>
+                            )}
+                        </section>
 
-                        <div className="mt-4">
-                            <CommonInputField
-                                label="Reason for Assignment"
-                                type="textarea"
-                                value={formData.reason}
-                                onChange={(e) => handleInputChange('reason', e.target.value)}
-                                placeholder="e.g., New joining, Promotion, Transfer, etc."
-                                rows={3}
+                        <section>
+                            <CommonDropDown
+                                label="Salary Structure"
+                                options={structureOptions}
+                                value={formData.structureId}
+                                onChange={handleStructureSelect}
+                                placeholder="Choose a salary structure…"
+                                required
                             />
-                        </div>
+                            {errors.structureId && <ErrorMsg msg={errors.structureId} />}
+
+                            {selectedStructure && (
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                    <Chip label="Code" value={structures.find(s => s.id === selectedStructure.id)?.code} />
+                                    <Chip label="Monthly Cost"
+                                        value={`₹${structures.find(s => s.id === selectedStructure.id)?.totalCost?.toLocaleString('en-IN')}`}
+                                        highlight />
+                                </div>
+                            )}
+                        </section>
+
+                        <section>
+                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Duration</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <CommonDatePicker
+                                    label="Effective Date"
+                                    value={formData.effectiveDate}
+                                    onChange={e => handleChange('effectiveDate', e)}
+                                    required
+                                    errorMessage={errors.effectiveDate && <ErrorMsg msg={errors.effectiveDate} />}
+                                />
+
+                                <div className="flex flex-col justify-between">
+                                    <label className="flex items-center gap-2 cursor-pointer mt-6 sm:mt-0">
+                                        <input type="checkbox"
+                                            checked={formData.isPermanent}
+                                            onChange={e => handleChange('isPermanent', e.target.checked)}
+                                            className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                                        />
+                                        <span className="text-sm text-gray-700 font-medium">Permanent (no end date)</span>
+                                    </label>
+
+                                    {!formData.isPermanent && (
+                                        <CommonDatePicker
+                                            label="End Date"
+                                            value={formData.endDate}
+                                            onChange={e => handleChange('endDate', e)}
+                                            required
+                                            errorMessage={errors.endDate && <ErrorMsg msg={errors.endDate} />}
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                        </section>
+
+                        <section>
+                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Reason</p>
+                            <textarea
+                                value={formData.reason}
+                                onChange={e => handleChange('reason', e.target.value)}
+                                rows={3}
+                                placeholder="e.g. New joining, Promotion, Transfer, Annual revision…"
+                                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm
+                                           focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none
+                                           placeholder:text-gray-400 transition-colors"
+                            />
+                        </section>
 
                         {isEditMode && (
-                            <div className="mt-4">
+                            <section>
+                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Status</p>
                                 <CommonDropDown
                                     label="Status"
                                     options={[
                                         { value: 'active', label: 'Active' },
-                                        { value: 'inactive', label: 'Inactive' }
+                                        { value: 'inactive', label: 'Inactive' },
                                     ]}
                                     value={formData.status}
-                                    onChange={(value) => handleInputChange('status', value)}
+                                    onChange={v => handleChange('status', v)}
                                 />
+                            </section>
+                        )}
+
+                        {canPreview && (
+                            <div className="rounded-xl border border-indigo-200 bg-gradient-to-br from-indigo-50 to-white p-4">
+                                <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                                    <BadgeCheck size={12} /> Assignment Summary
+                                </p>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <SummaryRow label="Target" value={formData.targetName} />
+                                    <SummaryRow label="Structure" value={formData.structureName} />
+                                    <SummaryRow label="Effective From"
+                                        value={formData.effectiveDate
+                                            ? new Date(formData.effectiveDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+                                            : '—'} />
+                                    <SummaryRow label="Duration"
+                                        value={formData.isPermanent ? 'Permanent' : (formData.endDate || '—')} />
+                                </div>
+                            </div>
+                        )}
+
+                        {errors.submit && (
+                            <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
+                                <AlertCircle size={15} className="flex-shrink-0" />
+                                {errors.submit}
                             </div>
                         )}
                     </div>
 
-                    {/* Preview Section */}
-                    {selectedTarget && selectedStructure && (
-                        <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-6">
-                            <h3 className="text-lg font-semibold text-indigo-900 mb-3 flex items-center gap-2">
-                                <Info size={20} />
-                                Assignment Summary
-                            </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <p className="text-sm text-indigo-700">
-                                        <span className="font-medium">Target:</span> {formData.targetName}
-                                        {formData.assignmentType === 'employee' &&
-                                            ` (${selectedTarget.employeeCode})`}
-                                    </p>
-                                    <p className="text-sm text-indigo-700">
-                                        <span className="font-medium">Structure:</span> {formData.structureName}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-indigo-700">
-                                        <span className="font-medium">Effective From:</span> {formData.effectiveDate}
-                                    </p>
-                                    {!formData.isPermanent && formData.endDate && (
-                                        <p className="text-sm text-indigo-700">
-                                            <span className="font-medium">Valid Until:</span> {formData.endDate}
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Error Message */}
-                    {errors.submit && (
-                        <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
-                            <AlertCircle size={20} className="text-red-500" />
-                            <p className="text-sm text-red-600">{errors.submit}</p>
-                        </div>
-                    )}
-
-                    {/* Form Actions */}
-                    <div className="flex items-center justify-end gap-3">
-                        <button
-                            type="button"
-                            onClick={handleCancel}
-                            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
-                            disabled={loading}
-                        >
-                            <X size={16} />
+                    <div className="flex-shrink-0 flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl sticky bottom-0">
+                        <button type="button" onClick={onClose} disabled={loading}
+                            className="px-5 py-2.5 text-sm font-semibold text-gray-600 border border-gray-300
+                                       rounded-md hover:bg-gray-100 transition-colors disabled:opacity-50">
                             Cancel
                         </button>
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {loading ? (
-                                <>
-                                    <RefreshCw size={16} className="animate-spin" />
-                                    Saving...
-                                </>
-                            ) : (
-                                <>
-                                    <Save size={16} />
-                                    {isEditMode ? 'Update Assignment' : 'Save Assignment'}
-                                </>
-                            )}
+                        <button type="submit" disabled={loading}
+                            className="px-6 py-2.5 text-sm font-semibold bg-indigo-600 text-white
+                                       rounded-md hover:bg-indigo-700 active:bg-indigo-800 transition-colors
+                                       shadow-sm flex items-center gap-2 min-w-[140px] justify-center
+                                       disabled:opacity-50 disabled:cursor-not-allowed">
+                            {loading
+                                ? <><Loader2 size={15} className="animate-spin" /> Saving…</>
+                                : <><Save size={15} /> {isEditMode ? 'Update Assignment' : 'Save Assignment'}</>
+                            }
                         </button>
                     </div>
                 </form>
             </div>
         </div>
+    );
+}
+
+function Chip({ label, value, highlight }) {
+    if (!value) return null;
+    return (
+        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium border
+            ${highlight
+                ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
+                : 'bg-gray-50 border-gray-200 text-gray-600'}`}>
+            <span className="text-gray-400 font-normal">{label}:</span> {value}
+        </span>
+    );
+}
+
+function SummaryRow({ label, value }) {
+    return (
+        <div>
+            <p className="text-xs text-indigo-400 font-medium">{label}</p>
+            <p className="text-sm font-semibold text-indigo-800 mt-0.5">{value || '—'}</p>
+        </div>
+    );
+}
+
+function ErrorMsg({ msg }) {
+    return (
+        <p className="flex items-center gap-1 text-xs text-red-500 mt-1.5">
+            <AlertCircle size={11} /> {msg}
+        </p>
     );
 }
 

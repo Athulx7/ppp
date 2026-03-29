@@ -119,7 +119,7 @@ function NotificationPanel({ notifications, onClose, onItemClick, onMarkAllRead 
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto divide-y divide-gray-100">
+                <div className="flex-1 overflow-y-auto scrollbar divide-y divide-gray-100">
                     {notifications.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-40 text-gray-400 gap-2">
                             <Bell className="w-8 h-8 opacity-30" />

@@ -2,345 +2,573 @@ import React, { useEffect, useState, useCallback } from 'react';
 import hrmsIllustration from '../assets/hrmsillustatrion.png';
 import { useNavigate } from 'react-router-dom';
 import { ApiCall, getRoleBasePath } from '../library/constants';
-import { Star, Search, X, ArrowRight, ChevronRight, Layers, Building2 } from 'lucide-react';
+import { Star, Search, X, ArrowRight, Building2, LayoutGrid } from 'lucide-react';
 
+// ─── Persistence ──────────────────────────────────────────────────────────────
 const FAV_KEY = 'hrms_menu_favourites';
-function loadFavs() {
-    try { return JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); }
-    catch { return []; }
-}
-function saveFavs(favs) {
-    localStorage.setItem(FAV_KEY, JSON.stringify(favs));
+const loadFavs = () => { try { return JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); } catch { return []; } };
+const saveFavs = (f) => localStorage.setItem(FAV_KEY, JSON.stringify(f));
+
+// ─── Dark mode detection (watches html.dark class) ───────────────────────────
+function useDarkMode() {
+    const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'));
+    useEffect(() => {
+        const obs = new MutationObserver(() =>
+            setDark(document.documentElement.classList.contains('dark'))
+        );
+        obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        return () => obs.disconnect();
+    }, []);
+    return dark;
 }
 
+// ─── Animation ────────────────────────────────────────────────────────────────
 const fadeUp = (delay = 0) => ({
-    animation: `hrmsMenuFadeUp 0.35s ease both`,
+    animation: `hrmsMenuFadeUp 0.32s ease both`,
     animationDelay: `${delay}ms`,
 });
 
+// ─── Theme tokens ─────────────────────────────────────────────────────────────
+// Light  → original deep-indigo overlay (unchanged from your previous design)
+// Dark   → Catppuccin surface colors from your CSS variables, indigo accents
+function getTheme(dark) {
+    if (dark) return {
+        overlay: 'var(--color-gray-100)',
+        sidebarBg: 'var(--color-gray-50)',
+        border: '1px solid var(--color-gray-200)',
+        cardBg: 'var(--color-gray-200)',
+        cardHoverBg: 'var(--color-gray-300)',
+        cardBorder: '1px solid var(--color-gray-200)',
+        cardHoverBorder: '1px solid var(--color-indigo-400)',
+        text: 'var(--color-gray-900)',
+        textSub: 'var(--color-gray-600)',
+        textMuted: 'var(--color-gray-400)',
+        searchBg: 'var(--color-gray-200)',
+        searchBorder: '1px solid var(--color-gray-300)',
+        pillActiveBg: 'var(--color-indigo-600)',
+        pillActiveTxt: '#fff',
+        pillBg: 'var(--color-gray-200)',
+        pillTxt: 'var(--color-gray-700)',
+        catActiveBg: 'var(--color-indigo-200)',
+        catActiveTxt: 'var(--color-indigo-900)',
+        catHoverBg: 'var(--color-gray-200)',
+        catTxt: 'var(--color-gray-600)',
+        dot: 'var(--color-indigo-400)',
+        statBg: 'var(--color-gray-200)',
+        favStatBg: 'rgba(245,158,11,0.10)',
+        favStatTxt: '#f59e0b',
+        footerBg: 'var(--color-gray-50)',
+        kbdBg: 'var(--color-gray-200)',
+        kbdBorder: '1px solid var(--color-gray-300)',
+        btnBg: 'var(--color-gray-200)',
+        btnBorder: '1px solid var(--color-gray-300)',
+        favBtnActiveBg: 'rgba(245,158,11,0.15)',
+        catBadgeBg: 'var(--color-indigo-200)',
+        catBadgeTxt: 'var(--color-indigo-600)',
+    };
+    return {
+        overlay: 'linear-gradient(135deg,#1e1b4b 0%,#312e81 40%,#3730a3 70%,#4338ca 100%)',
+        sidebarBg: 'rgba(255,255,255,0.04)',
+        border: '1px solid rgba(255,255,255,0.10)',
+        cardBg: 'rgba(255,255,255,0.06)',
+        cardHoverBg: 'rgba(255,255,255,0.13)',
+        cardBorder: '1px solid rgba(255,255,255,0.08)',
+        cardHoverBorder: '1px solid rgba(255,255,255,0.25)',
+        text: 'rgba(255,255,255,0.93)',
+        textSub: 'rgba(255,255,255,0.60)',
+        textMuted: 'rgba(255,255,255,0.38)',
+        searchBg: 'rgba(255,255,255,0.10)',
+        searchBorder: '1px solid rgba(255,255,255,0.15)',
+        pillActiveBg: '#fff',
+        pillActiveTxt: '#3730a3',
+        pillBg: 'rgba(255,255,255,0.10)',
+        pillTxt: 'rgba(255,255,255,0.70)',
+        catActiveBg: 'linear-gradient(135deg,#4f46e5,#6366f1)',
+        catActiveTxt: '#fff',
+        catHoverBg: 'rgba(255,255,255,0.09)',
+        catTxt: 'rgba(255,255,255,0.58)',
+        dot: 'rgba(165,180,252,0.70)',
+        statBg: 'rgba(255,255,255,0.08)',
+        favStatBg: 'rgba(245,158,11,0.12)',
+        favStatTxt: '#fcd34d',
+        footerBg: 'transparent',
+        kbdBg: 'rgba(255,255,255,0.10)',
+        kbdBorder: '1px solid rgba(255,255,255,0.15)',
+        btnBg: 'rgba(255,255,255,0.10)',
+        btnBorder: '1px solid rgba(255,255,255,0.15)',
+        favBtnActiveBg: 'rgba(245,158,11,0.15)',
+        catBadgeBg: 'rgba(129,140,248,0.20)',
+        catBadgeTxt: 'rgba(165,180,252,0.90)',
+    };
+}
+
+// ─── Skeleton card ────────────────────────────────────────────────────────────
+function Skeleton({ dark }) {
+    return (
+        <div style={{
+            height: 82, borderRadius: 14,
+            background: dark ? 'var(--color-gray-200)' : 'rgba(255,255,255,0.07)',
+            animation: 'hrmsPulse 1.5s ease-in-out infinite',
+        }} />
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 function MainMenu({ onClose }) {
-    const navigate = useNavigate()
-    const [isLoading, setIsLoading] = useState(false)
-    const [menuData, setMenuData] = useState([])
-    const [activeCategory, setActiveCategory] = useState('')
-    const [search, setSearch] = useState('')
-    const [favourites, setFavourites] = useState(loadFavs)
+    const navigate = useNavigate();
+    const dark = useDarkMode();
+    const t = getTheme(dark);
+
+    const [loading, setLoading] = useState(false);
+    const [menuData, setMenuData] = useState([]);
+    const [activeCategory, setActiveCategory] = useState('');
+    const [search, setSearch] = useState('');
+    const [favs, setFavs] = useState(loadFavs);
     const [showFavs, setShowFavs] = useState(false);
 
+    // Lock scroll + Esc handler
     useEffect(() => {
-        document.body.style.overflow = 'hidden'
-        return () => { document.body.style.overflow = 'auto' }
-    }, [])
+        document.body.style.overflow = 'hidden';
+        const h = (e) => { if (e.key === 'Escape') onClose?.(); };
+        window.addEventListener('keydown', h);
+        return () => { document.body.style.overflow = ''; window.removeEventListener('keydown', h); };
+    }, [onClose]);
 
-    useEffect(() => { loadMenuList(); }, [])
+    // Load menu
+    useEffect(() => {
+        setLoading(true);
+        ApiCall('GET', '/mainMenu')
+            .then(res => {
+                if (res?.data?.success) {
+                    setMenuData(res.data.data);
+                    setActiveCategory(res.data.data[0]?.category || '');
+                }
+            })
+            .catch(err => console.error('menu load error', err))
+            .finally(() => setLoading(false));
+    }, []);
 
-    const loadMenuList = async () => {
-        setIsLoading(true)
-        try {
-            const result = await ApiCall('GET', '/mainMenu')
-            if (result?.data?.success) {
-                setMenuData(result.data.data);
-                setActiveCategory(result.data.data[0]?.category || '')
-            }
-        } catch (err) {
-            console.error('menu load error:', err)
-        }
-        setIsLoading(false)
-    }
+    const navigate_ = (route) => { navigate(`${getRoleBasePath()}${route}`); onClose?.(); };
 
-    const handleNavigate = (routePath) => {
-        const basePath = getRoleBasePath()
-        navigate(`${basePath}${routePath}`)
-        onClose?.();
-    }
+    const toggleFav = useCallback((route, e) => {
+        e.stopPropagation();
+        setFavs(prev => {
+            const next = prev.includes(route) ? prev.filter(r => r !== route) : [...prev, route];
+            saveFavs(next);
+            return next;
+        });
+    }, []);
 
-    const toggleFavourite = useCallback((route, e) => {
-        e.stopPropagation()
-        setFavourites(prev => {
-            const next = prev.includes(route)
-                ? prev.filter(r => r !== route)
-                : [...prev, route]
-            saveFavs(next)
-            return next
-        })
-    }, [])
-
-    const allItems = menuData.flatMap(m => m.items.map(i => ({ ...i, category: m.category })))
-
-    const searchResults = search.trim().length > 0
+    // Derived
+    const allItems = menuData.flatMap(m => m.items.map(i => ({ ...i, category: m.category })));
+    const visibleItems = search.trim()
         ? allItems.filter(i =>
             i.label.toLowerCase().includes(search.toLowerCase()) ||
             i.category.toLowerCase().includes(search.toLowerCase())
         )
-        : []
-
-    const favItems = allItems.filter(i => favourites.includes(i.routes))
-
-    const visibleItems = search.trim()
-        ? searchResults
         : showFavs
-            ? favItems
-            : menuData.find(m => m.category === activeCategory)?.items || []
+            ? allItems.filter(i => favs.includes(i.routes))
+            : menuData.find(m => m.category === activeCategory)?.items || [];
 
-    useEffect(() => {
-        const handler = (e) => { if (e.key === 'Escape') onClose?.() }
-        window.addEventListener('keydown', handler)
-        return () => window.removeEventListener('keydown', handler)
-    }, [onClose])
+    const heading = search.trim() ? `"${search}"` : showFavs ? 'Favourites' : activeCategory;
 
+    // ── Shared inline styles ────────────────────────────────────────────────
+    const inputStyle = {
+        width: '100%', boxSizing: 'border-box',
+        paddingLeft: 34, paddingRight: 34,
+        paddingTop: 8, paddingBottom: 8,
+        background: t.searchBg,
+        border: t.searchBorder,
+        borderRadius: 12,
+        fontSize: 13,
+        color: t.text,
+        outline: 'none',
+    };
+
+    // ───────────────────────────────────────────────────────────────────────────
     return (
         <>
             <style>{`
-                @keyframes hrmsMenuFadeUp {
-                    from { opacity: 0; transform: translateY(14px); }
-                    to   { opacity: 1; transform: translateY(0); }
+                @keyframes hrmsMenuFadeUp  { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+                @keyframes hrmsOverlayIn   { from{opacity:0} to{opacity:1} }
+                @keyframes hrmsPulse       { 0%,100%{opacity:1} 50%{opacity:0.45} }
+                .hmcard { transition:background .16s,border-color .16s,transform .16s,box-shadow .16s; }
+                .hmcard:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,0.18); }
+                .hmcard:hover .hm-arr  { opacity:1!important; transform:translateX(0)!important; }
+                .hmcard:hover .hm-favbtn { opacity:1!important; }
+                .hm-favbtn { transition:transform .15s,opacity .15s; }
+                .hm-favbtn:hover { transform:scale(1.25)!important; }
+                .hm-scroll::-webkit-scrollbar       { width:4px; height:4px; }
+                .hm-scroll::-webkit-scrollbar-track { background:transparent; }
+                .hm-scroll::-webkit-scrollbar-thumb { background:rgba(128,128,128,0.25); border-radius:4px; }
+
+                /* ── Responsive grid ── */
+                .hm-grid {
+                    display:grid; gap:10px;
+                    grid-template-columns:repeat(1,1fr);
                 }
-                @keyframes hrmsOverlayIn {
-                    from { opacity: 0; }
-                    to   { opacity: 1; }
-                }
-                .hrms-menu-item:hover .hrms-item-arrow { opacity: 1; transform: translateX(0); }
-                .hrms-item-arrow { opacity: 0; transform: translateX(-6px); transition: all 0.2s ease; }
-                .fav-btn { transition: transform 0.15s ease, color 0.15s ease; }
-                .fav-btn:hover { transform: scale(1.2); }
-                .fav-btn.active { color: #f59e0b; }
-                .cat-btn.active { background: linear-gradient(135deg, #4f46e5, #6366f1); color: white; box-shadow: 0 4px 14px rgba(79,70,229,0.35); }
-                .cat-btn { transition: all 0.18s ease; }
+                @media(min-width:520px)  { .hm-grid { grid-template-columns:repeat(2,1fr); } }
+                @media(min-width:960px)  { .hm-grid { grid-template-columns:repeat(3,1fr); } }
+                @media(min-width:1440px) { .hm-grid { grid-template-columns:repeat(4,1fr); } }
+
+                /* ── Layout breakpoints ── */
+                /* Sidebar: hidden on mobile/tablet, visible on ≥ md */
+                #hm-sidebar    { display:none!important; }
+                #hm-right      { display:none!important; }
+                @media(min-width:900px)  { #hm-sidebar { display:flex!important; flex-direction:column; } }
+                @media(min-width:1300px) { #hm-right   { display:flex!important; flex-direction:column; } }
+
+                /* Touch: always show fav btn */
+                @media(hover:none) { .hm-favbtn { opacity:0.75!important; } }
             `}</style>
 
             <div
                 className="fixed inset-0 z-[999] flex flex-col"
-                style={{
-                    background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #3730a3 70%, #4338ca 100%)',
-                    animation: 'hrmsOverlayIn 0.25s ease both',
-                }}
+                style={{ background: t.overlay, animation: 'hrmsOverlayIn 0.22s ease both' }}
             >
-                <div className="flex-shrink-0 flex items-center justify-between px-6 md:px-10 pt-6 pb-4 border-b border-white/10">
-                    <div style={fadeUp(0)} className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-white/15 rounded-xl flex items-center justify-center">
-                            <Building2 size={16} className="text-white" />
+                {/* ════ HEADER ═══════════════════════════════════════════════ */}
+                <div style={{
+                    ...fadeUp(0),
+                    flexShrink: 0,
+                    display: 'flex', alignItems: 'center',
+                    gap: 10, flexWrap: 'wrap',
+                    padding: '12px 16px',
+                    borderBottom: t.border,
+                }}>
+                    {/* Brand */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                        <div style={{
+                            width: 32, height: 32, borderRadius: 10,
+                            background: dark ? 'var(--color-indigo-200)' : 'rgba(255,255,255,0.15)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}>
+                            <Building2 size={16} color={dark ? 'var(--color-indigo-600)' : '#fff'} />
                         </div>
-                        <span className="text-white font-bold text-lg tracking-tight">PPP</span>
-                        <span className="text-white/40 text-sm hidden sm:inline">/ Navigation</span>
+                        <span style={{ color: t.text, fontWeight: 700, fontSize: 15, letterSpacing: '-0.3px' }}>PPP</span>
+                        <span style={{ color: t.textMuted, fontSize: 12 }} className="hidden sm:inline">/ Navigation</span>
                     </div>
 
-                    <div style={fadeUp(40)} className="flex-1 max-w-sm mx-6 hidden md:block">
-                        <div className="relative">
-                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
-                            <input
-                                type="text"
-                                value={search}
-                                onChange={e => { setSearch(e.target.value); setShowFavs(false); }}
-                                placeholder="Search menu…"
-                                className="w-full pl-9 pr-4 py-2 bg-white/10 border border-white/15
-                                           rounded-xl text-sm text-white placeholder:text-white/35
-                                           focus:outline-none focus:bg-white/15 focus:border-white/30
-                                           transition-all"
-                            />
-                            {search && (
-                                <button onClick={() => setSearch('')}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white">
-                                    <X size={13} />
-                                </button>
-                            )}
-                        </div>
-                    </div>
-
-                    <div style={fadeUp(60)} className="flex items-center gap-3">
-                        <button
-                            onClick={() => { setShowFavs(p => !p); setSearch(''); }}
-                            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium
-                                        transition-all border
-                                        ${showFavs
-                                    ? 'bg-amber-400 text-indigo-900 border-amber-400'
-                                    : 'bg-white/10 text-white/80 border-white/15 hover:bg-white/15'}`}
-                        >
-                            <Star size={13} className={showFavs ? 'fill-indigo-900' : ''} />
-                            <span className="hidden sm:inline text-white">Favourites</span>
-                            {favourites.length > 0 && (
-                                <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full
-                                    ${showFavs ? 'bg-indigo-900/20 text-indigo-900' : 'bg-amber-400/20 text-amber-300'}`}>
-                                    {favourites.length}
-                                </span>
-                            )}
-                        </button>
-                        <button
-                            onClick={onClose}
-                            className="w-9 h-9 bg-white/10 hover:bg-white/20 border border-white/15
-                                       text-white rounded-xl flex items-center justify-center transition-all"
-                            aria-label="Close menu"
-                        >
-                            <X size={16} />
-                        </button>
-                    </div>
-                </div>
-
-                <div className="md:hidden px-6 pt-3 flex-shrink-0">
-                    <div className="relative">
-                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
+                    {/* Search */}
+                    <div style={{ flex: 1, minWidth: 120, position: 'relative' }}>
+                        <Search size={13} style={{
+                            position: 'absolute', left: 10, top: '50%',
+                            transform: 'translateY(-50%)', color: t.textMuted,
+                        }} />
                         <input
                             type="text"
                             value={search}
                             onChange={e => { setSearch(e.target.value); setShowFavs(false); }}
-                            placeholder="Search menu…"
-                            className="w-full pl-9 pr-4 py-2.5 bg-white/10 border border-white/15
-                                       rounded-xl text-sm text-white placeholder:text-white/35
-                                       focus:outline-none focus:bg-white/15 focus:border-white/30 transition-all"
+                            placeholder="Search pages…"
+                            style={inputStyle}
+                            
                         />
                         {search && (
-                            <button onClick={() => setSearch('')}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white">
+                            <button onClick={() => setSearch('')} style={{
+                                position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+                                background: 'none', border: 'none', cursor: 'pointer',
+                                color: t.textMuted, display: 'flex', padding: 2,
+                            }}>
                                 <X size={13} />
                             </button>
                         )}
                     </div>
+
+                    {/* Favourites toggle */}
+                    <button
+                        onClick={() => { setShowFavs(p => !p); setSearch(''); }}
+                        style={{
+                            flexShrink: 0,
+                            display: 'flex', alignItems: 'center', gap: 6,
+                            padding: '7px 13px', borderRadius: 11, fontSize: 12, fontWeight: 500,
+                            cursor: 'pointer',
+                            border: showFavs ? '1px solid #f59e0b' : t.btnBorder,
+                            background: showFavs
+                                ? (dark ? 'rgba(245,158,11,0.14)' : '#f59e0b')
+                                : t.btnBg,
+                            color: showFavs ? (dark ? '#f59e0b' : '#1e1b4b') : t.textSub,
+                        }}
+                    >
+                        <Star size={12} style={{ fill: showFavs ? (dark ? '#f59e0b' : '#1e1b4b') : 'none' }} />
+                        <span className="hidden sm:inline">Favourites</span>
+                        {favs.length > 0 && (
+                            <span style={{
+                                fontSize: 10, fontWeight: 700,
+                                padding: '1px 5px', borderRadius: 20,
+                                background: 'rgba(0,0,0,0.15)',
+                                color: showFavs ? (dark ? '#f59e0b' : '#1e1b4b') : '#f59e0b',
+                            }}>
+                                {favs.length}
+                            </span>
+                        )}
+                    </button>
+
+                    {/* Close */}
+                    <button
+                        onClick={onClose}
+                        style={{
+                            flexShrink: 0,
+                            width: 34, height: 34, borderRadius: 9,
+                            background: t.btnBg, border: t.btnBorder,
+                            color: t.textSub,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        <X size={16} />
+                    </button>
                 </div>
 
-                <div className="flex-1 flex overflow-hidden">
+                {/* ════ BODY ══════════════════════════════════════════════════ */}
+                <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
+                    {/* ── Left sidebar (≥ 900px, hidden when searching) ─────── */}
                     {!search && !showFavs && (
-                        <div style={fadeUp(80)}
-                            className="hidden lg:flex w-64 xl:w-72 flex-col flex-shrink-0
-                                       px-6 py-6 border-r border-white/10 overflow-y-auto scrollbar">
-                            <p className="text-xs font-semibold text-white/35 uppercase tracking-widest mb-4 px-1">
-                                Categories
-                            </p>
-                            <div className="space-y-1.5">
-                                {menuData.map((menu, i) => (
+                        <div
+                            id="hm-sidebar"
+                            className="hm-scroll"
+                            style={{
+                                ...fadeUp(70),
+                                width: 210, flexShrink: 0,
+                                borderRight: t.border,
+                                background: t.sidebarBg,
+                                padding: '18px 10px',
+                                overflowY: 'auto',
+                            }}
+                        >
+                            <p style={{
+                                fontSize: 10, fontWeight: 600, textTransform: 'uppercase',
+                                letterSpacing: '0.08em', color: t.textMuted,
+                                marginBottom: 10, paddingLeft: 8,
+                            }}>Categories</p>
+
+                            {menuData.map((menu, i) => {
+                                const isActive = activeCategory === menu.category;
+                                return (
                                     <button
                                         key={menu.category}
                                         onClick={() => setActiveCategory(menu.category)}
-                                        className={`cat-btn w-full text-left px-4 py-3 rounded-xl text-sm font-medium
-                                                    ${activeCategory === menu.category
-                                                ? 'active'
-                                                : 'text-white/65 hover:text-white hover:bg-white/10'}`}
-                                        style={fadeUp(100 + i * 30)}
+                                        style={{
+                                            ...fadeUp(90 + i * 22),
+                                            width: '100%', textAlign: 'left',
+                                            padding: '9px 11px', borderRadius: 10,
+                                            fontSize: 13, fontWeight: isActive ? 600 : 400,
+                                            background: isActive ? t.catActiveBg : 'transparent',
+                                            color: isActive ? t.catActiveTxt : t.catTxt,
+                                            border: 'none', cursor: 'pointer', marginBottom: 2,
+                                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                            transition: 'all 0.15s ease',
+                                        }}
+                                        onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = t.catHoverBg; }}
+                                        onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
                                     >
-                                        <div className="flex items-center justify-between">
-                                            <span>{menu.category}</span>
-                                            <div className="flex items-center gap-2">
-                                                {menu.items.some(it => favourites.includes(it.routes)) && (
-                                                    <Star size={11} className="text-amber-400 fill-amber-400" />
-                                                )}
-                                                <span className={`text-xs px-1.5 py-0.5 rounded-md font-semibold
-                                                    ${activeCategory === menu.category
-                                                        ? 'bg-white/20 text-white'
-                                                        : 'bg-white/10 text-white/50'}`}>
-                                                    {menu.items.length}
-                                                </span>
-                                            </div>
+                                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                            {menu.category}
+                                        </span>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                                            {menu.items.some(it => favs.includes(it.routes)) && (
+                                                <Star size={9} style={{ color: '#f59e0b', fill: '#f59e0b' }} />
+                                            )}
+                                            <span style={{
+                                                fontSize: 10, fontWeight: 700,
+                                                padding: '1px 6px', borderRadius: 8,
+                                                background: isActive
+                                                    ? (dark ? 'rgba(129,140,248,0.25)' : 'rgba(255,255,255,0.20)')
+                                                    : (dark ? 'var(--color-gray-300)' : 'rgba(255,255,255,0.10)'),
+                                                color: isActive ? t.catActiveTxt : t.textMuted,
+                                            }}>
+                                                {menu.items.length}
+                                            </span>
                                         </div>
                                     </button>
-                                ))}
-                            </div>
+                                );
+                            })}
                         </div>
                     )}
 
-                    {!search && !showFavs && (
-                        <div className="lg:hidden flex-shrink-0 px-4 pt-4">
-                            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar">
-                                {menuData.map(menu => (
-                                    <button
-                                        key={menu.category}
-                                        onClick={() => setActiveCategory(menu.category)}
-                                        className={`flex-shrink-0 px-4 py-2 rounded-xl text-xs font-semibold transition-all
-                                            ${activeCategory === menu.category
-                                                ? 'bg-white text-indigo-700'
-                                                : 'bg-white/10 text-white/70 hover:bg-white/15'}`}
-                                    >
-                                        {menu.category}
-                                    </button>
-                                ))}
+                    {/* ── Main scroll area ───────────────────────────────────── */}
+                    <div
+                        className="hm-scroll"
+                        style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}
+                    >
+                        {/* Category pills — mobile/tablet only */}
+                        {!search && !showFavs && menuData.length > 0 && (
+                            <div
+                                className="hm-scroll sm-only-pills"
+                                style={{
+                                    flexShrink: 0,
+                                    display: 'flex', gap: 6,
+                                    padding: '12px 14px 0',
+                                    overflowX: 'auto',
+                                }}
+                            >
+                                {menuData.map(menu => {
+                                    const isActive = activeCategory === menu.category;
+                                    return (
+                                        <button
+                                            key={menu.category}
+                                            onClick={() => setActiveCategory(menu.category)}
+                                            style={{
+                                                flexShrink: 0,
+                                                padding: '6px 14px', borderRadius: 20,
+                                                fontSize: 12, fontWeight: isActive ? 600 : 400,
+                                                border: 'none', cursor: 'pointer',
+                                                background: isActive ? t.pillActiveBg : t.pillBg,
+                                                color: isActive ? t.pillActiveTxt : t.pillTxt,
+                                                display: 'flex', alignItems: 'center', gap: 5,
+                                                transition: 'all 0.14s ease',
+                                            }}
+                                        >
+                                            {menu.category}
+                                            {menu.items.some(it => favs.includes(it.routes)) && (
+                                                <Star size={9} style={{ color: '#f59e0b', fill: '#f59e0b' }} />
+                                            )}
+                                        </button>
+                                    );
+                                })}
                             </div>
-                        </div>
-                    )}
+                        )}
 
-                    <div className="flex-1 overflow-y-auto scrollbar px-4 md:px-8 lg:px-10 py-6">
-
-                        <div style={fadeUp(120)} className="mb-5 flex items-center justify-between">
+                        {/* Section heading */}
+                        <div style={{
+                            ...fadeUp(110),
+                            flexShrink: 0,
+                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            padding: '14px 18px 10px',
+                        }}>
                             <div>
-                                <h2 className="text-xl font-bold text-white">
-                                    {search
-                                        ? `Search: "${search}"`
-                                        : showFavs
-                                            ? 'Your Favourites'
-                                            : activeCategory}
-                                </h2>
-                                <p className="text-xs text-white/40 mt-0.5">
+                                <h2 style={{ fontSize: 17, fontWeight: 700, color: t.text, margin: 0 }}>{heading}</h2>
+                                <p style={{ fontSize: 11, color: t.textMuted, marginTop: 2 }}>
                                     {visibleItems.length} {visibleItems.length === 1 ? 'item' : 'items'}
                                 </p>
                             </div>
-                            {!showFavs && !search && favourites.length > 0 && (
-                                <button onClick={() => setShowFavs(true)}
-                                    className="flex items-center gap-1.5 text-xs text-amber-300 hover:text-amber-200
-                                               bg-amber-400/10 hover:bg-amber-400/20 px-3 py-1.5 rounded-lg transition-all">
-                                    <Star size={11} className="fill-amber-300" />
-                                    {favourites.length} saved
+                            {!showFavs && !search && favs.length > 0 && (
+                                <button onClick={() => setShowFavs(true)} style={{
+                                    display: 'flex', alignItems: 'center', gap: 5,
+                                    fontSize: 11, color: '#f59e0b',
+                                    background: 'rgba(245,158,11,0.10)',
+                                    border: '1px solid rgba(245,158,11,0.20)',
+                                    padding: '5px 11px', borderRadius: 8, cursor: 'pointer',
+                                }}>
+                                    <Star size={10} style={{ fill: '#f59e0b' }} /> {favs.length} saved
                                 </button>
                             )}
                         </div>
 
-                        {isLoading && (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-                                {[...Array(6)].map((_, i) => (
-                                    <div key={i} className="h-20 bg-white/5 rounded-xl animate-pulse" />
-                                ))}
+                        {/* Skeletons */}
+                        {loading && (
+                            <div className="hm-grid" style={{ padding: '0 14px 20px' }}>
+                                {[...Array(9)].map((_, i) => <Skeleton key={i} dark={dark} />)}
                             </div>
                         )}
 
-                        {!isLoading && visibleItems.length === 0 && (
-                            <div className="flex flex-col items-center justify-center py-20 text-white/30">
-                                {showFavs
-                                    ? <><Star size={36} className="mb-3" /><p className="text-sm">No favourites yet</p><p className="text-xs mt-1">Hover any menu item and click ★ to save it</p></>
-                                    : <><Search size={36} className="mb-3" /><p className="text-sm">No results found</p></>
-                                }
+                        {/* Empty state */}
+                        {!loading && visibleItems.length === 0 && (
+                            <div style={{
+                                display: 'flex', flexDirection: 'column',
+                                alignItems: 'center', justifyContent: 'center',
+                                padding: '60px 24px', color: t.textMuted, textAlign: 'center',
+                            }}>
+                                {showFavs ? (
+                                    <>
+                                        <Star size={34} style={{ marginBottom: 12, opacity: 0.3 }} />
+                                        <p style={{ fontSize: 14, fontWeight: 500 }}>No favourites yet</p>
+                                        <p style={{ fontSize: 12, marginTop: 4 }}>Hover any card and click ★ to save it</p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Search size={34} style={{ marginBottom: 12, opacity: 0.3 }} />
+                                        <p style={{ fontSize: 14, fontWeight: 500 }}>No results for "{search}"</p>
+                                    </>
+                                )}
                             </div>
                         )}
 
-                        {!isLoading && visibleItems.length > 0 && (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                        {/* Item grid */}
+                        {!loading && visibleItems.length > 0 && (
+                            <div className="hm-grid" style={{ ...fadeUp(130), padding: '0 14px 24px' }}>
                                 {visibleItems.map((item, i) => {
-                                    const isFav = favourites.includes(item.routes);
+                                    const isFav = favs.includes(item.routes);
                                     return (
                                         <div
                                             key={item.routes}
-                                            className="hrms-menu-item group relative bg-white/6 hover:bg-white/12
-                                                       border border-white/8 hover:border-white/20
-                                                       rounded-2xl p-4 cursor-pointer transition-all duration-200
-                                                       hover:shadow-lg hover:shadow-black/20 hover:-translate-y-0.5"
-                                            style={fadeUp(140 + Math.min(i, 8) * 25)}
-                                            onClick={() => handleNavigate(item.routes)}
+                                            className="hmcard"
+                                            style={{
+                                                ...fadeUp(140 + Math.min(i, 8) * 18),
+                                                position: 'relative',
+                                                background: t.cardBg,
+                                                border: t.cardBorder,
+                                                borderRadius: 14,
+                                                padding: '14px 14px 12px',
+                                                cursor: 'pointer',
+                                            }}
+                                            onClick={() => navigate_(item.routes)}
+                                            onMouseEnter={e => {
+                                                e.currentTarget.style.background = t.cardHoverBg;
+                                                e.currentTarget.style.border = t.cardHoverBorder;
+                                            }}
+                                            onMouseLeave={e => {
+                                                e.currentTarget.style.background = t.cardBg;
+                                                e.currentTarget.style.border = t.cardBorder;
+                                            }}
                                         >
+                                            {/* Star button */}
                                             <button
-                                                className={`fav-btn absolute top-3 right-3 p-1.5 rounded-lg
-                                                            opacity-0 group-hover:opacity-100
-                                                            ${isFav ? 'active !opacity-100' : 'text-white/30 hover:text-amber-400'}
-                                                            bg-white/10 hover:bg-white/15 transition-all`}
-                                                onClick={e => toggleFavourite(item.routes, e)}
-                                                title={isFav ? 'Remove from favourites' : 'Add to favourites'}
+                                                className="hm-favbtn"
+                                                onClick={e => toggleFav(item.routes, e)}
+                                                style={{
+                                                    position: 'absolute', top: 10, right: 10,
+                                                    padding: 6, borderRadius: 8, border: 'none', cursor: 'pointer',
+                                                    background: isFav ? t.favBtnActiveBg : t.btnBg,
+                                                    color: isFav ? '#f59e0b' : t.textMuted,
+                                                    opacity: isFav ? 1 : 0,
+                                                    display: 'flex',
+                                                }}
                                             >
-                                                <Star size={12} className={isFav ? 'fill-amber-400' : ''} />
+                                                <Star size={12} style={{ fill: isFav ? '#f59e0b' : 'none' }} />
                                             </button>
 
-                                            <div className="flex items-start gap-3 pr-7">
-                                                <div className="mt-1.5 w-2 h-2 rounded-full bg-indigo-300/60
-                                                                group-hover:bg-white/70 transition-colors flex-shrink-0" />
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-sm font-semibold text-white/90
-                                                                         group-hover:text-white transition-colors truncate">
+                                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, paddingRight: 28 }}>
+                                                {/* Dot */}
+                                                <div style={{
+                                                    marginTop: 5, width: 7, height: 7,
+                                                    borderRadius: '50%', background: t.dot, flexShrink: 0,
+                                                }} />
+                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                        <span style={{
+                                                            fontSize: 13, fontWeight: 600, color: t.text,
+                                                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                                                        }}>
                                                             {item.label}
                                                         </span>
-                                                        <ArrowRight size={13}
-                                                            className="hrms-item-arrow flex-shrink-0 text-white/60" />
+                                                        <ArrowRight
+                                                            size={12}
+                                                            className="hm-arr"
+                                                            style={{
+                                                                flexShrink: 0, color: t.textSub,
+                                                                opacity: 0, transform: 'translateX(-5px)',
+                                                                transition: 'opacity .18s,transform .18s',
+                                                            }}
+                                                        />
                                                     </div>
-                                                    <p className="mt-1 text-xs text-white/40 group-hover:text-white/55
-                                                                  transition-colors leading-relaxed">
+                                                    <p style={{
+                                                        marginTop: 4, fontSize: 11, color: t.textMuted,
+                                                        lineHeight: 1.5,
+                                                        display: '-webkit-box',
+                                                        WebkitLineClamp: 2,
+                                                        WebkitBoxOrient: 'vertical',
+                                                        overflow: 'hidden',
+                                                    }}>
                                                         {item.description || `Manage ${item.label.toLowerCase()} and related settings`}
                                                     </p>
                                                     {(search || showFavs) && item.category && (
-                                                        <span className="mt-2 inline-block text-xs px-2 py-0.5
-                                                                         bg-indigo-400/20 text-indigo-200 rounded-md">
+                                                        <span style={{
+                                                            marginTop: 6, display: 'inline-block',
+                                                            fontSize: 10, fontWeight: 600,
+                                                            padding: '2px 7px', borderRadius: 6,
+                                                            background: t.catBadgeBg,
+                                                            color: t.catBadgeTxt,
+                                                        }}>
                                                             {item.category}
                                                         </span>
                                                     )}
@@ -353,42 +581,75 @@ function MainMenu({ onClose }) {
                         )}
                     </div>
 
-                    <div style={fadeUp(60)}
-                        className="hidden xl:flex w-56 2xl:w-64 flex-shrink-0 flex-col items-center
-                                   justify-center px-6 border-l border-white/10 py-10">
-                        <div className="relative w-full">
-                            <img
-                                src={hrmsIllustration}
-                                alt="HRMS"
-                                className="w-full object-contain drop-shadow-2xl opacity-90"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/30 to-transparent rounded-full blur-2xl -z-10" />
-                        </div>
-
-                        {!isLoading && menuData.length > 0 && (
-                            <div className="mt-6 w-full space-y-2" style={fadeUp(300)}>
-                                <div className="flex items-center justify-between px-3 py-2 bg-white/8 rounded-xl">
-                                    <span className="text-xs text-white/50">Modules</span>
-                                    <span className="text-xs font-bold text-white">{menuData.length}</span>
-                                </div>
-                                <div className="flex items-center justify-between px-3 py-2 bg-white/8 rounded-xl">
-                                    <span className="text-xs text-white/50">Total Pages</span>
-                                    <span className="text-xs font-bold text-white">{allItems.length}</span>
-                                </div>
-                                <div className="flex items-center justify-between px-3 py-2 bg-amber-400/10 rounded-xl">
-                                    <span className="text-xs text-amber-300/70">Favourites</span>
-                                    <span className="text-xs font-bold text-amber-300">{favourites.length}</span>
-                                </div>
+                    {/* ── Right panel (≥ 1300px) ─────────────────────────────── */}
+                    <div
+                        id="hm-right"
+                        style={{
+                            ...fadeUp(50),
+                            width: 190, flexShrink: 0,
+                            borderLeft: t.border,
+                            background: t.sidebarBg,
+                            padding: '24px 14px',
+                            alignItems: 'center', justifyContent: 'center',
+                        }}
+                    >
+                        <img
+                            src={hrmsIllustration}
+                            alt="HRMS"
+                            style={{
+                                width: '100%', objectFit: 'contain',
+                                opacity: dark ? 0.65 : 0.9,
+                                filter: dark ? 'brightness(0.8) saturate(0.65)' : 'none',
+                            }}
+                        />
+                        {!loading && menuData.length > 0 && (
+                            <div style={{ marginTop: 18, width: '100%' }}>
+                                {[
+                                    { label: 'Modules', val: menuData.length, bg: t.statBg, color: t.text },
+                                    { label: 'Total Pages', val: allItems.length, bg: t.statBg, color: t.text },
+                                    { label: 'Favourites', val: favs.length, bg: t.favStatBg, color: t.favStatTxt },
+                                ].map(s => (
+                                    <div key={s.label} style={{
+                                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                        padding: '7px 11px', borderRadius: 9,
+                                        background: s.bg, marginBottom: 5,
+                                    }}>
+                                        <span style={{ fontSize: 11, color: t.textMuted }}>{s.label}</span>
+                                        <span style={{ fontSize: 12, fontWeight: 700, color: s.color }}>{s.val}</span>
+                                    </div>
+                                ))}
                             </div>
                         )}
                     </div>
                 </div>
 
-                <div className="flex-shrink-0 px-6 md:px-10 py-3 border-t border-white/8
-                                flex items-center gap-4 text-xs text-white">
-                    <span><kbd className="px-1.5 py-0.5 bg-white/10 rounded text-white font-mono text-[11px]">Esc</kbd> to close</span>
-                    <span className="hidden sm:inline">Click ★ on any item to save to favourites</span>
+                {/* ════ FOOTER ════════════════════════════════════════════════ */}
+                <div style={{
+                    flexShrink: 0,
+                    display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 14,
+                    padding: '9px 18px',
+                    borderTop: t.border,
+                    background: t.footerBg,
+                    fontSize: 11, color: t.textMuted,
+                }}>
+                    <span>
+                        <kbd style={{
+                            padding: '2px 7px', borderRadius: 5,
+                            background: t.kbdBg, border: t.kbdBorder,
+                            fontFamily: 'monospace', fontSize: 11, color: t.textSub,
+                        }}>Esc</kbd>
+                        {' '}to close
+                    </span>
+                    <span className="hidden sm:inline">Click ★ on any card to save favourites</span>
+                    <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <LayoutGrid size={12} /> HRMS
+                    </span>
                 </div>
+
+                {/* Hide pills on ≥ 900px (sidebar shows instead) */}
+                <style>{`
+                    @media(min-width:900px) { .sm-only-pills { display:none!important; } }
+                `}</style>
             </div>
         </>
     );

@@ -10,11 +10,16 @@ function ComponentModal({
     initialData, editIndex,
     salaryComponents, calculationOptions, baseOptions,
     componentTypes, isLoading,
+    existingComponents = [],
 }) {
     const [form, setForm] = useState({ ...BLANK_FORM })
+    const [duplicateError, setDuplicateError] = useState(false)
 
     useEffect(() => {
-        if (isOpen) setForm(initialData ? { ...initialData } : { ...BLANK_FORM })
+        if (isOpen) {
+            setForm(initialData ? { ...initialData } : { ...BLANK_FORM })
+            setDuplicateError(false)
+        }
     }, [isOpen, initialData])
 
     if (!isOpen) return null
@@ -33,6 +38,7 @@ function ComponentModal({
     }))
 
     const handleFieldChange = (field, value) => {
+        if (field === 'componentId') setDuplicateError(false)
         setForm(prev => {
             const updated = { ...prev, [field]: value }
             if (field === 'componentId') {
@@ -57,6 +63,16 @@ function ComponentModal({
 
     const handleSave = () => {
         if (!form.componentId) { alert('Please select a component.'); return }
+        // Duplicate check — only when adding a new component (not editing)
+        if (!isEditing) {
+            const alreadyAdded = existingComponents.some(
+                c => String(c.componentId) === String(form.componentId)
+            )
+            if (alreadyAdded) {
+                setDuplicateError(true)
+                return
+            }
+        }
         onSave(form, isEditing ? editIndex : null)
         onClose()
     }
@@ -100,6 +116,12 @@ function ComponentModal({
                         loading={isLoading.normal}
                         required
                     />
+                    {duplicateError && (
+                        <div className="flex items-center gap-2 px-4 py-2.5 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 font-medium">
+                            <span className="text-base leading-none">⚠️</span>
+                            This component is already added to the structure. Each component can only be used once.
+                        </div>
+                    )}
                     {form.component_code && (
                         <div className="flex flex-wrap gap-2 items-center p-3 bg-gray-50 border border-gray-200 rounded-xl">
                             <span className="text-xs text-gray-400 font-medium mr-1">Auto-filled →</span>

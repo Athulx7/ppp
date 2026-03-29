@@ -1,10 +1,11 @@
-import { Edit, History, Layers, Link, Plus, Trash2, Users } from 'lucide-react';
-import React, { useState } from 'react'
+import { Edit, History, Layers, Link, Plus, Trash2, Users, Eye } from 'lucide-react';
+import React, { useState, useEffect } from 'react'
 import CommonTable from '../../basicComponents/commonTable';
 import SalaryAssignmentListPage from './SalaryAssignmentListPage';
 import SalaryHostoryListPage from './SalaryHostoryListPage';
 import { useNavigate } from 'react-router-dom';
 import SalaryStructureAssignment from '../container/SalaryStructureAssignmentTest';
+import { ApiCall, getRoleBasePath } from '../../library/constants';
 
 function SalaryStructureMain({ isLoading, setIsLoading, handleEditStructure }) {
     const navigate = useNavigate()
@@ -12,84 +13,44 @@ function SalaryStructureMain({ isLoading, setIsLoading, handleEditStructure }) {
     const [viewMode, setViewMode] = useState('list')
     const [isAssignPopupOpen, setIsAssignPopupOpen] = useState(false)
     const [assignPopupId, setAssignPopupId] = useState(null)
-    const [structures, setStructures] = useState([
-        {
-            id: 1,
-            name: 'Junior Software Engineer',
-            code: 'JSE-STR',
-            description: 'Standard structure for junior software engineers',
-            components: [
-                { componentId: 1, name: 'Basic Salary', code: 'BASIC', type: 'earning', amount: 50000, calculation: 'fixed' },
-                { componentId: 2, name: 'House Rent Allowance', code: 'HRA', type: 'earning', amount: 40, calculation: 'percentage', basedOn: 'BASIC' },
-                { componentId: 3, name: 'Special Allowance', code: 'SA', type: 'earning', amount: 10000, calculation: 'fixed' },
-                { componentId: 4, name: 'Employee PF', code: 'EPF', type: 'deduction', amount: 12, calculation: 'percentage', basedOn: 'BASIC' },
-                { componentId: 5, name: 'Professional Tax', code: 'PT', type: 'deduction', amount: 200, calculation: 'fixed' }
-            ],
-            status: 'active',
-            effectiveDate: '2024-01-01',
-            createdDate: '2024-01-15',
-            createdBy: 'Admin',
-            totalCost: 65200
-        },
-        {
-            id: 2,
-            name: 'Senior Software Engineer',
-            code: 'SSE-STR',
-            description: 'Standard structure for senior software engineers',
-            components: [
-                { componentId: 1, name: 'Basic Salary', code: 'BASIC', type: 'earning', amount: 80000, calculation: 'fixed' },
-                { componentId: 2, name: 'House Rent Allowance', code: 'HRA', type: 'earning', amount: 40, calculation: 'percentage', basedOn: 'BASIC' },
-                { componentId: 3, name: 'Special Allowance', code: 'SA', type: 'earning', amount: 20000, calculation: 'fixed' },
-                { componentId: 4, name: 'Employee PF', code: 'EPF', type: 'deduction', amount: 12, calculation: 'percentage', basedOn: 'BASIC' },
-                { componentId: 5, name: 'Professional Tax', code: 'PT', type: 'deduction', amount: 200, calculation: 'fixed' },
-                { componentId: 6, name: 'Performance Bonus', code: 'BONUS', type: 'earning', amount: 15, calculation: 'percentage', basedOn: 'GROSS' }
-            ],
-            status: 'active',
-            effectiveDate: '2024-01-01',
-            createdDate: '2024-01-15',
-            createdBy: 'Admin',
-            totalCost: 110400
-        },
-        {
-            id: 3,
-            name: 'HR Executive',
-            code: 'HRE-STR',
-            description: 'Standard structure for HR executives',
-            components: [
-                { componentId: 1, name: 'Basic Salary', code: 'BASIC', type: 'earning', amount: 45000, calculation: 'fixed' },
-                { componentId: 2, name: 'House Rent Allowance', code: 'HRA', type: 'earning', amount: 40, calculation: 'percentage', basedOn: 'BASIC' },
-                { componentId: 3, name: 'Conveyance Allowance', code: 'CA', type: 'earning', amount: 1600, calculation: 'fixed' },
-                { componentId: 4, name: 'Medical Allowance', code: 'MA', type: 'earning', amount: 1250, calculation: 'fixed' },
-                { componentId: 5, name: 'Employee PF', code: 'EPF', type: 'deduction', amount: 12, calculation: 'percentage', basedOn: 'BASIC' },
-                { componentId: 6, name: 'Professional Tax', code: 'PT', type: 'deduction', amount: 200, calculation: 'fixed' }
-            ],
-            status: 'active',
-            effectiveDate: '2024-01-01',
-            createdDate: '2024-01-15',
-            createdBy: 'Admin',
-            totalCost: 52720
-        }
-    ]);
+    const [structures, setStructures] = useState([]);
 
     const structureColumns = [
         {
             header: "Actions",
             cell: row => (
                 <div className="flex items-center gap-2">
+
+                    {row.isEditable ? (
+                        <button
+                            onClick={() => navigate(`${getRoleBasePath()}/salary_structure/edit/${row.id}`)}
+                            className="text-indigo-600 hover:text-indigo-900"
+                            title="Edit"
+                        >
+                            <Edit size={16} />
+                        </button>
+                    ) : (
+                        <button
+                            onClick={() => navigate(`${getRoleBasePath()}/salary_structure/view/${row.id}`)}
+                            className="text-blue-600 hover:text-blue-900"
+                            title="View"
+                        >
+                            <Eye size={16} />
+                        </button>
+                    )}
+
                     <button
-                        onClick={() => console.log('Hhheello')}
-                        className="text-indigo-600 hover:text-indigo-900"
-                        title="Edit"
-                    >
-                        <Edit size={16} />
-                    </button>
-                    <button
-                        onClick={() => console.log('Hhheello')}
-                        className="text-red-600 hover:text-red-900"
-                        title="Delete"
+                        onClick={() => row.isDeletable && console.log('delete', row.id)}
+                        disabled={!row.isDeletable}
+                        className={`${row.isDeletable
+                                ? 'text-red-600 hover:text-red-900'
+                                : 'text-gray-400 cursor-not-allowed'
+                            }`}
+                        title={row.isDeletable ? "Delete" : "Cannot delete (in use)"}
                     >
                         <Trash2 size={16} />
                     </button>
+
                 </div>
             )
         },
@@ -129,7 +90,11 @@ function SalaryStructureMain({ isLoading, setIsLoading, handleEditStructure }) {
         },
         {
             header: "Created Date",
-            accessor: "effectiveDate"
+            accessor: "createdDate"
+        },
+        {
+            header: "Created By",
+            accessor: "createdBy"
         },
         {
             header: "Status",
@@ -141,6 +106,42 @@ function SalaryStructureMain({ isLoading, setIsLoading, handleEditStructure }) {
             )
         },
     ];
+
+    useEffect(() => {
+        fetchStructures()
+    }, [])
+
+    async function fetchStructures() {
+        try {
+            setIsLoading({ normal: true, spinner: false })
+
+            const res = await ApiCall('get', '/salarystructure/list')
+
+            if (res?.data?.success) {
+                const formatted = res.data.data.map(item => ({
+                    id: item.id,
+                    code: item.structure_code,
+                    name: item.structure_name,
+                    description: item.description,
+                    components: new Array(item.component_count).fill({}), // just for count
+                    totalCost: 0, // optional (we can calculate later)
+                    effectiveDate: item.created_at,
+                    status: item.status ? 'active' : 'inactive',
+                    createdDate: item.created_at,
+                    createdBy: item.created_by,
+                    isEditable: item.is_editable === 1,
+                    isDeletable: item.is_deletable === 1
+                }))
+
+                setStructures(formatted)
+            }
+
+        } catch (err) {
+            console.error('fetchStructures:', err)
+        } finally {
+            setIsLoading({ normal: false, spinner: false })
+        }
+    }
 
     const handleOpenAssignPopup = (id = null) => {
         setAssignPopupId(id);
@@ -180,7 +181,7 @@ function SalaryStructureMain({ isLoading, setIsLoading, handleEditStructure }) {
                 </div>
 
                 <div className="flex items-center gap-3 p-1">
-                    <button onClick={() => navigate('/admin/salary_structure/create')}
+                    <button onClick={() =>navigate(`${getRoleBasePath()}/salary_structure/create`)}
                         className="px-4 py-2 bg-indigo-50 text-indigo-500 rounded-md text-sm font-medium hover:bg-indigo-100 transition-colors flex items-center gap-2"
                     >
                         <Plus size={16} />
@@ -214,10 +215,10 @@ function SalaryStructureMain({ isLoading, setIsLoading, handleEditStructure }) {
                 </div>
             )}
 
-            <SalaryStructureAssignment 
-                isOpen={isAssignPopupOpen} 
-                onClose={handleCloseAssignPopup} 
-                assignmentId={assignPopupId} 
+            <SalaryStructureAssignment
+                isOpen={isAssignPopupOpen}
+                onClose={handleCloseAssignPopup}
+                assignmentId={assignPopupId}
             />
 
         </>

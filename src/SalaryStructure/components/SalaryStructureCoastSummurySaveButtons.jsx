@@ -46,12 +46,13 @@ function SalaryStructureCoastSummurySaveButtons({
     breakdown,
     isSaving,
     isEditMode,
+    isBasicInfoComplete,
     handleCancel,
+    isViewMode,
 }) {
-    const totalCost = Object.values(calculatedValues).reduce(
-        (sum, value) => sum + (Number(value) || 0),
-        0
-    )
+
+    const hasComponents = structure.components.length > 0
+    const canSave = isBasicInfoComplete && hasComponents
 
     const countByType = {}
     structure.components.forEach(c => {
@@ -151,10 +152,10 @@ function SalaryStructureCoastSummurySaveButtons({
                 <div className="space-y-3">
                     <button
                         type="submit"
-                        disabled={isSaving}
+                        disabled={isSaving || !canSave || isViewMode}
                         className="w-full px-4 py-3 bg-indigo-600 text-white rounded-xl font-semibold
                                    hover:bg-indigo-700 active:bg-indigo-800 transition-colors
-                                   disabled:opacity-50 disabled:cursor-not-allowed
+                                   disabled:opacity-40 disabled:cursor-not-allowed
                                    flex items-center justify-center gap-2 shadow-sm"
                     >
                         {isSaving ? (
@@ -181,12 +182,15 @@ function SalaryStructureCoastSummurySaveButtons({
                             <Clock size={11} />
                             <span>Today: {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                         </div>
-                        <p>
-                            {structure.components.length === 0
-                                ? '⚠ Add at least one component before saving.'
-                                : `✓ ${structure.components.length} component${structure.components.length !== 1 ? 's' : ''} ready to save.`
-                            }
-                        </p>
+                        {!isBasicInfoComplete && (
+                            <p className="text-amber-500">⚠ Fill in Structure Name and Effective Date.</p>
+                        )}
+                        {isBasicInfoComplete && !hasComponents && (
+                            <p className="text-amber-500">⚠ Add at least one component before saving.</p>
+                        )}
+                        {canSave && (
+                            <p className="text-green-500">✓ {structure.components.length} component{structure.components.length !== 1 ? 's' : ''} ready to save.</p>
+                        )}
                     </div>
                 </div>
             </div>

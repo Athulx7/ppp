@@ -40,6 +40,13 @@ import AnimatelandingPage from './AnimatedLandingPage/AnimatelandingPage'
 import JobCalendar from './JobTracking/JobCalendar'
 import AdminJobDashboard from './JobTracking/JobAdminView'
 import JobTrackingEntry from './JobTracking/container/JobTrackingEntry'
+import LeaveRequestMobile from './Dashboard/Mobile/Leaverequestmobile'
+import RegularizeMobile from './Dashboard/Mobile/Regularizemobile'
+import PayslipsMobile from './Dashboard/Mobile/Payslipsmobile'
+import ProfileMobile from './Dashboard/Mobile/Profilemobile'
+import ManagerApprovalsMobile from './Dashboard/Mobile/Managerapprovalsmobile'
+import ChatPage from './ChatModule/Chatpage'
+import ChatBotPage from './ChatModule/ChatBotPage'
 
 const PublicRoute = ({ children }) => {
   const token = sessionStorage.getItem('token')
@@ -69,8 +76,8 @@ function App() {
         <Route path='/' element={<AnimatelandingPage />} />
         <Route path='/login' element={<PublicRoute><LoginPage /></PublicRoute>} />
 
-        {/* <Route path='/admin' element={<ProtectedRoute allowedRoles={['ADMIN']}> <Dashboard /> </ProtectedRoute>}> */}
-        <Route path='/admin' element={<Dashboard />}>
+        <Route path='/admin' element={<ProtectedRoute allowedRoles={['ADMIN']}> <Dashboard /> </ProtectedRoute>}>
+        {/* <Route path='/admin' element={<Dashboard />}> */}
           <Route index element={<AdminDashboard />} />
 
           {/* Done fe be */}
@@ -91,6 +98,7 @@ function App() {
           <Route path='salary_structure' element={<SalaryStructureEntry />} />
           <Route path='salary_structure/create' element={<SalaryStructureAddEditEntry />} />
           <Route path='salary_structure/edit/:id' element={<SalaryStructureAddEditEntry />} />
+          <Route path='salary_structure/view/:id' element={<SalaryStructureAddEditEntry />} />
 
           <Route path='profile' element={<UserProfileEntry />} />
 
@@ -124,6 +132,9 @@ function App() {
           <Route path='jobcalendar' element={<JobCalendar />} />
           <Route path='adminjobtracking' element={<AdminJobDashboard />} />
 
+          <Route path='chat' element={<ChatPage />} />
+          <Route path='chatbot' element={<ChatBotPage />} />
+
         </Route>
 
         <Route path='/employee' element={<ProtectedRoute allowedRoles={['EMPLOYEE']}><Dashboard /></ProtectedRoute>}>
@@ -134,8 +145,17 @@ function App() {
           <Route path='leaveRequest' element={<LeaveRequest />} />
           <Route path='myleves' element={<MyLeaves />} />
           <Route path='salaryadvanceRequest' element={<SalaryAdvanceRequest />} />
-          {/* fot the Manager */}
           <Route path='leaveapproval' element={<LeaveApproval />} />
+
+          {/* for mobile  */}
+          <Route path="leave"      element={<LeaveRequestMobile />} />
+          <Route path="regularize" element={<RegularizeMobile />} />
+          <Route path="payslips"   element={<PayslipsMobile />} />
+          <Route path="profile"    element={<ProfileMobile />} />
+          <Route path="approvals"  element={<ManagerApprovalsMobile />} />
+          <Route path='chat' element={<ChatPage />} />
+          <Route path='chatbot' element={<ChatBotPage />} />
+
         </Route>
 
         <Route path='/hr' element={<ProtectedRoute allowedRoles={['HR']}><Dashboard /> </ProtectedRoute>}>
@@ -147,6 +167,7 @@ function App() {
           <Route path='salary_structure' element={<SalaryStructureEntry />} />
           <Route path='salary_structure/create' element={<SalaryStructureAddEditEntry />} />
           <Route path='salary_structure/edit/:id' element={<SalaryStructureAddEditEntry />} />
+          <Route path='salary_structure/view/:id' element={<SalaryStructureAddEditEntry />} />
           <Route path='employee_master_entry' element={<EmployeeMasterEntry />} />
           <Route path='employee_master_entry/edit/add' element={<EmpMstAddEditEntry />} />
           <Route path='employee_master_entry/edit/:id' element={<EmpMstAddEditEntry />} />
@@ -157,6 +178,8 @@ function App() {
           <Route path='uploadHistory' element={<UploadHistoryEntry />} />
           <Route path='ctcreport' element={<CtcReportEntry />} />
           <Route path='payslip' element={<PayslipsEntry />} />
+          <Route path='chat' element={<ChatPage />} />
+          <Route path='chatbot' element={<ChatBotPage />} />
         </Route>
 
         <Route path='/payroll' element={<ProtectedRoute allowedRoles={['PAYROLL_MANAGER']}> <Dashboard /> </ProtectedRoute>}>
@@ -168,6 +191,8 @@ function App() {
           <Route path='uploadHistory' element={<UploadHistoryEntry />} />
           <Route path='ctcreport' element={<CtcReportEntry />} />
           <Route path='payslip' element={<PayslipsEntry />} />
+          <Route path='chat' element={<ChatPage />} />
+          <Route path='chatbot' element={<ChatBotPage />} />
         </Route>
 
         <Route path='/dashboard' element={<RoleBasedRedirect />} />

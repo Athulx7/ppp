@@ -9,12 +9,13 @@ function ComponentCard({
     calculationOptions,
     onEdit,
     onRemove,
-    calculatedValues
+    calculatedValues,
+    isViewMode
 }) {
 
     const calcType = calculationOptions.find(c => c.value === component.calc_code)
     const borderColor = typeMap[component.type_code]?.colors?.border || FALLBACK_COLOR.border
-    const value = calculatedValues?.values?.[component.component_code] ?? 0
+    const value = calculatedValues?.[component.component_code] ?? 0
 
     return (
         <div className={`border border-gray-200 border-l-4 ${borderColor} rounded-xl p-4`}>
@@ -33,13 +34,17 @@ function ComponentCard({
                 </div>
 
                 <div className="flex gap-2">
-                    <button onClick={() => onEdit(index)}>
-                        <Pencil size={14} />
-                    </button>
+                    {!isViewMode && (
+                        <>
+                            <button type="button" onClick={() => onEdit(index)}>
+                                <Pencil size={14} />
+                            </button>
 
-                    <button onClick={() => onRemove(index)}>
-                        <Trash2 size={14} />
-                    </button>
+                            <button type="button" onClick={() => onRemove(index)}>
+                                <Trash2 size={14} />
+                            </button>
+                        </>
+                    )}
                 </div>
             </div>
         </div>

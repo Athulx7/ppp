@@ -1,8 +1,11 @@
 import { ChevronRight, LayoutDashboard } from "lucide-react"
 import React from "react"
 import { Link } from "react-router-dom"
+import { getRoleBasePath } from "../library/constants"
 
 function Breadcrumb({ items = [], title, description, actions, loading = false }) {
+    const basePath = getRoleBasePath()
+
     return (
         <>
             <div className="flex items-center text-sm mb-2">
@@ -15,7 +18,7 @@ function Breadcrumb({ items = [], title, description, actions, loading = false }
                 ) : (
                     <>
                         <Link
-                            to="/"
+                            to={basePath}
                             className="flex items-center text-indigo-600 hover:underline font-medium"
                         >
                             <LayoutDashboard className="w-4 h-4 mr-1" />

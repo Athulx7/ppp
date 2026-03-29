@@ -4,7 +4,7 @@ import CommonInputField from '../../basicComponents/CommonInputField'
 import CommonDropDown from '../../basicComponents/CommonDropDown'
 import CommonDatePicker from '../../basicComponents/CommonDatePicker'
 
-function StructureBasicInformation({ isLoading, structure, handleChange }) {
+function StructureBasicInformation({ isLoading, structure, handleChange, isViewMode }) {
     return (
         <>
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -20,7 +20,7 @@ function StructureBasicInformation({ isLoading, structure, handleChange }) {
                         onChange={v => handleChange('code', v.toUpperCase())}
                         placeholder="e.g., JSE-STR"
                         required
-                        disabled
+                        disabled={isViewMode}
                     />
 
                     <CommonInputField
@@ -30,6 +30,7 @@ function StructureBasicInformation({ isLoading, structure, handleChange }) {
                         placeholder="e.g., Junior Software Engineer Structure"
                         required
                         loading={isLoading.normal}
+                        disabled={isViewMode}
                     />
 
                     <div>
@@ -42,6 +43,7 @@ function StructureBasicInformation({ isLoading, structure, handleChange }) {
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                             rows="3"
                             placeholder="Describe the purpose and usage of this structure..."
+                            disabled={isViewMode}
                         />
                     </div>
 
@@ -52,6 +54,7 @@ function StructureBasicInformation({ isLoading, structure, handleChange }) {
                             onChange={v => handleChange('effectiveDate', v)}
                             required
                             loading={isLoading.normal}
+                            disabled={isViewMode}
                         />
 
                         <CommonDropDown
@@ -62,6 +65,7 @@ function StructureBasicInformation({ isLoading, structure, handleChange }) {
                                 { value: 'inactive', label: 'Inactive' }
                             ]}
                             onChange={v => handleChange('status', v)}
+                            disabled={isViewMode}
                         />
                     </div>
                 </div>

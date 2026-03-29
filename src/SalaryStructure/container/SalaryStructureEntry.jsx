@@ -7,7 +7,7 @@ function SalaryStructureEntry() {
     return (
         <>
             <Breadcrumb
-                items={[{ label: "Salary Structure Management", to: `/admin/salary_structure` }, { label: `Create Salary Structure` }]}
+                items={[{ label: "Salary Structure Management" }]}
                 title="Salary Structure Management"
                 description="Create and manage salary structures, assign to designations or employees, and track history"
                 loading={isLoading.normal}
