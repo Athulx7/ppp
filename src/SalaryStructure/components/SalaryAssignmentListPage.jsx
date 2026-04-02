@@ -5,9 +5,15 @@ import CommonDropDown from '../../basicComponents/CommonDropDown'
 import CommonTable from '../../basicComponents/commonTable'
 import { ApiCall } from '../../library/constants'
 
-function SalaryAssignmentListPage({ isLoading, onEditAssignment }) {
+function SalaryAssignmentListPage({ isLoading, onEditAssignment, keytoRefreshAssignment }) {
 
     const [assignments, setAssignments] = useState([])
+
+    useEffect(() => {
+        if (keytoRefreshAssignment > 0) {
+            fetchAssignments()
+        }
+    }, [keytoRefreshAssignment])
 
     useEffect(() => {
         fetchAssignments()
@@ -19,12 +25,10 @@ function SalaryAssignmentListPage({ isLoading, onEditAssignment }) {
 
             if (res?.data?.success) {
 
-                // 🔥 FLATTEN DATA (IMPORTANT)
                 const processed = res.data.data.flatMap(row => {
 
                     const netCost = Math.round(row.net_salary || 0)
 
-                    // ── EMPLOYEE BASED ─────────────────
                     if (row.type === 'employee') {
                         return [{
                             ...row,
@@ -36,7 +40,6 @@ function SalaryAssignmentListPage({ isLoading, onEditAssignment }) {
                         }]
                     }
 
-                    // ── DESIGNATION BASED ──────────────
                     if (row.type === 'designation' && row.mapped_employees?.length) {
                         return row.mapped_employees.map(emp => ({
                             ...row,
@@ -165,11 +168,10 @@ function SalaryAssignmentListPage({ isLoading, onEditAssignment }) {
         {
             header: "Type",
             cell: row => (
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    row.type === 'designation'
-                        ? 'bg-blue-100 text-blue-800'
-                        : 'bg-green-100 text-green-800'
-                }`}>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${row.type === 'designation'
+                    ? 'bg-blue-100 text-blue-800'
+                    : 'bg-green-100 text-green-800'
+                    }`}>
                     {row.type === 'designation'
                         ? 'Designation Based'
                         : 'Employee'}
@@ -199,11 +201,10 @@ function SalaryAssignmentListPage({ isLoading, onEditAssignment }) {
         {
             header: "Status",
             cell: row => (
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    row.status
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-gray-100 text-gray-800'
-                }`}>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${row.status
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-gray-100 text-gray-800'
+                    }`}>
                     {row.status ? 'Active' : 'Inactive'}
                 </span>
             )

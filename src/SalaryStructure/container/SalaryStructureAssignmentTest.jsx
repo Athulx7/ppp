@@ -7,6 +7,7 @@ import {
 import CommonDropDown from '../../basicComponents/CommonDropDown';
 import CommonDatePicker from '../../basicComponents/CommonDatePicker';
 import { ApiCall } from '../../library/constants';
+import useSalaryAssignment from "../hooks/useSalaryAssignment"
 
 function SalaryStructureAssignment({ isOpen, onClose, assignmentId }) {
     const isEditMode = !!assignmentId;
@@ -28,11 +29,8 @@ function SalaryStructureAssignment({ isOpen, onClose, assignmentId }) {
     const [designations, setDesignations] = useState([]);
     const [employees, setEmployees] = useState([]);
     const [structures, setStructures] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [errors, setErrors] = useState({});
     const [selectedTarget, setSelectedTarget] = useState(null);
     const [selectedStructure, setSelectedStructure] = useState(null);
-    const [showSuccess, setShowSuccess] = useState(false);
 
     useEffect(() => {
         fetchDropdowns()
@@ -60,44 +58,25 @@ function SalaryStructureAssignment({ isOpen, onClose, assignmentId }) {
     }
 
     useEffect(() => {
-        if (!isOpen) {
-            setFormData({ ...BLANK });
-            setSelectedTarget(null);
-            setSelectedStructure(null);
-            setErrors({});
-            setShowSuccess(false);
-            return;
-        }
-        if (isEditMode && assignmentId) fetchAssignmentData(assignmentId);
-    }, [isOpen, isEditMode, assignmentId]);
+        if (!isOpen) return
 
-    const fetchAssignmentData = (id) => {
-        setLoading(true);
-        setTimeout(() => {
-            const sample = {
-                id: 1, type: 'employee', targetId: 101, targetName: 'John Smith',
-                employeeCode: 'EMP001', structureId: 1,
-                structureName: 'Junior Software Engineer',
-                effectiveDate: '2023-06-15', endDate: '', isPermanent: true,
-                reason: 'Initial assignment on joining', status: 'active'
-            };
-            setFormData({
-                assignmentType: sample.type,
-                targetId: sample.targetId,
-                targetName: sample.targetName,
-                structureId: sample.structureId,
-                structureName: sample.structureName,
-                effectiveDate: sample.effectiveDate,
-                endDate: sample.endDate || '',
-                isPermanent: !sample.endDate,
-                reason: sample.reason || '',
-                status: sample.status
-            });
-            setSelectedTarget({ id: sample.targetId, name: sample.targetName, employeeCode: sample.employeeCode });
-            setSelectedStructure({ id: sample.structureId, name: sample.structureName });
-            setLoading(false);
-        }, 500);
-    };
+        if (isEditMode && assignmentId) {
+            loadAssignment(assignmentId)
+        } else {
+            setFormData({ ...BLANK })
+        }
+    }, [isOpen, assignmentId])
+
+    const {
+        saveAssignment,
+        fetchAssignmentById,
+        loading,
+        errors,
+        showSuccess,
+        setErrors,
+        setLoading,
+        setShowSuccess,
+    } = useSalaryAssignment(onClose)
 
     const handleChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -107,6 +86,33 @@ function SalaryStructureAssignment({ isOpen, onClose, assignmentId }) {
             setSelectedTarget(null);
         }
     };
+
+    const loadAssignment = async (id) => {
+        try {
+            setLoading(true)
+
+            const data = await fetchAssignmentById(id)
+
+            if (!data) return
+            setFormData({
+                assignmentType: data.type,
+                targetId: data.target_code,
+                targetName: data.target_name,
+                structureId: data.structure_id,
+                structureName: data.structure_name,
+                effectiveDate: data.effective_date?.split('T')[0],
+                endDate: data.end_date || '',
+                isPermanent: !data.end_date,
+                reason: data.reason || '',
+                status: data.status ? 'active' : 'inactive'
+            })
+
+        } catch (err) {
+            console.error(err)
+        } finally {
+            setLoading(false)
+        }
+    }
 
     const handleTargetSelect = (id) => {
         const list = formData.assignmentType === 'designation' ? designations : employees;
@@ -138,41 +144,11 @@ function SalaryStructureAssignment({ isOpen, onClose, assignmentId }) {
         return Object.keys(e).length === 0;
     };
 
-    const handleSubmit = async (ev) => {
-        ev.preventDefault()
+    const handleSubmit = async (e) => {
+        e.preventDefault()
         if (!validate()) return
-        try {
-            setLoading(true)
-            const payload = {
-                type: formData.assignmentType,
-                targetId: formData.targetId,
-                structureId: formData.structureId,
-                effectiveDate: formData.effectiveDate,
-                endDate: formData.isPermanent ? null : formData.endDate,
-                reason: formData.reason,
-                status: formData.status
-            }
-            console.log('save payload',payload)
-            const res = await ApiCall("post", "/salarystructure/saveassign", payload)
-            console.log('save api',res)
 
-            if (res?.data?.success) {
-                setShowSuccess(true)
-                setTimeout(() => {
-                    setShowSuccess(false)
-                    onClose()
-                }, 1500)
-            }
-
-        } catch (err) {
-            console.error(err)
-            setErrors(prev => ({
-                ...prev,
-                submit: err?.response?.data?.message || "Failed to save"
-            }))
-        } finally {
-            setLoading(false)
-        }
+        await saveAssignment(formData, isEditMode)
     }
 
     const targetOptions = formData.assignmentType === 'designation'
