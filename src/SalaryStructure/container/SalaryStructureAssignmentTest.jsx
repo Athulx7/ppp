@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import CommonDropDown from '../../basicComponents/CommonDropDown';
 import CommonDatePicker from '../../basicComponents/CommonDatePicker';
+import { ApiCall } from '../../library/constants';
 
 function SalaryStructureAssignment({ isOpen, onClose, assignmentId }) {
     const isEditMode = !!assignmentId;
@@ -34,26 +35,29 @@ function SalaryStructureAssignment({ isOpen, onClose, assignmentId }) {
     const [showSuccess, setShowSuccess] = useState(false);
 
     useEffect(() => {
-        setDesignations([
-            { id: 1, name: 'Junior Software Engineer', code: 'JSE', department: 'Engineering' },
-            { id: 2, name: 'Senior Software Engineer', code: 'SSE', department: 'Engineering' },
-            { id: 3, name: 'Team Lead', code: 'TL', department: 'Engineering' },
-            { id: 4, name: 'HR Executive', code: 'HRE', department: 'Human Resources' },
-            { id: 5, name: 'Sales Executive', code: 'SE', department: 'Sales' },
-        ]);
-        setEmployees([
-            { id: 101, name: 'John Smith', employeeCode: 'EMP001', designation: 'Junior Software Engineer', department: 'Engineering' },
-            { id: 102, name: 'Sarah Johnson', employeeCode: 'EMP002', designation: 'Senior Software Engineer', department: 'Engineering' },
-            { id: 103, name: 'Mike Chen', employeeCode: 'EMP003', designation: 'HR Executive', department: 'Human Resources' },
-            { id: 104, name: 'Priya Sharma', employeeCode: 'EMP004', designation: 'Junior Software Engineer', department: 'Engineering' },
-        ]);
-        setStructures([
-            { id: 1, name: 'Junior Software Engineer', code: 'JSE-STR', totalCost: 65200 },
-            { id: 2, name: 'Senior Software Engineer', code: 'SSE-STR', totalCost: 110400 },
-            { id: 3, name: 'HR Executive', code: 'HRE-STR', totalCost: 52720 },
-            { id: 4, name: 'Sales Executive', code: 'SE-STR', totalCost: 48500 },
-        ]);
-    }, []);
+        fetchDropdowns()
+    }, [])
+
+    async function fetchDropdowns() {
+        try {
+            setLoading(true)
+
+            const res = await ApiCall("get", "/salarystructure/assignmentDropdowns")
+
+            if (res?.data?.success) {
+                const data = res.data.data
+
+                setDesignations(data.designations || [])
+                setEmployees(data.employees || [])
+                setStructures(data.structures || [])
+            }
+
+        } catch (err) {
+            console.error("Dropdown fetch error:", err)
+        } finally {
+            setLoading(false)
+        }
+    }
 
     useEffect(() => {
         if (!isOpen) {
@@ -106,18 +110,18 @@ function SalaryStructureAssignment({ isOpen, onClose, assignmentId }) {
 
     const handleTargetSelect = (id) => {
         const list = formData.assignmentType === 'designation' ? designations : employees;
-        const found = list.find(i => i.id === id || i.id === Number(id));
+        const found = list.find(i => i.value === id);
         if (!found) return;
         setSelectedTarget(found);
-        setFormData(prev => ({ ...prev, targetId: found.id, targetName: found.name }));
+        setFormData(prev => ({ ...prev, targetId: found.value, targetName: found.label }));
         if (errors.targetId) setErrors(prev => ({ ...prev, targetId: null }));
     };
 
     const handleStructureSelect = (id) => {
-        const found = structures.find(s => s.id === id || s.id === Number(id));
+        const found = structures.find(s => s.value === id || s.value === Number(id));
         if (!found) return;
         setSelectedStructure(found);
-        setFormData(prev => ({ ...prev, structureId: found.id, structureName: found.name }));
+        setFormData(prev => ({ ...prev, structureId: found.value, structureName: found.label }));
         if (errors.structureId) setErrors(prev => ({ ...prev, structureId: null }));
     };
 
@@ -135,40 +139,47 @@ function SalaryStructureAssignment({ isOpen, onClose, assignmentId }) {
     };
 
     const handleSubmit = async (ev) => {
-        ev.preventDefault();
-        if (!validate()) return;
-        setLoading(true);
+        ev.preventDefault()
+        if (!validate()) return
         try {
+            setLoading(true)
             const payload = {
                 type: formData.assignmentType,
                 targetId: formData.targetId,
-                targetName: formData.targetName,
                 structureId: formData.structureId,
-                structureName: formData.structureName,
                 effectiveDate: formData.effectiveDate,
                 endDate: formData.isPermanent ? null : formData.endDate,
                 reason: formData.reason,
                 status: formData.status
-            };
-            await new Promise(r => setTimeout(r, 900));
-            console.log('Assignment saved:', payload);
-            setShowSuccess(true);
-            setTimeout(() => { setShowSuccess(false); onClose(); }, 2000);
-        } catch {
-            setErrors(prev => ({ ...prev, submit: 'Failed to save assignment. Please try again.' }));
+            }
+            console.log('save payload',payload)
+            const res = await ApiCall("post", "/salarystructure/saveassign", payload)
+            console.log('save api',res)
+
+            if (res?.data?.success) {
+                setShowSuccess(true)
+                setTimeout(() => {
+                    setShowSuccess(false)
+                    onClose()
+                }, 1500)
+            }
+
+        } catch (err) {
+            console.error(err)
+            setErrors(prev => ({
+                ...prev,
+                submit: err?.response?.data?.message || "Failed to save"
+            }))
         } finally {
-            setLoading(false);
+            setLoading(false)
         }
-    };
+    }
 
     const targetOptions = formData.assignmentType === 'designation'
-        ? designations.map(d => ({ value: d.id, label: `${d.name} • ${d.department}` }))
-        : employees.map(e => ({ value: e.id, label: `${e.name} (${e.employeeCode})` }));
+        ? designations.map(d => ({ value: d.value, label: d.label }))
+        : employees.map(e => ({ value: e.value, label: e.label }));
 
-    const structureOptions = structures.map(s => ({
-        value: s.id,
-        label: `${s.name} — ₹${s.totalCost?.toLocaleString('en-IN')}/mo`
-    }));
+    const structureOptions = structures.map(s => ({ value: s.value, label: s.label }));
 
     const canPreview = selectedTarget && selectedStructure;
 
@@ -267,7 +278,7 @@ function SalaryStructureAssignment({ isOpen, onClose, assignmentId }) {
 
                             {selectedTarget && formData.assignmentType === 'employee' && (
                                 <div className="mt-3 flex flex-wrap gap-2">
-                                    <Chip label="Code" value={selectedTarget.employeeCode} />
+                                    <Chip label="Code" value={selectedTarget.value} />
                                     <Chip label="Role" value={selectedTarget.designation} />
                                     <Chip label="Dept" value={selectedTarget.department} />
                                 </div>
@@ -275,8 +286,7 @@ function SalaryStructureAssignment({ isOpen, onClose, assignmentId }) {
 
                             {selectedTarget && formData.assignmentType === 'designation' && (
                                 <div className="mt-3 flex flex-wrap gap-2">
-                                    <Chip label="Code" value={selectedTarget.code} />
-                                    <Chip label="Dept" value={selectedTarget.department} />
+                                    <Chip label="Code" value={selectedTarget.value} />
                                 </div>
                             )}
                         </section>
@@ -294,10 +304,7 @@ function SalaryStructureAssignment({ isOpen, onClose, assignmentId }) {
 
                             {selectedStructure && (
                                 <div className="mt-3 flex flex-wrap gap-2">
-                                    <Chip label="Code" value={structures.find(s => s.id === selectedStructure.id)?.code} />
-                                    <Chip label="Monthly Cost"
-                                        value={`₹${structures.find(s => s.id === selectedStructure.id)?.totalCost?.toLocaleString('en-IN')}`}
-                                        highlight />
+                                    <Chip label="Code" value={structures.find(s => s.value === selectedStructure.value)?.structure_code} />
                                 </div>
                             )}
                         </section>
