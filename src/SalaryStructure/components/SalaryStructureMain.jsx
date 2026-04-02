@@ -14,6 +14,7 @@ function SalaryStructureMain({ isLoading, setIsLoading, handleEditStructure }) {
     const [isAssignPopupOpen, setIsAssignPopupOpen] = useState(false)
     const [assignPopupId, setAssignPopupId] = useState(null)
     const [structures, setStructures] = useState([]);
+    const [keytoRefreshAssignment, setKeytoRefreshAssignment] = useState(0)
 
     const structureColumns = [
         {
@@ -43,8 +44,8 @@ function SalaryStructureMain({ isLoading, setIsLoading, handleEditStructure }) {
                         onClick={() => row.isDeletable && console.log('delete', row.id)}
                         disabled={!row.isDeletable}
                         className={`${row.isDeletable
-                                ? 'text-red-600 hover:text-red-900'
-                                : 'text-gray-400 cursor-not-allowed'
+                            ? 'text-red-600 hover:text-red-900'
+                            : 'text-gray-400 cursor-not-allowed'
                             }`}
                         title={row.isDeletable ? "Delete" : "Cannot delete (in use)"}
                     >
@@ -181,7 +182,7 @@ function SalaryStructureMain({ isLoading, setIsLoading, handleEditStructure }) {
                 </div>
 
                 <div className="flex items-center gap-3 p-1">
-                    <button onClick={() =>navigate(`${getRoleBasePath()}/salary_structure/create`)}
+                    <button onClick={() => navigate(`${getRoleBasePath()}/salary_structure/create`)}
                         className="px-4 py-2 bg-indigo-50 text-indigo-500 rounded-md text-sm font-medium hover:bg-indigo-100 transition-colors flex items-center gap-2"
                     >
                         <Plus size={16} />
@@ -205,7 +206,7 @@ function SalaryStructureMain({ isLoading, setIsLoading, handleEditStructure }) {
 
             {activeTab === 'assignments' && (
                 <div className='mt-3'>
-                    <SalaryAssignmentListPage isLoading={isLoading} setIsLoading={setIsLoading} onEditAssignment={handleOpenAssignPopup} />
+                    <SalaryAssignmentListPage isLoading={isLoading} setIsLoading={setIsLoading} onEditAssignment={handleOpenAssignPopup} keytoRefreshAssignment={keytoRefreshAssignment} />
                 </div>
             )}
 
@@ -217,7 +218,10 @@ function SalaryStructureMain({ isLoading, setIsLoading, handleEditStructure }) {
 
             <SalaryStructureAssignment
                 isOpen={isAssignPopupOpen}
-                onClose={handleCloseAssignPopup}
+                onClose={() => {
+                    handleCloseAssignPopup()
+                    setKeytoRefreshAssignment(1)
+                }}
                 assignmentId={assignPopupId}
             />
 
