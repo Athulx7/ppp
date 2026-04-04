@@ -9,7 +9,7 @@ import CommonDatePicker from '../../basicComponents/CommonDatePicker';
 import { ApiCall } from '../../library/constants';
 import useSalaryAssignment from "../hooks/useSalaryAssignment"
 
-function SalaryStructureAssignment({ isOpen, onClose, assignmentId }) {
+function SalaryStructureAssignment({ isOpen, onClose, assignmentId, employeeCode }) {
     const isEditMode = !!assignmentId;
 
     const BLANK = {
@@ -72,10 +72,8 @@ function SalaryStructureAssignment({ isOpen, onClose, assignmentId }) {
         fetchAssignmentById,
         loading,
         errors,
-        showSuccess,
         setErrors,
         setLoading,
-        setShowSuccess,
     } = useSalaryAssignment(onClose)
 
     const handleChange = (field, value) => {
@@ -91,7 +89,7 @@ function SalaryStructureAssignment({ isOpen, onClose, assignmentId }) {
         try {
             setLoading(true)
 
-            const data = await fetchAssignmentById(id)
+            const data = await fetchAssignmentById(id, employeeCode)
 
             if (!data) return
             setFormData({
@@ -148,7 +146,7 @@ function SalaryStructureAssignment({ isOpen, onClose, assignmentId }) {
         e.preventDefault()
         if (!validate()) return
 
-        await saveAssignment(formData, isEditMode)
+        await saveAssignment(formData, isEditMode, assignmentId)
     }
 
     const targetOptions = formData.assignmentType === 'designation'
@@ -181,7 +179,7 @@ function SalaryStructureAssignment({ isOpen, onClose, assignmentId }) {
                                 </h2>
                                 <p className="text-indigo-200 text-xs mt-0.5">
                                     {isEditMode
-                                        ? 'Modify salary structure assignment details'
+                                        ? 'Change the salary structure for this employee'
                                         : 'Link a salary structure to a designation or employee'}
                                 </p>
                             </div>
@@ -193,79 +191,92 @@ function SalaryStructureAssignment({ isOpen, onClose, assignmentId }) {
                     </div>
                 </div>
 
-                {showSuccess && (
-                    <div className="flex-shrink-0 flex items-center gap-3 px-6 py-3 bg-emerald-50 border-b border-emerald-200">
-                        <CheckCircle size={18} className="text-emerald-500 flex-shrink-0" />
-                        <div>
-                            <p className="text-sm font-semibold text-emerald-800">Assignment saved successfully!</p>
-                            <p className="text-xs text-emerald-600">Closing in a moment…</p>
-                        </div>
-                    </div>
-                )}
 
                 <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto scrollbar">
                     <div className="p-6 space-y-6">
 
-                        <section>
-                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Assignment Type</p>
-                            <div className="grid grid-cols-2 gap-3">
-                                {[
-                                    { value: 'designation', icon: Building2, label: 'Designation', sub: 'All employees with this role' },
-                                    { value: 'employee', icon: User, label: 'Individual Employee', sub: 'A specific person' },
-                                ].map(opt => {
-                                    const Icon = opt.icon;
-                                    const active = formData.assignmentType === opt.value;
-                                    return (
-                                        <button key={opt.value} type="button"
-                                            onClick={() => handleChange('assignmentType', opt.value)}
-                                            className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all
-                                                ${active
-                                                    ? 'border-indigo-500 bg-indigo-50'
-                                                    : 'border-gray-200 hover:border-gray-300 bg-white'}`}>
-                                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0
-                                                ${active ? 'bg-indigo-100' : 'bg-gray-100'}`}>
-                                                <Icon size={18} className={active ? 'text-indigo-600' : 'text-gray-500'} />
-                                            </div>
-                                            <div>
-                                                <p className={`text-sm font-semibold ${active ? 'text-indigo-700' : 'text-gray-800'}`}>
-                                                    {opt.label}
-                                                </p>
-                                                <p className="text-xs text-gray-400 mt-0.5">{opt.sub}</p>
-                                            </div>
-                                            {active && (
-                                                <BadgeCheck size={16} className="text-indigo-500 ml-auto flex-shrink-0" />
-                                            )}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </section>
-
-                        <section>
-                            <CommonDropDown
-                                label={formData.assignmentType === 'designation' ? 'Designation' : 'Employee'}
-                                options={targetOptions}
-                                value={formData.targetId}
-                                onChange={handleTargetSelect}
-                                placeholder={`Choose a ${formData.assignmentType === 'designation' ? 'designation' : 'employee'}…`}
-                                required
-                            />
-                            {errors.targetId && <ErrorMsg msg={errors.targetId} />}
-
-                            {selectedTarget && formData.assignmentType === 'employee' && (
-                                <div className="mt-3 flex flex-wrap gap-2">
-                                    <Chip label="Code" value={selectedTarget.value} />
-                                    <Chip label="Role" value={selectedTarget.designation} />
-                                    <Chip label="Dept" value={selectedTarget.department} />
+                        {/* Assignment type picker — hidden in edit mode */}
+                        {!isEditMode && (
+                            <section>
+                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Assignment Type</p>
+                                <div className="grid grid-cols-2 gap-3">
+                                    {[
+                                        { value: 'designation', icon: Building2, label: 'Designation', sub: 'All employees with this role' },
+                                        { value: 'employee', icon: User, label: 'Individual Employee', sub: 'A specific person' },
+                                    ].map(opt => {
+                                        const Icon = opt.icon;
+                                        const active = formData.assignmentType === opt.value;
+                                        return (
+                                            <button key={opt.value} type="button"
+                                                onClick={() => handleChange('assignmentType', opt.value)}
+                                                className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all
+                                                    ${active
+                                                        ? 'border-indigo-500 bg-indigo-50'
+                                                        : 'border-gray-200 hover:border-gray-300 bg-white'}`}>
+                                                <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0
+                                                    ${active ? 'bg-indigo-100' : 'bg-gray-100'}`}>
+                                                    <Icon size={18} className={active ? 'text-indigo-600' : 'text-gray-500'} />
+                                                </div>
+                                                <div>
+                                                    <p className={`text-sm font-semibold ${active ? 'text-indigo-700' : 'text-gray-800'}`}>
+                                                        {opt.label}
+                                                    </p>
+                                                    <p className="text-xs text-gray-400 mt-0.5">{opt.sub}</p>
+                                                </div>
+                                                {active && (
+                                                    <BadgeCheck size={16} className="text-indigo-500 ml-auto flex-shrink-0" />
+                                                )}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
-                            )}
+                            </section>
+                        )}
 
-                            {selectedTarget && formData.assignmentType === 'designation' && (
-                                <div className="mt-3 flex flex-wrap gap-2">
-                                    <Chip label="Code" value={selectedTarget.value} />
+                        {/* In edit mode — show employee as locked read-only card */}
+                        {isEditMode ? (
+                            <section>
+                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Employee</p>
+                                <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50">
+                                    <div className="w-9 h-9 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                                        <User size={18} className="text-indigo-600" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-semibold text-gray-800 truncate">
+                                            {formData.targetName || '—'}
+                                        </p>
+                                        <p className="text-xs text-gray-400 mt-0.5">Employee (read-only)</p>
+                                    </div>
+                                    <BadgeCheck size={16} className="text-indigo-400 flex-shrink-0" />
                                 </div>
-                            )}
-                        </section>
+                            </section>
+                        ) : (
+                            <section>
+                                <CommonDropDown
+                                    label={formData.assignmentType === 'designation' ? 'Designation' : 'Employee'}
+                                    options={targetOptions}
+                                    value={formData.targetId}
+                                    onChange={handleTargetSelect}
+                                    placeholder={`Choose a ${formData.assignmentType === 'designation' ? 'designation' : 'employee'}…`}
+                                    required
+                                />
+                                {errors.targetId && <ErrorMsg msg={errors.targetId} />}
+
+                                {selectedTarget && formData.assignmentType === 'employee' && (
+                                    <div className="mt-3 flex flex-wrap gap-2">
+                                        <Chip label="Code" value={selectedTarget.value} />
+                                        <Chip label="Role" value={selectedTarget.designation} />
+                                        <Chip label="Dept" value={selectedTarget.department} />
+                                    </div>
+                                )}
+
+                                {selectedTarget && formData.assignmentType === 'designation' && (
+                                    <div className="mt-3 flex flex-wrap gap-2">
+                                        <Chip label="Code" value={selectedTarget.value} />
+                                    </div>
+                                )}
+                            </section>
+                        )}
 
                         <section>
                             <CommonDropDown

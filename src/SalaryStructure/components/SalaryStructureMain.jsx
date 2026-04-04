@@ -15,6 +15,10 @@ function SalaryStructureMain({ isLoading, setIsLoading, handleEditStructure }) {
     const [assignPopupId, setAssignPopupId] = useState(null)
     const [structures, setStructures] = useState([]);
     const [keytoRefreshAssignment, setKeytoRefreshAssignment] = useState(0)
+    const [assignPopupData, setAssignPopupData] = useState({
+        id: null,
+        empCode: null
+    })
 
     const structureColumns = [
         {
@@ -144,10 +148,13 @@ function SalaryStructureMain({ isLoading, setIsLoading, handleEditStructure }) {
         }
     }
 
-    const handleOpenAssignPopup = (id = null) => {
-        setAssignPopupId(id);
-        setIsAssignPopupOpen(true);
-    };
+    const handleOpenAssignPopup = (id = null, empCode = null) => {
+        setAssignPopupData({
+            id,
+            empCode
+        })
+        setIsAssignPopupOpen(true)
+    }
 
     const handleCloseAssignPopup = () => {
         setIsAssignPopupOpen(false);
@@ -222,7 +229,8 @@ function SalaryStructureMain({ isLoading, setIsLoading, handleEditStructure }) {
                     handleCloseAssignPopup()
                     setKeytoRefreshAssignment(1)
                 }}
-                assignmentId={assignPopupId}
+                assignmentId={assignPopupData.id}
+                employeeCode={assignPopupData.empCode}
             />
 
         </>

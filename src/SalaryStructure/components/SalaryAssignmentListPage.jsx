@@ -22,13 +22,10 @@ function SalaryAssignmentListPage({ isLoading, onEditAssignment, keytoRefreshAss
     async function fetchAssignments() {
         try {
             const res = await ApiCall("get", "/salarystructure/getassignments")
-
             if (res?.data?.success) {
-
                 const processed = res.data.data.flatMap(row => {
 
                     const netCost = Math.round(row.net_salary || 0)
-
                     if (row.type === 'employee') {
                         return [{
                             ...row,
@@ -50,10 +47,8 @@ function SalaryAssignmentListPage({ isLoading, onEditAssignment, keytoRefreshAss
                             netCost
                         }))
                     }
-
                     return []
                 })
-
                 setAssignments(processed)
             }
         } catch (err) {
@@ -97,7 +92,7 @@ function SalaryAssignmentListPage({ isLoading, onEditAssignment, keytoRefreshAss
                 <div className="flex items-center gap-2">
                     {row.status ? (
                         <button
-                            onClick={() => onEditAssignment && onEditAssignment(row.id)}
+                            onClick={() => onEditAssignment && onEditAssignment(row.id, row.display_code)}
                             className="text-indigo-600 hover:text-indigo-900"
                             title="Edit"
                         >
@@ -120,8 +115,6 @@ function SalaryAssignmentListPage({ isLoading, onEditAssignment, keytoRefreshAss
                 </div>
             )
         },
-
-        // 🔥 EMPLOYEE COLUMN
         {
             header: "Employee",
             cell: row => (
@@ -135,8 +128,6 @@ function SalaryAssignmentListPage({ isLoading, onEditAssignment, keytoRefreshAss
                 </div>
             )
         },
-
-        // 🔥 DESIGNATION
         {
             header: "Designation",
             cell: row => (
@@ -145,8 +136,6 @@ function SalaryAssignmentListPage({ isLoading, onEditAssignment, keytoRefreshAss
                 </div>
             )
         },
-
-        // 🔥 DEPARTMENT (NEW - OPTIONAL BUT NICE)
         {
             header: "Department",
             cell: row => (
@@ -155,7 +144,6 @@ function SalaryAssignmentListPage({ isLoading, onEditAssignment, keytoRefreshAss
                 </div>
             )
         },
-
         {
             header: "Structure",
             cell: row => (
@@ -164,7 +152,6 @@ function SalaryAssignmentListPage({ isLoading, onEditAssignment, keytoRefreshAss
                 </div>
             )
         },
-
         {
             header: "Type",
             cell: row => (
@@ -178,8 +165,6 @@ function SalaryAssignmentListPage({ isLoading, onEditAssignment, keytoRefreshAss
                 </span>
             )
         },
-
-        // 🔥 COST (FROM BACKEND)
         {
             header: "Monthly Cost",
             cell: row => (
@@ -188,7 +173,6 @@ function SalaryAssignmentListPage({ isLoading, onEditAssignment, keytoRefreshAss
                 </span>
             )
         },
-
         {
             header: "Effective Date",
             cell: row => (
@@ -197,7 +181,6 @@ function SalaryAssignmentListPage({ isLoading, onEditAssignment, keytoRefreshAss
                     : '-'
             )
         },
-
         {
             header: "Status",
             cell: row => (
@@ -213,7 +196,6 @@ function SalaryAssignmentListPage({ isLoading, onEditAssignment, keytoRefreshAss
 
     return (
         <>
-            {/* FILTERS */}
             <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 
@@ -273,7 +255,6 @@ function SalaryAssignmentListPage({ isLoading, onEditAssignment, keytoRefreshAss
                 </div>
             </div>
 
-            {/* TABLE */}
             <CommonTable
                 columns={assignmentColumns}
                 data={assignments}
