@@ -1,11 +1,12 @@
-import { Database, Download } from 'lucide-react'
+import { Database, Download, Loader2 } from 'lucide-react'
 import React from 'react'
 import CommonDropDown from '../../basicComponents/CommonDropDown'
+import { getRoleBasePath } from '../../library/constants'
 
-function UploadCenterTemplateDownload({ isLoading,navigate,selectedDownloadMaster, setSelectedDownloadMaster,uploadMasters }) {
+function UploadCenterTemplateDownload({ isLoading, navigate, selectedDownloadMaster, setSelectedDownloadMaster, uploadMasters, handleDownload, downloading }) {
     return (
         <>
-            <div className=" rounded-xl shadow-sm bg-white p-6">
+            <div className=" rounded-md shadow-sm bg-white p-6">
                 <div className='flex justify-between'>
                     <div className="flex items-center gap-3 mb-6">
                         <div className="p-3 bg-blue-100 rounded-lg">
@@ -17,7 +18,7 @@ function UploadCenterTemplateDownload({ isLoading,navigate,selectedDownloadMaste
                         </div>
                     </div>
                     <button
-                        onClick={() => navigate('/admin/uploadHistory')}
+                        onClick={() => navigate(`${getRoleBasePath()}/uploadHistory`)}
                         className="px-4 h-10 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
                     >
                         <Database className="w-4 h-4" />
@@ -41,15 +42,17 @@ function UploadCenterTemplateDownload({ isLoading,navigate,selectedDownloadMaste
                         />
 
                         <button
-                            onClick={() => console.log('Downloading')}
-                            disabled={!selectedDownloadMaster}
-                            className={`w-[200px] py-3 mt-6 h-10 rounded-lg flex items-center justify-center gap-2 transition-colors ${selectedDownloadMaster
+                            onClick={handleDownload}
+                            disabled={!selectedDownloadMaster || downloading}
+                            className={`w-[200px] py-3 mt-6 h-10 rounded-lg flex items-center justify-center gap-2 transition-colors ${selectedDownloadMaster && !downloading
                                 ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
                                 : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                 }`}
                         >
-                            <Download className="w-5 h-5" />
-                            Download Template
+                            {downloading
+                                ? <><Loader2 className="w-4 h-4 animate-spin" /> Downloading…</>
+                                : <><Download className="w-5 h-5" /> Download Template</>
+                            }
                         </button>
                     </div>
                     {selectedDownloadMaster && (

@@ -10,7 +10,7 @@ function UploadProgress({ batchDetails, handleRefresh, isRefreshing, activeTab, 
 
             {batchDetails && (
                 <div className="">
-                    <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+                    <div className="bg-white rounded-md shadow-sm p-6 mb-6">
                         <div className="flex flex-col lg:flex-row gap-6">
                             <div className="flex-1">
                                 <div className='flex justify-between'>
@@ -83,7 +83,7 @@ function UploadProgress({ batchDetails, handleRefresh, isRefreshing, activeTab, 
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
+                    <div className="bg-white rounded-md shadow-sm overflow-hidden mb-6">
                         <div className="flex border-b">
                             <button
                                 onClick={() => setActiveTab('records')}

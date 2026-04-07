@@ -1,7 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
 import UploadCenterTemplateDownload from './UploadCenterTemplateDownload'
 import UploadCenterUploadSection from './UploadCenterUploadSection'
+import { ApiCall, getRoleBasePath } from '../../library/constants'
+import axios from 'axios'
+import { showStatusToast } from '../../basicComponents/CommonStatusPopUp'
 
 function UploadCenterMain({ isLoading, setIsLoading }) {
     const navigate = useNavigate()
@@ -10,6 +13,51 @@ function UploadCenterMain({ isLoading, setIsLoading }) {
     const [uploadMasters, setUploadMasters] = useState([])
     const [isDragging, setIsDragging] = useState(false)
     const [uploadFile, setUploadFile] = useState(null)
+    const [downloading, setDownloading] = useState(false)
+
+    useEffect(() => {
+        const fetchMasters = async () => {
+            try {
+                setIsLoading(prev => ({ ...prev, normal: true }))
+                const res = await ApiCall('get', '/upload/masters')
+                if (res?.data?.data) {
+                    setUploadMasters(res.data.data)
+                }
+            } catch (err) {
+                console.error('Failed to fetch upload masters:', err)
+            } finally {
+                setIsLoading(prev => ({ ...prev, normal: false }))
+            }
+        }
+        fetchMasters()
+    }, [])
+
+    const handleDownload = async () => {
+        if (!selectedDownloadMaster) return
+        try {
+            setDownloading(true)
+            const token = sessionStorage.getItem('token')
+            const res = await axios.get(
+                `http://localhost:3000/api/upload/template/${selectedDownloadMaster}`,
+                {
+                    responseType: 'blob',
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            )
+            const url = window.URL.createObjectURL(new Blob([res.data]))
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `${selectedDownloadMaster}_template.xlsx`
+            document.body.appendChild(a)
+            a.click()
+            a.remove()
+            window.URL.revokeObjectURL(url)
+        } catch (err) {
+            console.error('Template download failed:', err)
+        } finally {
+            setDownloading(false)
+        }
+    }
     const handleDragOver = (e) => {
         e.preventDefault()
         setIsDragging(true)
@@ -28,22 +76,71 @@ function UploadCenterMain({ isLoading, setIsLoading }) {
             setUploadFile(file)
         }
     }
-    const handleFileUpload = (event) => {
+    const handleFileUpload = async (event) => {
         const file = event.target.files[0]
-        if (file) {
-            setUploadFile(file)
-            if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls') && !file.name.endsWith('.csv')) {
-                alert('Please upload only Excel (.xlsx, .xls) or CSV files')
-                return
-            }
+        if (!file) return
 
-            navigate('/upload/preview/new', {
-                state: {
-                    uploadMasterId: selectedUploadMaster,
-                    fileName: file.name,
-                    fileSize: file.size
+        if (!selectedUploadMaster) {
+            showStatusToast({
+                type: 'error',
+                title: 'No Master Selected',
+                message: 'Please select an upload master before uploading a file.',
+                autoClose: true,
+            })
+            return
+        }
+
+        if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
+            showStatusToast({
+                type: 'error',
+                title: 'Invalid File Type',
+                message: 'Please upload only Excel (.xlsx, .xls) or CSV files.',
+                autoClose: true,
+            })
+            return
+        }
+
+        setUploadFile(file)
+
+        try {
+            setIsLoading(prev => ({ ...prev, spinner: true }))
+
+            const formData = new FormData()
+            formData.append('file', file)
+            formData.append('uploadCode', selectedUploadMaster)
+
+            const token = sessionStorage.getItem('token')
+            const res = await axios.post('http://localhost:3000/api/upload/file', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    Authorization: `Bearer ${token}`
                 }
             })
+            console.log('upload res',res)
+
+            if (res.data?.success) {
+                navigate(`${getRoleBasePath()}/uploadProgress/${res.data.data.batch_id}`)
+            } else {
+                showStatusToast({
+                    type: 'error',
+                    title: 'Upload Failed',
+                    message: res.data?.message || 'Upload failed. Please try again.',
+                    autoClose: false,
+                })
+                setUploadFile(null)
+            }
+        } catch (err) {
+            console.error('Upload failed:', err)
+            const msg = err?.response?.data?.message || 'Upload failed. Please try again.'
+            showStatusToast({
+                type: 'error',
+                title: 'Upload Error',
+                message: msg,
+                autoClose: false,
+            })
+            setUploadFile(null)
+        } finally {
+            setIsLoading(prev => ({ ...prev, spinner: false }))
         }
     }
     return (
@@ -55,6 +152,8 @@ function UploadCenterMain({ isLoading, setIsLoading }) {
                 selectedDownloadMaster={selectedDownloadMaster}
                 setSelectedDownloadMaster={setSelectedDownloadMaster}
                 uploadMasters={uploadMasters}
+                handleDownload={handleDownload}
+                downloading={downloading}
             />
 
             <UploadCenterUploadSection
