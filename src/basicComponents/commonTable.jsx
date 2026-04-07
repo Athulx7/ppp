@@ -5,7 +5,7 @@ function CommonTable({ columns, data, tableControls, customHeader, customClass, 
     const [entriesPerPage, setEntriesPerPage] = useState(10)
     const [currentPage, setCurrentPage] = useState(1)
     const [filteredData, setFilteredData] = useState(data)
-    const skeletonCount = data?.length > 0 ? data.length : entriesPerPage;
+    const skeletonCount = data?.length > 0 ? data?.length : entriesPerPage;
 
     useEffect(() => {
         if (loading) return;
@@ -23,7 +23,7 @@ function CommonTable({ columns, data, tableControls, customHeader, customClass, 
     const startIndex = (currentPage - 1) * entriesPerPage
     const endIndex = startIndex + entriesPerPage
     const currentData = filteredData.slice(startIndex, endIndex)
-    const totalPages = Math.ceil(filteredData.length / entriesPerPage)
+    const totalPages = Math.ceil(filteredData?.length / entriesPerPage)
 
     return (
         <div className={`border bg-white border-gray-200 shadow-lg rounded-lg overflow-hidden ${customClass || "my-6"} `}>
@@ -48,7 +48,7 @@ function CommonTable({ columns, data, tableControls, customHeader, customClass, 
                                 onChange={(e) => setEntriesPerPage(Number(e.target.value))}
                                 className="border border-gray-300 px-2 py-1 rounded text-gray-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                             >
-                                {[10, 25, 50, 100].map((num) => (
+                                {[10, 25, 50, 100]?.map((num) => (
                                     <option key={num} value={num}>
                                         {num}
                                     </option>
@@ -89,7 +89,7 @@ function CommonTable({ columns, data, tableControls, customHeader, customClass, 
                     <thead className="bg-gray-100">
                         <tr>
                             {loading
-                                ? columns.map((_, i) => (
+                                ? columns?.map((_, i) => (
                                     <th
                                         key={i}
                                         className="px-2 py-2 border-2 border-gray-200"
@@ -97,7 +97,7 @@ function CommonTable({ columns, data, tableControls, customHeader, customClass, 
                                         <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div>
                                     </th>
                                 ))
-                                : columns.map((col, i) => (
+                                : columns?.map((col, i) => (
                                     <th
                                         key={i}
                                         className="px-2 py-2 sticky top-0 text-left text-black text-sm border-2 border-gray-200 font-medium whitespace-nowrap"
@@ -110,31 +110,31 @@ function CommonTable({ columns, data, tableControls, customHeader, customClass, 
                     </thead>
                     <tbody>
                         {loading ? (
-                            [...Array(skeletonCount)].map((_, ri) => (
+                            [...Array(skeletonCount)]?.map((_, ri) => (
                                 <tr key={ri} className="animate-pulse">
-                                    {columns.map((_, ci) => (
+                                    {columns?.map((_, ci) => (
                                         <td key={ci} className="px-2 py-2 text-sm border-b border-gray-200">
                                             <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                                         </td>
                                     ))}
                                 </tr>
                             ))
-                        ) : currentData.length === 0 ? (
+                        ) : currentData?.length === 0 ? (
                             <tr>
                                 <td
-                                    colSpan={columns.length}
+                                    colSpan={columns?.length}
                                     className="text-center text-sm py-4 text-gray-500"
                                 >
                                     No data available
                                 </td>
                             </tr>
                         ) : (
-                            currentData.map((row, ri) => (
+                            currentData?.map((row, ri) => (
                                 <tr
                                     key={ri}
                                     className={`text-sm text-gray-700 ${ri % 2 === 0 ? 'bg-white' : 'bg-indigo-50'}`}
                                 >
-                                    {columns.map((col, ci) => (
+                                    {columns?.map((col, ci) => (
                                         <td key={ci} className="px-2 py-2 text-sm border-b border-gray-200 whitespace-nowrap">
                                             {col.cell
                                                 ? col.cell(row)
@@ -157,11 +157,11 @@ function CommonTable({ columns, data, tableControls, customHeader, customClass, 
                     ) : (
                         <>
                             Showing{" "}
-                            {filteredData.length === 0 ? 0 : startIndex + 1} to{" "}
-                            {endIndex > filteredData.length
-                                ? filteredData.length
+                            {filteredData?.length === 0 ? 0 : startIndex + 1} to{" "}
+                            {endIndex > filteredData?.length
+                                ? filteredData?.length
                                 : endIndex}{" "}
-                            of {filteredData.length} entries
+                            of {filteredData?.length} entries
                         </>
                     )}
                 </div>

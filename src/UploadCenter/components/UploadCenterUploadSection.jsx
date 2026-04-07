@@ -5,7 +5,7 @@ import CommonDropDown from '../../basicComponents/CommonDropDown'
 function UploadCenterUploadSection({ isLoading, selectedUploadMaster, setSelectedUploadMaster, uploadMasters, isDragging, handleDragOver, handleDragLeave, handleDrop, handleFileUpload, uploadFile, setUploadFile }) {
     return (
         <>
-            <div className="bg-white rounded-xl shadow-sm mt-6 p-6">
+            <div className="bg-white rounded-md shadow-sm mt-6 p-6">
                 <div className=" gap-3 mb-6">
                     <div className=' flex items-center gap-3 mb-6'>
                         <div className="p-3 bg-green-100 rounded-lg">

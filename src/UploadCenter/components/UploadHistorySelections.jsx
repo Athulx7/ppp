@@ -6,7 +6,7 @@ import { RefreshCw } from 'lucide-react'
 function UploadHistorySelections({ isLoading, searchQuery, setSearchQuery, historyFilters, setHistoryFilters }) {
     return (
         <>
-            <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+            <div className="bg-white rounded-md shadow-sm p-4 mb-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     <div className='lg:col-span-2 relative'>
                         <label className="block mb-1 text-sm font-medium text-gray-700">
