@@ -19,17 +19,20 @@ function MenuMappingMenuSection({
     selectedEmployee,
     handleExpandAll,
     expandedMenus,
-    getFilteredSubMenus
+    getFilteredSubMenus,
+    handleSave,
+    handleReset,
+    handleCancel,
 }) {
     return (
         <>
             <div className="bg-white rounded-xl shadow-sm mb-6">
-                <div className="flex overflow-x-auto p-2 gap-1">
+                <div className="flex overflow-x-auto scrollbar p-2 gap-1">
                     <button
                         onClick={() => setActiveMainMenu('all')}
                         className={`px-4 py-2 font-medium text-sm whitespace-nowrap flex items-center gap-2 rounded-lg transition-all ${activeMainMenu === 'all'
-                            ? 'bg-indigo-600 text-white shadow-sm'
-                            : 'text-gray-600 hover:bg-gray-100'
+                                ? 'bg-indigo-600 text-white shadow-sm'
+                                : 'text-gray-600 hover:bg-gray-100'
                             }`}
                     >
                         <Layers className="w-4 h-4" />
@@ -40,11 +43,10 @@ function MenuMappingMenuSection({
                             key={menu.main_menu_id}
                             onClick={() => setActiveMainMenu(menu.main_menu_id.toString())}
                             className={`px-4 py-2 font-medium text-sm whitespace-nowrap flex items-center gap-2 rounded-lg transition-all ${activeMainMenu === menu.main_menu_id.toString()
-                                ? 'bg-indigo-600 text-white shadow-sm'
-                                : 'text-gray-600 hover:bg-gray-100'
+                                    ? 'bg-indigo-600 text-white shadow-sm'
+                                    : 'text-gray-600 hover:bg-gray-100'
                                 }`}
                         >
-                            <span className={`w-2 h-2 rounded-full ${menu.color}`} />
                             {menu.menu_name}
                         </button>
                     ))}
@@ -79,7 +81,7 @@ function MenuMappingMenuSection({
                                 {expandedMenus.length === mainMenus.length ? 'Collapse All' : 'Expand All'}
                             </button>
                             <button
-                                onClick={() => console.log('errr')}
+                                onClick={handleReset}
                                 className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm flex items-center gap-1 whitespace-nowrap"
                             >
                                 <RefreshCw className="w-4 h-4" />
@@ -97,20 +99,22 @@ function MenuMappingMenuSection({
                 ) : (
                     <div className="p-6">
                         <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200">
-                            <h3 className="font-semibold text-gray-900">
-                                Menu List
-                            </h3>
+                            <h3 className="font-semibold text-gray-900">Menu List</h3>
                             <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-3 py-1.5 rounded-lg">
                                 <input
                                     type="checkbox"
                                     className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                    checked={selectedSubMenus.length === getFilteredSubMenus().length && getFilteredSubMenus().length > 0}
+                                    checked={
+                                        getFilteredSubMenus().length > 0 &&
+                                        getFilteredSubMenus().every(sm => selectedSubMenus.includes(sm.sub_menu_id))
+                                    }
                                     onChange={() => {
-                                        const filteredMenus = getFilteredSubMenus().map(sm => sm.sub_menu_id);
-                                        if (selectedSubMenus.length === filteredMenus.length) {
-                                            setSelectedSubMenus([]);
+                                        const filteredIds = getFilteredSubMenus().map(sm => sm.sub_menu_id)
+                                        const allSelected = filteredIds.every(id => selectedSubMenus.includes(id))
+                                        if (allSelected) {
+                                            setSelectedSubMenus(prev => prev.filter(id => !filteredIds.includes(id)))
                                         } else {
-                                            setSelectedSubMenus(filteredMenus);
+                                            setSelectedSubMenus(prev => [...new Set([...prev, ...filteredIds])])
                                         }
                                     }}
                                 />
@@ -118,7 +122,7 @@ function MenuMappingMenuSection({
                             </label>
                         </div>
 
-                        <div className="h-112.5 overflow-y-auto scrollbar pr-2">
+                        <div className="max-h-[450px] overflow-y-auto scrollbar pr-2">
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                                 {getFilteredSubMenus().map(subMenu => (
                                     <label
@@ -148,7 +152,9 @@ function MenuMappingMenuSection({
                                     <MenuIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                                     <h3 className="text-lg font-medium text-gray-900 mb-2">No Menus Found</h3>
                                     <p className="text-gray-600">
-                                        {searchQuery ? 'Try adjusting your search criteria' : 'Select a filter to view menus'}
+                                        {searchQuery
+                                            ? 'Try adjusting your search criteria'
+                                            : 'No menus available'}
                                     </p>
                                 </div>
                             )}
@@ -159,27 +165,32 @@ function MenuMappingMenuSection({
 
             <div className="flex justify-end gap-3">
                 <button
-                    onClick={() => console.log('helllo')}
+                    onClick={handleCancel}
                     className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
                 >
                     <X className="w-4 h-4" />
                     Cancel
                 </button>
                 <button
-                    onClick={() => alert('save')}
-                    disabled={loading || saveStatus === 'saving' ||
+                    onClick={handleSave}
+                    disabled={
+                        loading ||
+                        saveStatus === 'saving' ||
                         (mappingType === 'role' && !selectedRole) ||
                         (mappingType === 'designation' && !selectedDesignation) ||
                         (mappingType === 'employee' && !selectedEmployee)
                     }
                     className={`px-6 py-2.5 rounded-lg flex items-center gap-2 transition-all ${saveStatus === 'success'
-                        ? 'bg-green-600 text-white hover:bg-green-700'
-                        : 'bg-indigo-600 text-white hover:bg-indigo-700'
-                        } ${(!selectedRole && !selectedDesignation && !selectedEmployee) ? 'opacity-50 cursor-not-allowed' : 'shadow-sm hover:shadow'}`}
+                            ? 'bg-green-600 text-white hover:bg-green-700'
+                            : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                        } ${(!selectedRole && !selectedDesignation && !selectedEmployee)
+                            ? 'opacity-50 cursor-not-allowed'
+                            : 'shadow-sm hover:shadow'
+                        }`}
                 >
                     {saveStatus === 'saving' ? (
                         <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
                             Saving...
                         </>
                     ) : saveStatus === 'success' ? (
@@ -195,7 +206,6 @@ function MenuMappingMenuSection({
                     )}
                 </button>
             </div>
-
         </>
     )
 }

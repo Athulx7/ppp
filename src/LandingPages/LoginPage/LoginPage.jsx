@@ -2,6 +2,7 @@ import axios from 'axios'
 import { Building2 } from 'lucide-react'
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { ApiCall } from '../../library/constants'
 
 function LoginPage() {
     const navigate = useNavigate()
@@ -69,6 +70,20 @@ function LoginPage() {
                 sessionStorage.setItem('token', responce.data.token)
                 sessionStorage.setItem('company', JSON.stringify(responce.data.company))
                 sessionStorage.setItem('user', JSON.stringify(responce.data.user))
+
+                try {
+                    const menuRes = await ApiCall('GET', '/mainMenu')
+                    if (menuRes?.data?.success) {
+                        const menuData = menuRes.data.data
+                        const allRoutes = menuData.flatMap(m => m.items.map(i => i.routes))
+                        console.log("Menu Routes:", allRoutes)
+                        sessionStorage.setItem('menuRoutes', JSON.stringify(allRoutes))
+                    } else {
+                        console.warn("Menu API failed")
+                    }
+                } catch (err) {
+                    console.error("Menu API error:", err)
+                }
                 const userRole = responce.data.user.role_code.toUpperCase()
                 switch (userRole) {
                     case 'ADMIN': navigate('/admin'); break

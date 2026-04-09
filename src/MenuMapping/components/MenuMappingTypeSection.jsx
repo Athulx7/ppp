@@ -1,6 +1,5 @@
 import React from "react";
 import CommonDropDown from "../../basicComponents/CommonDropDown";
-import { Download } from "lucide-react";
 
 function MenuMappingTypeSection({
     mappingType,
@@ -14,8 +13,8 @@ function MenuMappingTypeSection({
     setSelectedEmployee,
     roles,
     departments,
-    filteredDesignations,
-    filteredEmployees,
+    designations,
+    employees,
     handleLoadMapping
 }) {
     return (
@@ -28,11 +27,7 @@ function MenuMappingTypeSection({
                                 label="Select Role"
                                 value={selectedRole}
                                 onChange={setSelectedRole}
-                                options={roles.map(r => ({
-                                    label: r.role_name,
-                                    value: r.role_code,
-                                    description: `Role ID: ${r.role_id}`
-                                }))}
+                                options={roles}
                                 placeholder="Choose a role"
                                 required
                             />
@@ -46,10 +41,7 @@ function MenuMappingTypeSection({
                                     label="Select Department"
                                     value={selectedDepartment}
                                     onChange={setSelectedDepartment}
-                                    options={departments.map(d => ({
-                                        label: d.dept_name,
-                                        value: d.dept_code
-                                    }))}
+                                    options={departments}
                                     placeholder="Choose department"
                                 />
                             </div>
@@ -58,11 +50,7 @@ function MenuMappingTypeSection({
                                     label="Select Designation"
                                     value={selectedDesignation}
                                     onChange={setSelectedDesignation}
-                                    options={filteredDesignations.map(d => ({
-                                        label: d.designation_name,
-                                        value: d.designation_code,
-                                        description: d.dept
-                                    }))}
+                                    options={designations}
                                     placeholder="Choose a designation"
                                     required
                                 />
@@ -77,10 +65,7 @@ function MenuMappingTypeSection({
                                     label="Select Department"
                                     value={selectedDepartment}
                                     onChange={setSelectedDepartment}
-                                    options={departments.map(d => ({
-                                        label: d.dept_name,
-                                        value: d.dept_code
-                                    }))}
+                                    options={departments}
                                     placeholder="Choose department"
                                 />
                             </div>
@@ -89,11 +74,7 @@ function MenuMappingTypeSection({
                                     label="Select Designation"
                                     value={selectedDesignation}
                                     onChange={setSelectedDesignation}
-                                    options={filteredDesignations.map(d => ({
-                                        label: d.designation_name,
-                                        value: d.designation_code,
-                                        description: d.dept
-                                    }))}
+                                    options={designations}
                                     placeholder="Choose designation"
                                 />
                             </div>
@@ -102,37 +83,13 @@ function MenuMappingTypeSection({
                                     label="Select Employee"
                                     value={selectedEmployee}
                                     onChange={setSelectedEmployee}
-                                    options={filteredEmployees.map(e => ({
-                                        label: e.emp_name,
-                                        value: e.emp_code,
-                                        description: `${e.designation} - ${e.department}`
-                                    }))}
+                                    options={employees}
                                     placeholder="Choose an employee"
                                     required
                                 />
                             </div>
                         </>
                     )}
-
-                    <div className="flex items-end">
-                        <button
-                            onClick={handleLoadMapping}
-                            disabled={
-                                (mappingType === 'role' && !selectedRole) ||
-                                (mappingType === 'designation' && !selectedDesignation) ||
-                                (mappingType === 'employee' && !selectedEmployee)
-                            }
-                            className={`w-full px-6 py-2.5 rounded-lg flex items-center justify-center gap-2 transition-all ${(mappingType === 'role' && !selectedRole) ||
-                                (mappingType === 'designation' && !selectedDesignation) ||
-                                (mappingType === 'employee' && !selectedEmployee)
-                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm hover:shadow'
-                                }`}
-                        >
-                            <Download className="w-4 h-4" />
-                            Load Mapping
-                        </button>
-                    </div>
                 </div>
             </div>
         </>
