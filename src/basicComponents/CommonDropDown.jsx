@@ -27,7 +27,7 @@ function CommonDropDown({
     const containerRef = useRef(null)
 
     const filteredOptions = options.filter(option =>
-        option.label.toLowerCase().includes(searchTerm.toLowerCase())
+        option.label?.toLowerCase().includes(searchTerm?.toLowerCase())
     )
 
     useEffect(() => {
