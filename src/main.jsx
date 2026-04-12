@@ -5,11 +5,11 @@ import App from './App.jsx'
 import { BrowserRouter } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-import { ThemeProvider } from './context/ThemeContext'
+import { AppProviders } from './AppProviders'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <ThemeProvider>
+    <AppProviders>
       <BrowserRouter>
         <App />
         <ToastContainer
@@ -23,7 +23,7 @@ createRoot(document.getElementById('root')).render(
           theme="colored"
         />
       </BrowserRouter>
-    </ThemeProvider>
+    </AppProviders>
   </StrictMode>,
 )
 
