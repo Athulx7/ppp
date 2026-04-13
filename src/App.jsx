@@ -225,7 +225,7 @@
 
 // src/App.jsx
 import React from 'react'
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import ProtectedRoute from './MProtectedRoute'
 import Dashboard from './Dashboard/container/Dashboard'
 import LoginPage from './LandingPages/LoginPage/LoginPage'
@@ -233,6 +233,7 @@ import NotFoundPage from './NotFoundPage'
 import AnimatelandingPage from './AnimatedLandingPage/AnimatelandingPage'
 import RouteGuard from './RouteGuard'
 import { ALL_ROUTES, DASHBOARD_ROUTES } from './routeRegistry'
+import { ArrowLeft } from 'lucide-react'
 
 const PublicRoute = ({ children }) => {
   const token = sessionStorage.getItem('token')
@@ -262,7 +263,7 @@ function RoleRoutes({ basePath, role }) {
 function App() {
   return (
     <Routes>
-      <Route path='/' element={<AnimatelandingPage />} />
+      <Route path='/' element={<PublicRoute><AnimatelandingPage /></PublicRoute>} />
       <Route path='/login' element={<PublicRoute><LoginPage /></PublicRoute>} />
 
       {RoleRoutes({ basePath: '/admin', role: 'ADMIN' })}
@@ -278,10 +279,19 @@ function App() {
 }
 
 function UnauthorizedPage() {
+  const navigate = useNavigate()
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
       <h1 className="text-2xl font-bold text-gray-800 mb-2">Access Denied</h1>
       <p className="text-gray-500">You don't have permission to view this page.</p>
+      <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <button onClick={() => navigate(-1)}
+          className="cursor-pointer flex items-center justify-center gap-2 px-6 py-3 text-gray-800 rounded-lg font-medium transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          Go Back
+        </button>
+      </div>
     </div>
   )
 }

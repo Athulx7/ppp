@@ -1,36 +1,16 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import hrmsIllustration from '../assets/hrmsillustatrion.png';
-import { useNavigate } from 'react-router-dom';
-import { ApiCall, getRoleBasePath } from '../library/constants';
-import { Star, Search, X, ArrowRight, Building2, LayoutGrid } from 'lucide-react';
+import React, { useEffect, useState, useCallback } from 'react'
+import hrmsIllustration from '../assets/hrmsillustatrion.png'
+import { useNavigate } from 'react-router-dom'
+import { ApiCall, getRoleBasePath } from '../library/constants'
+import { Star, Search, X, ArrowRight, Building2, LayoutGrid } from 'lucide-react'
+import { useTheme } from '../context/useTheme'
+import { useFavourites } from './context/FavouritesContext'
 
-// ─── Persistence ──────────────────────────────────────────────────────────────
-const FAV_KEY = 'hrms_menu_favourites';
-const loadFavs = () => { try { return JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); } catch { return []; } };
-const saveFavs = (f) => localStorage.setItem(FAV_KEY, JSON.stringify(f));
-
-// ─── Dark mode detection (watches html.dark class) ───────────────────────────
-function useDarkMode() {
-    const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'));
-    useEffect(() => {
-        const obs = new MutationObserver(() =>
-            setDark(document.documentElement.classList.contains('dark'))
-        );
-        obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-        return () => obs.disconnect();
-    }, []);
-    return dark;
-}
-
-// ─── Animation ────────────────────────────────────────────────────────────────
 const fadeUp = (delay = 0) => ({
     animation: `hrmsMenuFadeUp 0.32s ease both`,
     animationDelay: `${delay}ms`,
-});
+})
 
-// ─── Theme tokens ─────────────────────────────────────────────────────────────
-// Light  → original deep-indigo overlay (unchanged from your previous design)
-// Dark   → Catppuccin surface colors from your CSS variables, indigo accents
 function getTheme(dark) {
     if (dark) return {
         overlay: 'var(--color-gray-100)',
@@ -65,7 +45,7 @@ function getTheme(dark) {
         favBtnActiveBg: 'rgba(245,158,11,0.15)',
         catBadgeBg: 'var(--color-indigo-200)',
         catBadgeTxt: 'var(--color-indigo-600)',
-    };
+    }
     return {
         overlay: 'linear-gradient(135deg,#1e1b4b 0%,#312e81 40%,#3730a3 70%,#4338ca 100%)',
         sidebarBg: 'rgba(255,255,255,0.04)',
@@ -99,10 +79,9 @@ function getTheme(dark) {
         favBtnActiveBg: 'rgba(245,158,11,0.15)',
         catBadgeBg: 'rgba(129,140,248,0.20)',
         catBadgeTxt: 'rgba(165,180,252,0.90)',
-    };
+    }
 }
 
-// ─── Skeleton card ────────────────────────────────────────────────────────────
 function Skeleton({ dark }) {
     return (
         <div style={{
@@ -110,69 +89,65 @@ function Skeleton({ dark }) {
             background: dark ? 'var(--color-gray-200)' : 'rgba(255,255,255,0.07)',
             animation: 'hrmsPulse 1.5s ease-in-out infinite',
         }} />
-    );
+    )
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
 function MainMenu({ onClose }) {
-    const navigate = useNavigate();
-    const dark = useDarkMode();
-    const t = getTheme(dark);
+    const navigate = useNavigate()
+    const { isDark: dark } = useTheme()
+    const t = getTheme(dark)
 
-    const [loading, setLoading] = useState(false);
-    const [menuData, setMenuData] = useState([]);
-    const [activeCategory, setActiveCategory] = useState('');
-    const [search, setSearch] = useState('');
-    const [favs, setFavs] = useState(loadFavs);
-    const [showFavs, setShowFavs] = useState(false);
+    const { favRoutes, toggleFavourite } = useFavourites()
 
-    // Lock scroll + Esc handler
+    const [loading, setLoading] = useState(false)
+    const [menuData, setMenuData] = useState([])
+    const [activeCategory, setActiveCategory] = useState('')
+    const [search, setSearch] = useState('')
+    const [showFavs, setShowFavs] = useState(false)
+
     useEffect(() => {
-        document.body.style.overflow = 'hidden';
-        const h = (e) => { if (e.key === 'Escape') onClose?.(); };
-        window.addEventListener('keydown', h);
-        return () => { document.body.style.overflow = ''; window.removeEventListener('keydown', h); };
-    }, [onClose]);
+        document.body.style.overflow = 'hidden'
+        const h = (e) => { if (e.key === 'Escape') onClose?.() }
+        window.addEventListener('keydown', h)
+        return () => { document.body.style.overflow = ''; window.removeEventListener('keydown', h) }
+    }, [onClose])
 
-    // Load menu
     useEffect(() => {
-        setLoading(true);
+        setLoading(true)
         ApiCall('GET', '/mainMenu')
             .then(res => {
                 if (res?.data?.success) {
-                    setMenuData(res.data.data);
-                    setActiveCategory(res.data.data[0]?.category || '');
+                    setMenuData(res.data.data)
+                    setActiveCategory(res.data.data[0]?.category || '')
                 }
             })
             .catch(err => console.error('menu load error', err))
-            .finally(() => setLoading(false));
-    }, []);
+            .finally(() => setLoading(false))
+    }, [])
 
-    const navigate_ = (route) => { navigate(`${getRoleBasePath()}${route}`); onClose?.(); };
+    const navigate_ = (route) => {
+        navigate(`${getRoleBasePath()}${route}`)
+        onClose?.()
+    }
 
-    const toggleFav = useCallback((route, e) => {
-        e.stopPropagation();
-        setFavs(prev => {
-            const next = prev.includes(route) ? prev.filter(r => r !== route) : [...prev, route];
-            saveFavs(next);
-            return next;
-        });
-    }, []);
+    const handleFavClick = useCallback((item, e) => {
+        e.stopPropagation()
+        toggleFavourite(item)
+    }, [toggleFavourite])
 
-    // Derived
-    const allItems = menuData.flatMap(m => m.items.map(i => ({ ...i, category: m.category })));
+    const allItems = menuData.flatMap(m => m.items.map(i => ({ ...i, category: m.category })))
+
     const visibleItems = search.trim()
         ? allItems.filter(i =>
             i.label.toLowerCase().includes(search.toLowerCase()) ||
             i.category.toLowerCase().includes(search.toLowerCase())
         )
         : showFavs
-            ? allItems.filter(i => favs.includes(i.routes))
-            : menuData.find(m => m.category === activeCategory)?.items || [];
+            ? allItems.filter(i => favRoutes.includes(i.routes))
+            : menuData.find(m => m.category === activeCategory)?.items || []
 
-    const heading = search.trim() ? `"${search}"` : showFavs ? 'Favourites' : activeCategory;
+    const heading = search.trim() ? `"${search}"` : showFavs ? 'Favourites' : activeCategory
 
-    // ── Shared inline styles ────────────────────────────────────────────────
     const inputStyle = {
         width: '100%', boxSizing: 'border-box',
         paddingLeft: 34, paddingRight: 34,
@@ -183,9 +158,8 @@ function MainMenu({ onClose }) {
         fontSize: 13,
         color: t.text,
         outline: 'none',
-    };
+    }
 
-    // ───────────────────────────────────────────────────────────────────────────
     return (
         <>
             <style>{`
@@ -194,15 +168,13 @@ function MainMenu({ onClose }) {
                 @keyframes hrmsPulse       { 0%,100%{opacity:1} 50%{opacity:0.45} }
                 .hmcard { transition:background .16s,border-color .16s,transform .16s,box-shadow .16s; }
                 .hmcard:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,0.18); }
-                .hmcard:hover .hm-arr  { opacity:1!important; transform:translateX(0)!important; }
-                .hmcard:hover .hm-favbtn { opacity:1!important; }
+                .hmcard:hover .hm-arr      { opacity:1!important; transform:translateX(0)!important; }
+                .hmcard:hover .hm-favbtn   { opacity:1!important; }
                 .hm-favbtn { transition:transform .15s,opacity .15s; }
                 .hm-favbtn:hover { transform:scale(1.25)!important; }
                 .hm-scroll::-webkit-scrollbar       { width:4px; height:4px; }
                 .hm-scroll::-webkit-scrollbar-track { background:transparent; }
                 .hm-scroll::-webkit-scrollbar-thumb { background:rgba(128,128,128,0.25); border-radius:4px; }
-
-                /* ── Responsive grid ── */
                 .hm-grid {
                     display:grid; gap:10px;
                     grid-template-columns:repeat(1,1fr);
@@ -210,15 +182,10 @@ function MainMenu({ onClose }) {
                 @media(min-width:520px)  { .hm-grid { grid-template-columns:repeat(2,1fr); } }
                 @media(min-width:960px)  { .hm-grid { grid-template-columns:repeat(3,1fr); } }
                 @media(min-width:1440px) { .hm-grid { grid-template-columns:repeat(4,1fr); } }
-
-                /* ── Layout breakpoints ── */
-                /* Sidebar: hidden on mobile/tablet, visible on ≥ md */
-                #hm-sidebar    { display:none!important; }
-                #hm-right      { display:none!important; }
+                #hm-sidebar { display:none!important; }
+                #hm-right   { display:none!important; }
                 @media(min-width:900px)  { #hm-sidebar { display:flex!important; flex-direction:column; } }
                 @media(min-width:1300px) { #hm-right   { display:flex!important; flex-direction:column; } }
-
-                /* Touch: always show fav btn */
                 @media(hover:none) { .hm-favbtn { opacity:0.75!important; } }
             `}</style>
 
@@ -226,16 +193,13 @@ function MainMenu({ onClose }) {
                 className="fixed inset-0 z-[999] flex flex-col"
                 style={{ background: t.overlay, animation: 'hrmsOverlayIn 0.22s ease both' }}
             >
-                {/* ════ HEADER ═══════════════════════════════════════════════ */}
                 <div style={{
-                    ...fadeUp(0),
-                    flexShrink: 0,
+                    ...fadeUp(0), flexShrink: 0,
                     display: 'flex', alignItems: 'center',
                     gap: 10, flexWrap: 'wrap',
                     padding: '12px 16px',
                     borderBottom: t.border,
                 }}>
-                    {/* Brand */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                         <div style={{
                             width: 32, height: 32, borderRadius: 10,
@@ -248,7 +212,6 @@ function MainMenu({ onClose }) {
                         <span style={{ color: t.textMuted, fontSize: 12 }} className="hidden sm:inline">/ Navigation</span>
                     </div>
 
-                    {/* Search */}
                     <div style={{ flex: 1, minWidth: 120, position: 'relative' }}>
                         <Search size={13} style={{
                             position: 'absolute', left: 10, top: '50%',
@@ -257,14 +220,14 @@ function MainMenu({ onClose }) {
                         <input
                             type="text"
                             value={search}
-                            onChange={e => { setSearch(e.target.value); setShowFavs(false); }}
+                            onChange={e => { setSearch(e.target.value); setShowFavs(false) }}
                             placeholder="Search pages…"
                             style={inputStyle}
-                            
                         />
                         {search && (
                             <button onClick={() => setSearch('')} style={{
-                                position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+                                position: 'absolute', right: 8, top: '50%',
+                                transform: 'translateY(-50%)',
                                 background: 'none', border: 'none', cursor: 'pointer',
                                 color: t.textMuted, display: 'flex', padding: 2,
                             }}>
@@ -273,9 +236,8 @@ function MainMenu({ onClose }) {
                         )}
                     </div>
 
-                    {/* Favourites toggle */}
                     <button
-                        onClick={() => { setShowFavs(p => !p); setSearch(''); }}
+                        onClick={() => { setShowFavs(p => !p); setSearch('') }}
                         style={{
                             flexShrink: 0,
                             display: 'flex', alignItems: 'center', gap: 6,
@@ -290,26 +252,23 @@ function MainMenu({ onClose }) {
                     >
                         <Star size={12} style={{ fill: showFavs ? (dark ? '#f59e0b' : '#1e1b4b') : 'none' }} />
                         <span className="hidden sm:inline">Favourites</span>
-                        {favs.length > 0 && (
+                        {favRoutes.length > 0 && (
                             <span style={{
                                 fontSize: 10, fontWeight: 700,
                                 padding: '1px 5px', borderRadius: 20,
                                 background: 'rgba(0,0,0,0.15)',
                                 color: showFavs ? (dark ? '#f59e0b' : '#1e1b4b') : '#f59e0b',
                             }}>
-                                {favs.length}
+                                {favRoutes.length}
                             </span>
                         )}
                     </button>
 
-                    {/* Close */}
                     <button
                         onClick={onClose}
                         style={{
-                            flexShrink: 0,
-                            width: 34, height: 34, borderRadius: 9,
-                            background: t.btnBg, border: t.btnBorder,
-                            color: t.textSub,
+                            flexShrink: 0, width: 34, height: 34, borderRadius: 9,
+                            background: t.btnBg, border: t.btnBorder, color: t.textSub,
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             cursor: 'pointer',
                         }}
@@ -318,10 +277,8 @@ function MainMenu({ onClose }) {
                     </button>
                 </div>
 
-                {/* ════ BODY ══════════════════════════════════════════════════ */}
                 <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
-                    {/* ── Left sidebar (≥ 900px, hidden when searching) ─────── */}
                     {!search && !showFavs && (
                         <div
                             id="hm-sidebar"
@@ -342,7 +299,7 @@ function MainMenu({ onClose }) {
                             }}>Categories</p>
 
                             {menuData.map((menu, i) => {
-                                const isActive = activeCategory === menu.category;
+                                const isActive = activeCategory === menu.category
                                 return (
                                     <button
                                         key={menu.category}
@@ -358,14 +315,14 @@ function MainMenu({ onClose }) {
                                             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                                             transition: 'all 0.15s ease',
                                         }}
-                                        onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = t.catHoverBg; }}
-                                        onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
+                                        onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = t.catHoverBg }}
+                                        onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent' }}
                                     >
                                         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                             {menu.category}
                                         </span>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-                                            {menu.items.some(it => favs.includes(it.routes)) && (
+                                            {menu.items.some(it => favRoutes.includes(it.routes)) && (
                                                 <Star size={9} style={{ color: '#f59e0b', fill: '#f59e0b' }} />
                                             )}
                                             <span style={{
@@ -380,29 +337,25 @@ function MainMenu({ onClose }) {
                                             </span>
                                         </div>
                                     </button>
-                                );
+                                )
                             })}
                         </div>
                     )}
 
-                    {/* ── Main scroll area ───────────────────────────────────── */}
                     <div
                         className="hm-scroll"
                         style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}
                     >
-                        {/* Category pills — mobile/tablet only */}
                         {!search && !showFavs && menuData.length > 0 && (
                             <div
                                 className="hm-scroll sm-only-pills"
                                 style={{
-                                    flexShrink: 0,
-                                    display: 'flex', gap: 6,
-                                    padding: '12px 14px 0',
-                                    overflowX: 'auto',
+                                    flexShrink: 0, display: 'flex', gap: 6,
+                                    padding: '12px 14px 0', overflowX: 'auto',
                                 }}
                             >
                                 {menuData.map(menu => {
-                                    const isActive = activeCategory === menu.category;
+                                    const isActive = activeCategory === menu.category
                                     return (
                                         <button
                                             key={menu.category}
@@ -419,19 +372,17 @@ function MainMenu({ onClose }) {
                                             }}
                                         >
                                             {menu.category}
-                                            {menu.items.some(it => favs.includes(it.routes)) && (
+                                            {menu.items.some(it => favRoutes.includes(it.routes)) && (
                                                 <Star size={9} style={{ color: '#f59e0b', fill: '#f59e0b' }} />
                                             )}
                                         </button>
-                                    );
+                                    )
                                 })}
                             </div>
                         )}
 
-                        {/* Section heading */}
                         <div style={{
-                            ...fadeUp(110),
-                            flexShrink: 0,
+                            ...fadeUp(110), flexShrink: 0,
                             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                             padding: '14px 18px 10px',
                         }}>
@@ -441,7 +392,7 @@ function MainMenu({ onClose }) {
                                     {visibleItems.length} {visibleItems.length === 1 ? 'item' : 'items'}
                                 </p>
                             </div>
-                            {!showFavs && !search && favs.length > 0 && (
+                            {!showFavs && !search && favRoutes.length > 0 && (
                                 <button onClick={() => setShowFavs(true)} style={{
                                     display: 'flex', alignItems: 'center', gap: 5,
                                     fontSize: 11, color: '#f59e0b',
@@ -449,19 +400,17 @@ function MainMenu({ onClose }) {
                                     border: '1px solid rgba(245,158,11,0.20)',
                                     padding: '5px 11px', borderRadius: 8, cursor: 'pointer',
                                 }}>
-                                    <Star size={10} style={{ fill: '#f59e0b' }} /> {favs.length} saved
+                                    <Star size={10} style={{ fill: '#f59e0b' }} /> {favRoutes.length} saved
                                 </button>
                             )}
                         </div>
 
-                        {/* Skeletons */}
                         {loading && (
                             <div className="hm-grid" style={{ padding: '0 14px 20px' }}>
                                 {[...Array(9)].map((_, i) => <Skeleton key={i} dark={dark} />)}
                             </div>
                         )}
 
-                        {/* Empty state */}
                         {!loading && visibleItems.length === 0 && (
                             <div style={{
                                 display: 'flex', flexDirection: 'column',
@@ -483,11 +432,10 @@ function MainMenu({ onClose }) {
                             </div>
                         )}
 
-                        {/* Item grid */}
                         {!loading && visibleItems.length > 0 && (
                             <div className="hm-grid" style={{ ...fadeUp(130), padding: '0 14px 24px' }}>
                                 {visibleItems.map((item, i) => {
-                                    const isFav = favs.includes(item.routes);
+                                    const isFav = favRoutes.includes(item.routes)
                                     return (
                                         <div
                                             key={item.routes}
@@ -503,18 +451,17 @@ function MainMenu({ onClose }) {
                                             }}
                                             onClick={() => navigate_(item.routes)}
                                             onMouseEnter={e => {
-                                                e.currentTarget.style.background = t.cardHoverBg;
-                                                e.currentTarget.style.border = t.cardHoverBorder;
+                                                e.currentTarget.style.background = t.cardHoverBg
+                                                e.currentTarget.style.border = t.cardHoverBorder
                                             }}
                                             onMouseLeave={e => {
-                                                e.currentTarget.style.background = t.cardBg;
-                                                e.currentTarget.style.border = t.cardBorder;
+                                                e.currentTarget.style.background = t.cardBg
+                                                e.currentTarget.style.border = t.cardBorder
                                             }}
                                         >
-                                            {/* Star button */}
                                             <button
                                                 className="hm-favbtn"
-                                                onClick={e => toggleFav(item.routes, e)}
+                                                onClick={e => handleFavClick(item, e)}
                                                 style={{
                                                     position: 'absolute', top: 10, right: 10,
                                                     padding: 6, borderRadius: 8, border: 'none', cursor: 'pointer',
@@ -528,7 +475,6 @@ function MainMenu({ onClose }) {
                                             </button>
 
                                             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, paddingRight: 28 }}>
-                                                {/* Dot */}
                                                 <div style={{
                                                     marginTop: 5, width: 7, height: 7,
                                                     borderRadius: '50%', background: t.dot, flexShrink: 0,
@@ -575,13 +521,12 @@ function MainMenu({ onClose }) {
                                                 </div>
                                             </div>
                                         </div>
-                                    );
+                                    )
                                 })}
                             </div>
                         )}
                     </div>
 
-                    {/* ── Right panel (≥ 1300px) ─────────────────────────────── */}
                     <div
                         id="hm-right"
                         style={{
@@ -607,7 +552,7 @@ function MainMenu({ onClose }) {
                                 {[
                                     { label: 'Modules', val: menuData.length, bg: t.statBg, color: t.text },
                                     { label: 'Total Pages', val: allItems.length, bg: t.statBg, color: t.text },
-                                    { label: 'Favourites', val: favs.length, bg: t.favStatBg, color: t.favStatTxt },
+                                    { label: 'Favourites', val: favRoutes.length, bg: t.favStatBg, color: t.favStatTxt },
                                 ].map(s => (
                                     <div key={s.label} style={{
                                         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -623,7 +568,6 @@ function MainMenu({ onClose }) {
                     </div>
                 </div>
 
-                {/* ════ FOOTER ════════════════════════════════════════════════ */}
                 <div style={{
                     flexShrink: 0,
                     display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 14,
@@ -646,13 +590,12 @@ function MainMenu({ onClose }) {
                     </span>
                 </div>
 
-                {/* Hide pills on ≥ 900px (sidebar shows instead) */}
                 <style>{`
                     @media(min-width:900px) { .sm-only-pills { display:none!important; } }
                 `}</style>
             </div>
         </>
-    );
+    )
 }
 
-export default MainMenu;
+export default MainMenu
