@@ -39,6 +39,8 @@ import RegularizeMobile from './Dashboard/Mobile/Regularizemobile'
 import PayslipsMobile from './Dashboard/Mobile/Payslipsmobile'
 import ProfileMobile from './Dashboard/Mobile/Profilemobile'
 import ManagerApprovalsMobile from './Dashboard/Mobile/Managerapprovalsmobile'
+import LeaveMasterEntry from './LeaveMaster/container/LeaveMasterEntry'
+import LeaveMasterListEntry from './LeaveMaster/container/LeaveMasterListEntry'
 
 export const DASHBOARD_ROUTES = {
     ADMIN: { component: AdminDashboard },
@@ -75,6 +77,10 @@ export const ALL_ROUTES = [
     { path: 'ctcreport', component: CtcReportEntry },
 
     { path: 'payslip', component: PayslipsEntry },
+
+    { path: 'leaveMasterList', component: LeaveMasterListEntry },
+    { path: 'leaveMaster/add', component: LeaveMasterEntry, skipCheck: true },
+    { path: 'leaveMaster/edit/:id', component: LeaveMasterEntry, skipCheck: true },
 
     { path: 'leavesetting', component: LeaveSettingTest },
     { path: 'leave-settings/add', component: LeaveSettingsAddEditTest, skipCheck: true },

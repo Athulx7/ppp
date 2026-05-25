@@ -131,7 +131,7 @@ function SideBar({ isCollapsed, isMobileOpen, isMobile, handleToggle, setIsMobil
                     </div>
                     {!isCollapsed && (
                         <button onClick={handleToggle} className="text-gray-600 hover:text-indigo-600 transition-colors">
-                            {isMobile ? (isMobileOpen ? <X /> : <Rows3 />) : <ChevronLeft />}
+                            {isMobile ? (isMobileOpen ? <X /> : <Rows3 />) : <ChevronLeft className="cursor-pointer"/>}
                         </button>
                     )}
                 </div>
@@ -159,9 +159,7 @@ function SideBar({ isCollapsed, isMobileOpen, isMobile, handleToggle, setIsMobil
                                         Favourites
                                     </div>
                                 ) : (
-                                    <div className="flex justify-center my-2">
-                                        <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                                    </div>
+                                    <></>
                                 )}
                                 <nav className="space-y-1">
                                     {displayedFavourites.map(fav => {

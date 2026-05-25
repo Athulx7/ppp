@@ -12,6 +12,7 @@ function TopHeader({ openMenu, setOpenMenu }) {
     const [searchQuery, setSearchQuery] = useState('')
     const [searchResults, setSearchResults] = useState([])
     const [showResults, setShowResults] = useState(false)
+    const [noResults, setNoResults] = useState(false)
     const searchRef = useRef(null)
     const navigate = useNavigate()
 
@@ -20,6 +21,7 @@ function TopHeader({ openMenu, setOpenMenu }) {
         if (query.trim() === '') {
             setSearchResults([])
             setShowResults(false)
+            setNoResults(false)
             return
         }
 
@@ -27,8 +29,10 @@ function TopHeader({ openMenu, setOpenMenu }) {
             const res = await ApiCall("GET", `/searchMenu?q=${encodeURIComponent(query)}`)
 
             if (res?.data?.success) {
-                setSearchResults(res.data.data.slice(0, 8))
+                const results = res.data.data.slice(0, 8)
+                setSearchResults(results)
                 setShowResults(true)
+                setNoResults(results.length === 0)
             }
         }
         catch (err) {
@@ -42,6 +46,7 @@ function TopHeader({ openMenu, setOpenMenu }) {
         setSearchQuery("")
         setSearchResults([]);
         setShowResults(false);
+        setNoResults(false);
         setShowMobileSearch(false);
     };
 
@@ -93,27 +98,36 @@ function TopHeader({ openMenu, setOpenMenu }) {
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                     </div>
 
-                    {showResults && searchResults.length > 0 && (
+                    {showResults && (
                         <div style={{ marginTop: '-5px' }} className="absolute top-full left-0 w-full max-w-md bg-white rounded-lg shadow-lg border border-gray-600 z-50 max-h-96 overflow-y-auto scrollbar">
                             <div className="p-2">
-                                <div className="text-xs font-semibold text-gray-500 px-3 py-2">
-                                    {searchResults.length} results found
-                                </div>
-                                <div className="space-y-1">
-                                    {searchResults.map((result) => (
-                                        <button
-                                            key={result.id}
-                                            className="w-full text-left px-3 py-2.5 hover:bg-indigo-50 rounded-md transition-colors"
-                                            onClick={() => handleResultClick(result.route)}
-                                        >
-                                            <div className="flex items-center justify-between cursor-pointer">
-                                                <div className="font-medium text-gray-900">{result.title}</div>
-                                                <div className="text-xs text-gray-500 mt-0.5">{result.category}</div>
-
-                                            </div>
-                                        </button>
-                                    ))}
-                                </div>
+                                {noResults ? (
+                                    <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+                                        <Search className="w-8 h-8 mb-2 opacity-40" />
+                                        <div className="text-sm font-medium">No results found</div>
+                                        <div className="text-xs mt-1">Try a different search term</div>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="text-xs font-semibold text-gray-500 px-3 py-2">
+                                            {searchResults.length} results found
+                                        </div>
+                                        <div className="space-y-1">
+                                            {searchResults.map((result) => (
+                                                <button
+                                                    key={result.id}
+                                                    className="w-full text-left px-3 py-2.5 hover:bg-indigo-50 rounded-md transition-colors"
+                                                    onClick={() => handleResultClick(result.route)}
+                                                >
+                                                    <div className="flex items-center justify-between cursor-pointer">
+                                                        <div className="font-medium text-gray-900">{result.title}</div>
+                                                        <div className="text-xs text-gray-500 mt-0.5">{result.category}</div>
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         </div>
                     )}
@@ -145,31 +159,38 @@ function TopHeader({ openMenu, setOpenMenu }) {
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                         </div>
 
-                        {showResults && searchResults.length > 0 && (
+                        {showResults && (
                             <div className="mt-2 bg-white rounded-lg border border-gray-200 max-h-64 overflow-y-auto">
                                 <div className="p-2">
-                                    <div className="text-xs font-semibold text-gray-500 px-2 py-1.5">
-                                        {searchResults.length} results found
-                                    </div>
-                                    <div className="space-y-1">
-                                        {searchResults.map((result) => (
-                                            <button
-                                                key={result.id}
-                                                className="w-full text-left px-3 py-2.5 hover:bg-gray-50 rounded-md transition-colors"
-                                                onClick={() => handleResultClick(result.route)}
-                                            >
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex-1">
-                                                        <div className="font-medium text-gray-900">{result.title}</div>
-                                                        <div className="text-xs text-gray-500 mt-0.5">{result.category}</div>
-                                                    </div>
-                                                    <div className="text-xs text-gray-400 ml-2">
-                                                        ID: {result.id}
-                                                    </div>
-                                                </div>
-                                            </button>
-                                        ))}
-                                    </div>
+                                    {noResults ? (
+                                        <div className="flex flex-col items-center justify-center py-6 text-gray-400">
+                                            <Search className="w-7 h-7 mb-2 opacity-40" />
+                                            <div className="text-sm font-medium">No results found</div>
+                                            <div className="text-xs mt-1">Try a different search term</div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="text-xs font-semibold text-gray-500 px-2 py-1.5">
+                                                {searchResults.length} results found
+                                            </div>
+                                            <div className="space-y-1">
+                                                {searchResults.map((result) => (
+                                                    <button
+                                                        key={result.id}
+                                                        className="w-full text-left px-3 py-2.5 hover:bg-gray-50 rounded-md transition-colors"
+                                                        onClick={() => handleResultClick(result.route)}
+                                                    >
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex-1">
+                                                                <div className="font-medium text-gray-900">{result.title}</div>
+                                                                <div className="text-xs text-gray-500 mt-0.5">{result.category}</div>
+                                                            </div>
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         )}
