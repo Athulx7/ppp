@@ -131,7 +131,7 @@ function SideBar({ isCollapsed, isMobileOpen, isMobile, handleToggle, setIsMobil
                     </div>
                     {!isCollapsed && (
                         <button onClick={handleToggle} className="text-gray-600 hover:text-indigo-600 transition-colors">
-                            {isMobile ? (isMobileOpen ? <X /> : <Rows3 />) : <ChevronLeft />}
+                            {isMobile ? (isMobileOpen ? <X /> : <Rows3 />) : <ChevronLeft className="cursor-pointer"/>}
                         </button>
                     )}
                 </div>

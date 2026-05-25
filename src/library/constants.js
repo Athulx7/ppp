@@ -18,11 +18,14 @@ api.interceptors.request.use(
 
 export const ApiCall = async (method, endpoint, payload = null) => {
     try {
-        const response = await api({
+        const config = {
             method,
-            url: endpoint,
-            data: payload
-        })
+            url: endpoint
+        }
+        if (payload !== null && payload !== undefined) {
+            config.data = payload
+        }
+        const response = await api(config)
         return response
     } catch (error) {
         console.error("API Call Error:", error)
