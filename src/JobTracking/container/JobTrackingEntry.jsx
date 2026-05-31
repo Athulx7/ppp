@@ -12,6 +12,7 @@ function JobTrackingEntry() {
         spinner: false
     })
     const [showLunchModal, setShowLunchModal] = useState(false);
+    const [showCreateModal, setShowCreateModal] = useState(false);
     const [lunchBreak, setLunchBreak] = useState({ enabled: false, start: '13:00', end: '14:00' });
     const isLunchActive = () => {
         if (!lunchBreak?.enabled || !lunchBreak.start || !lunchBreak.end) return false;
@@ -55,6 +56,8 @@ function JobTrackingEntry() {
                 lunchBreak={lunchBreak}
                 setLunchBreak={setLunchBreak}
                 showLunchModal={showLunchModal}
+                setShowCreateModal={setShowCreateModal}
+                showCreateModal={showCreateModal}
             />
 
         </>

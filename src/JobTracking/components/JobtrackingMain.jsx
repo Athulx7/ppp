@@ -13,14 +13,16 @@ function JobtrackingMain({ isLoading,
     setShowLunchModal,
     lunchBreak,
     setLunchBreak,
-    showLunchModal }) {
+    showLunchModal,
+    setShowCreateModal,
+    showCreateModal }) {
 
     const [runningJobId, setRunningJobId] = useState(null);
     const [viewMode, setViewMode] = useState('list');
     const [jobs, setJobs] = useState([]);
 
 
-    const [showCreateModal, setShowCreateModal] = useState(false);
+
     const [showStopModal, setShowStopModal] = useState(false);
     const [showSubJobModal, setShowSubJobModal] = useState(false);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
