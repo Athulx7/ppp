@@ -15,8 +15,8 @@ import EmpMstAddEditEntry from './EmployeeMaster/container/EmpMstAddEditEntry'
 import UploadDashboard from './UploadCenter/container/UploadCenterEntry'
 import UploadProgressEntry from './UploadCenter/container/UploadProgressEntry'
 import UploadHistoryEntry from './UploadCenter/container/UploadHistoryEntry'
-import LeaveSettingTest from './LeaveSetting/LeaveSettingTest'
-import LeaveSettingsAddEditTest from './LeaveSetting/LeaveSettingsAddEditTest'
+import LeaveSettingEntry from './LeaveSetting/container/LeaveSettingEntry'
+import LeaveSettingAddEditEntry from './LeaveSetting/container/LeaveSettingAddEditEntry'
 import LeaveApprovalWorkflow from './LeaveApprovalWorkFlow/LeaveApprovalWorkflowTest'
 import LeaveRequest from './LeaveRequest/LeaveRequestTest'
 import MyLeaves from './LeaveMyLeavss/MyLeaveTest'
@@ -82,9 +82,10 @@ export const ALL_ROUTES = [
     { path: 'leaveMaster/add', component: LeaveMasterEntry, skipCheck: true },
     { path: 'leaveMaster/edit/:id', component: LeaveMasterEntry, skipCheck: true },
 
-    { path: 'leavesetting', component: LeaveSettingTest },
-    { path: 'leave-settings/add', component: LeaveSettingsAddEditTest, skipCheck: true },
-    { path: 'leave-settings/edit', component: LeaveSettingsAddEditTest, skipCheck: true },
+    { path: 'leavesetting', component: LeaveSettingEntry },
+    { path: 'leave-settings/add', component: LeaveSettingAddEditEntry, skipCheck: true },
+    { path: 'leave-settings/edit', component: LeaveSettingAddEditEntry, skipCheck: true },
+
     { path: 'leaveapprovalworkflow', component: LeaveApprovalWorkflow },
     { path: 'leaveRequest', component: LeaveRequest },
     { path: 'myleves', component: MyLeaves },
@@ -100,7 +101,7 @@ export const ALL_ROUTES = [
     { path: 'menumapping', component: MenuMappingEntry },
 
     { path: 'jobtracking', component: JobTrackingEntry },
-    { path: 'jobcalendar', component: JobCalendar },
+    { path: 'jobcalendar', component: JobCalendar, skipCheck: true },
     { path: 'adminjobtracking', component: AdminJobDashboard },
 
     { path: 'chat', component: ChatPage },
