@@ -3,6 +3,7 @@ import FormulaBuilder from "./FormulaBuilder"
 import { BLANK_FORM, buildTypeMap } from "./typeUtils"
 import CommonDropDown from "../../../basicComponents/CommonDropDown"
 import CommonInputField from "../../../basicComponents/CommonInputField"
+import { showStatusToast } from "../../../basicComponents/CommonStatusPopUp"
 import { useEffect, useState } from "react"
 
 function ComponentModal({
@@ -62,8 +63,15 @@ function ComponentModal({
     }
 
     const handleSave = () => {
-        if (!form.componentId) { alert('Please select a component.'); return }
-        // Duplicate check — only when adding a new component (not editing)
+        if (!form.componentId) {
+            showStatusToast({
+                type: 'warning',
+                title: 'Validation',
+                message: 'Please select a component.',
+                autoClose: true
+            });
+            return;
+        }
         if (!isEditing) {
             const alreadyAdded = existingComponents.some(
                 c => String(c.componentId) === String(form.componentId)

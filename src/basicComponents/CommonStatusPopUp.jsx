@@ -40,7 +40,8 @@ export function showStatusToast({
         type === "success" ? "success"
             : type === "error" ? "error"
                 : type === "info" ? "info"
-                    : "default"
+                    : type === "warning" ? "warning"
+                        : "default"
 
     const content = (
         <div>
@@ -68,6 +69,7 @@ export function showStatusToast({
     if (toastType === "success") toast.success(content, options)
     else if (toastType === "error") toast.error(content, options)
     else if (toastType === "info") toast.info(content, options)
+    else if (toastType === "warning") toast.warn(content, options)
     else toast(content, options)
 }
 
