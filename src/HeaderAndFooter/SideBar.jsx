@@ -14,7 +14,11 @@ function SideBar({ isCollapsed, isMobileOpen, isMobile, handleToggle, setIsMobil
     const location = useLocation()
     const { isDark, toggleTheme } = useTheme()
 
-    const { favourites } = useFavourites()
+    const { favourites, loadFavourites } = useFavourites()
+
+    useEffect(() => {
+        loadFavourites()
+    }, [loadFavourites])
 
     const [groupedMenus, setGroupedMenus] = useState({})
     const [isLogoHovered, setIsLogoHovered] = useState(false)
