@@ -4,9 +4,7 @@ import {
     HOURS, HOUR_HEIGHT, MIN_BLOCK_HEIGHT, WEEK_DAYS_SHORT,
     WEEK_DAYS_FULL, MONTH_NAMES, formatHour, formatDuration,
     getDensityBg, getDensityLabel, getColorClasses, buildDayBlocks, toDateStr,
-} from './calendarUtils';
-
-// ─── Current-time red line ──────────────────────────────────────────────────
+} from './CalendarUtils';
 
 export function CurrentTimeIndicator() {
     const [now, setNow] = useState(new Date());
