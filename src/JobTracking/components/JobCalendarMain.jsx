@@ -1,176 +1,168 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Calendar } from 'lucide-react';
-import LoadingSpinner from '../../basicComponents/LoadingSpinner';
-
-// import {
-//     MONTH_NAMES, WEEK_DAYS_FULL, toDateStr, getWeekDays, monthBounds,
-// } from './calendarUtils';
-// import { fetchCalendarBlocks, fetchMonthActivity, fetchMonthSummary } from './calendarApi';
-import { CalendarLegend, CalendarToolbar, DayDetailPanel, DayView, JobDetailPanel, MonthGrid, MonthlySummary, WeekView } from './CalendarComponents';
-import { MONTH_NAMES, WEEK_DAYS_FULL, toDateStr, getWeekDays, monthBounds } from './CalendarUtils';
-import { fetchCalendarBlocks, fetchMonthActivity, fetchMonthSummary } from './CalendatApi';
-import jobApi from './jobApi';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { Calendar } from 'lucide-react'
+import LoadingSpinner from '../../basicComponents/LoadingSpinner'
+import { CalendarLegend, CalendarToolbar, DayDetailPanel, DayView, JobDetailPanel, MonthGrid, MonthlySummary, WeekView, HourDetailPanel } from './CalendarComponents'
+import { MONTH_NAMES, WEEK_DAYS_FULL, toDateStr, getWeekDays, monthBounds } from './CalendarUtils'
+import { fetchCalendarBlocks, fetchMonthActivity, fetchMonthSummary } from './CalendatApi'
+import jobApi from './jobApi'
 
 function JobCalendarMain({ loading, setLoading, currentUser }) {
-    // ── View & navigation state ──────────────────────────────────────
-    const [view, setView] = useState('month');
-    const [calDate, setCalDate] = useState(new Date()); // drives month nav
-    const [selectedDate, setSelectedDate] = useState(new Date()); // drives week/day nav
-    const [selectedDay, setSelectedDay] = useState(null);         // month grid selection
+    const [view, setView] = useState('month')
+    const [calDate, setCalDate] = useState(new Date())
+    const [selectedDate, setSelectedDate] = useState(new Date())
+    const [selectedDay, setSelectedDay] = useState(null)
 
-    const todayStr = useMemo(() => toDateStr(new Date()), []);
+    const todayStr = useMemo(() => toDateStr(new Date()), [])
 
-    // ── Data state ───────────────────────────────────────────────────
-    const [allBlocks, setAllBlocks] = useState([]); // time-log rows for week/day view
-    const [jobsByDate, setJobsByDate] = useState({}); // { "YYYY-MM-DD": [job,...] }
-    const [monthSummary, setMonthSummary] = useState(null);
-    const [lunchBreak, setLunchBreak] = useState(null);
-    const [selectedBlock, setSelectedBlock] = useState(null);
-    const [error, setError] = useState(null);
+    const [allBlocks, setAllBlocks] = useState([])
+    const [jobsByDate, setJobsByDate] = useState({})
+    const [detailModalDate, setDetailModalDate] = useState(null)
 
-    const gridRef = useRef(null);
+    useEffect(() => {
+        const handleOpenDayDetail = (e) => setDetailModalDate(e.detail)
+        window.addEventListener('open-day-detail', handleOpenDayDetail)
+        return () => window.removeEventListener('open-day-detail', handleOpenDayDetail)
+    }, [])
+    const [monthSummary, setMonthSummary] = useState(null)
+    const [lunchBreak, setLunchBreak] = useState(null)
+    const [selectedBlock, setSelectedBlock] = useState(null)
+    const [selectedHour, setSelectedHour] = useState(null)
+    const [masters, setMasters] = useState(null)
+    const [error, setError] = useState(null)
 
-    // ── Derived helpers ──────────────────────────────────────────────
-    const year = calDate.getFullYear();
-    const month = calDate.getMonth() + 1; // 1-indexed for the API
+    const gridRef = useRef(null)
 
-    const weekDays = useMemo(() => getWeekDays(selectedDate), [selectedDate]);
+    const year = calDate.getFullYear()
+    const month = calDate.getMonth() + 1
 
-    const selectedDateStr = selectedDay
-        ? `${year}-${String(month).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`
-        : null;
+    const weekDays = useMemo(() => getWeekDays(selectedDate), [selectedDate])
 
-    // Flat deduplicated job list across all dates (for summary counts)
+    const selectedDateStr = selectedDay ? `${year}-${String(month).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}` : null
+
     const allJobs = useMemo(() => {
-        const seen = new Set();
-        const result = [];
+        const seen = new Set()
+        const result = []
         Object.values(jobsByDate).flat().forEach((j) => {
             if (!seen.has(j.job_id)) { seen.add(j.job_id); result.push(j); }
         });
-        return result;
-    }, [jobsByDate]);
+        return result
+    }, [jobsByDate])
 
-    // Lunch block shaped for the time grid
     const lunchBlock = useMemo(() => {
-        if (!lunchBreak?.is_enabled || !lunchBreak.start_time || !lunchBreak.end_time) return null;
-        const [sh, sm] = lunchBreak.start_time.split(':').map(Number);
-        const [eh, em] = lunchBreak.end_time.split(':').map(Number);
-        return { startHour: sh + sm / 60, endHour: eh + em / 60 };
-    }, [lunchBreak]);
+        if (!lunchBreak?.is_enabled || !lunchBreak.start_time || !lunchBreak.end_time) return null
+        const [sh, sm] = lunchBreak.start_time.split(':').map(Number)
+        const [eh, em] = lunchBreak.end_time.split(':').map(Number)
+        return { startHour: sh + sm / 60, endHour: eh + em / 60 }
+    }, [lunchBreak])
 
-    // ── Header label for the toolbar ─────────────────────────────────
     const headerLabel = useMemo(() => {
-        if (view === 'month') return `${MONTH_NAMES[month - 1]} ${year}`;
+        if (view === 'month') return `${MONTH_NAMES[month - 1]} ${year}`
         if (view === 'week') {
-            const days = weekDays;
-            return `${MONTH_NAMES[days[0].getMonth()]} ${days[0].getDate()} – ${days[6].getDate()}, ${days[6].getFullYear()}`;
+            const days = weekDays
+            return `${MONTH_NAMES[days[0].getMonth()]} ${days[0].getDate()} – ${days[6].getDate()}, ${days[6].getFullYear()}`
         }
-        return `${WEEK_DAYS_FULL[selectedDate.getDay()]}, ${MONTH_NAMES[selectedDate.getMonth()]} ${selectedDate.getDate()}, ${selectedDate.getFullYear()}`;
-    }, [view, year, month, weekDays, selectedDate]);
+        return `${WEEK_DAYS_FULL[selectedDate.getDay()]}, ${MONTH_NAMES[selectedDate.getMonth()]} ${selectedDate.getDate()}, ${selectedDate.getFullYear()}`
+    }, [view, year, month, weekDays, selectedDate])
 
-    // ── Data loaders ─────────────────────────────────────────────────
-
-    // Load lunch break once (same setting everywhere in the job module)
     useEffect(() => {
         jobApi.fetchLunchBreak(currentUser.emp_code).then((data) => {
-            if (data) setLunchBreak(data);
-        }).catch(console.error);
-    }, []);
+            if (data) setLunchBreak(data)
+        }).catch(console.error)
 
-    // Month activity dots — refresh whenever year/month changes
+        jobApi.fetchJobMasters().then((data) => {
+            if (data) setMasters(data)
+        }).catch(console.error)
+    }, [])
+
     const loadMonthActivity = useCallback(async () => {
-        setLoading({ normal: true, spinner: false });
-        setError(null);
+        setLoading({ normal: true, spinner: false })
+        setError(null)
         try {
             const [activity, summary] = await Promise.all([
                 fetchMonthActivity(currentUser.emp_code, year, month),
                 fetchMonthSummary(currentUser.emp_code, year, month),
             ]);
-            setJobsByDate(activity || {});
-            setMonthSummary(summary);
+            setJobsByDate(activity || {})
+            setMonthSummary(summary)
         } catch (err) {
-            console.error('Failed to load month activity', err);
-            setError('Could not load calendar data. Please try again.');
+            console.error('Failed to load month activity', err)
+            setError('Could not load calendar data. Please try again.')
         } finally {
-            setLoading({ normal: false, spinner: false });
+            setLoading({ normal: false, spinner: false })
         }
-    }, [year, month]);
+    }, [year, month])
 
-    useEffect(() => { loadMonthActivity(); }, [loadMonthActivity]);
+    useEffect(() => {
+        loadMonthActivity()
+    }, [loadMonthActivity])
 
-    // Week/day blocks — refresh when view changes to week/day or the window shifts
     const loadBlocks = useCallback(async (from, to) => {
-        setLoading({ normal: true, spinner: false });
-        setError(null);
+        setLoading({ normal: true, spinner: false })
+        setError(null)
         try {
-            const blocks = await fetchCalendarBlocks(currentUser.emp_code, from, to);
-            setAllBlocks(blocks || []);
+            const blocks = await fetchCalendarBlocks(currentUser.emp_code, from, to)
+            setAllBlocks(blocks || [])
         } catch (err) {
-            console.error('Failed to load calendar blocks', err);
-            setError('Could not load time-log data. Please try again.');
+            console.error('Failed to load calendar blocks', err)
+            setError('Could not load time-log data. Please try again.')
         } finally {
-            setLoading({ normal: false, spinner: false });
+            setLoading({ normal: false, spinner: false })
         }
-    }, []);
+    }, [])
 
     useEffect(() => {
         if (view === 'week') {
-            const days = weekDays;
-            loadBlocks(toDateStr(days[0]), toDateStr(days[6]));
+            const days = weekDays
+            loadBlocks(toDateStr(days[0]), toDateStr(days[6]))
         } else if (view === 'day') {
-            const ds = toDateStr(selectedDate);
-            loadBlocks(ds, ds);
+            const ds = toDateStr(selectedDate)
+            loadBlocks(ds, ds)
         }
-    }, [view, weekDays, selectedDate, loadBlocks]);
+    }, [view, weekDays, selectedDate, loadBlocks])
 
-    // Scroll to current hour when entering week/day view
     useEffect(() => {
         if ((view === 'week' || view === 'day') && gridRef.current) {
-            const hour = new Date().getHours();
-            gridRef.current.scrollTop = Math.max(0, (hour - 1) * 56);
+            const hour = new Date().getHours()
+            gridRef.current.scrollTop = Math.max(0, (hour - 1) * 56)
         }
-    }, [view]);
-
-    // ── Navigation ───────────────────────────────────────────────────
+    }, [view])
 
     const handlePrev = () => {
         if (view === 'month') {
-            setCalDate((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1));
+            setCalDate((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1))
         } else if (view === 'week') {
-            setSelectedDate((d) => { const n = new Date(d); n.setDate(n.getDate() - 7); return n; });
+            setSelectedDate((d) => { const n = new Date(d); n.setDate(n.getDate() - 7); return n; })
         } else {
-            setSelectedDate((d) => { const n = new Date(d); n.setDate(n.getDate() - 1); return n; });
+            setSelectedDate((d) => { const n = new Date(d); n.setDate(n.getDate() - 1); return n; })
         }
-    };
+    }
 
     const handleNext = () => {
         if (view === 'month') {
-            setCalDate((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1));
+            setCalDate((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1))
         } else if (view === 'week') {
-            setSelectedDate((d) => { const n = new Date(d); n.setDate(n.getDate() + 7); return n; });
+            setSelectedDate((d) => { const n = new Date(d); n.setDate(n.getDate() + 7); return n; })
         } else {
-            setSelectedDate((d) => { const n = new Date(d); n.setDate(n.getDate() + 1); return n; });
+            setSelectedDate((d) => { const n = new Date(d); n.setDate(n.getDate() + 1); return n; })
         }
-    };
+    }
 
     const handleToday = () => {
-        const t = new Date();
-        setCalDate(t);
-        setSelectedDate(t);
-    };
+        const t = new Date()
+        setCalDate(t)
+        setSelectedDate(t)
+    }
 
     const handleViewChange = (v) => {
-        setView(v);
-        setSelectedBlock(null);
-    };
+        setView(v)
+        setSelectedBlock(null)
+        setSelectedHour(null)
+    }
 
-    // Clicking a day header in week view jumps to day view
     const handleWeekDayClick = (date) => {
-        setSelectedDate(date);
-        setView('day');
-    };
-
-    // ── Render ───────────────────────────────────────────────────────
+        setSelectedDate(date)
+        setView('day')
+    }
 
     return (
         <>
@@ -182,7 +174,6 @@ function JobCalendarMain({ loading, setLoading, currentUser }) {
             )}
 
             <div className="flex gap-4 flex-col lg:flex-row">
-                {/* ── Main calendar area ── */}
                 <div className="flex-1 min-w-0">
                     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                         <CalendarToolbar
@@ -194,7 +185,6 @@ function JobCalendarMain({ loading, setLoading, currentUser }) {
                             onViewChange={handleViewChange}
                         />
 
-                        {/* Month view */}
                         {view === 'month' && (
                             <MonthGrid
                                 year={year}
@@ -207,7 +197,6 @@ function JobCalendarMain({ loading, setLoading, currentUser }) {
                             />
                         )}
 
-                        {/* Week view */}
                         {view === 'week' && (
                             <div className="relative">
                                 <WeekView
@@ -218,6 +207,7 @@ function JobCalendarMain({ loading, setLoading, currentUser }) {
                                     onBlockClick={setSelectedBlock}
                                     onDayClick={handleWeekDayClick}
                                     gridRef={gridRef}
+                                    onHourClick={setSelectedHour}
                                 />
                                 {selectedBlock && (
                                     <JobDetailPanel block={selectedBlock} onClose={() => setSelectedBlock(null)} />
@@ -225,7 +215,6 @@ function JobCalendarMain({ loading, setLoading, currentUser }) {
                             </div>
                         )}
 
-                        {/* Day view */}
                         {view === 'day' && (
                             <div className="relative">
                                 <DayView
@@ -236,6 +225,7 @@ function JobCalendarMain({ loading, setLoading, currentUser }) {
                                     onBlockClick={setSelectedBlock}
                                     gridRef={gridRef}
                                     jobsByDate={jobsByDate}
+                                    onHourClick={setSelectedHour}
                                 />
                                 {selectedBlock && (
                                     <JobDetailPanel block={selectedBlock} onClose={() => setSelectedBlock(null)} />
@@ -244,13 +234,24 @@ function JobCalendarMain({ loading, setLoading, currentUser }) {
                         )}
                     </div>
 
-                    <CalendarLegend />
+                    <CalendarLegend priorities={masters?.priorities} />
                 </div>
 
-                {/* ── Sidebar ── */}
                 <div className="lg:w-72 xl:w-80 space-y-4">
-                    {/* Day detail panel — shown when a month-grid day is selected */}
-                    {view === 'month' && selectedDay && selectedDateStr ? (
+                    {view !== 'month' && selectedHour !== null ? (
+                        <HourDetailPanel
+                            selectedHour={selectedHour}
+                            allBlocks={allBlocks}
+                            selectedDateStr={toDateStr(selectedDate)}
+                            view={view}
+                            weekDays={weekDays}
+                            onClose={() => setSelectedHour(null)}
+                            onJobClick={(job) => {
+                                setSelectedHour(null)
+                                setSelectedBlock(job)
+                            }}
+                        />
+                    ) : view === 'month' && selectedDay && selectedDateStr ? (
                         <DayDetailPanel
                             selectedDay={selectedDay}
                             selectedDateStr={selectedDateStr}
@@ -269,7 +270,6 @@ function JobCalendarMain({ loading, setLoading, currentUser }) {
                         </div>
                     ) : null}
 
-                    {/* Block detail card — shown in week/day sidebar when a block is clicked */}
                     {selectedBlock && view !== 'month' && (
                         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50">
@@ -296,7 +296,6 @@ function JobCalendarMain({ loading, setLoading, currentUser }) {
                         </div>
                     )}
 
-                    {/* Monthly summary */}
                     <MonthlySummary
                         month={month}
                         year={year}
@@ -309,7 +308,7 @@ function JobCalendarMain({ loading, setLoading, currentUser }) {
 
             {loading.spinner && <LoadingSpinner />}
         </>
-    );
+    )
 }
 
-export default JobCalendarMain;
+export default JobCalendarMain

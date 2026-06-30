@@ -213,7 +213,7 @@ export function buildJobTree(flatJobs) {
     byId.forEach((job) => {
         if (job.parent_job_id && byId.has(job.parent_job_id)) {
             byId.get(job.parent_job_id).subJobs.push(job)
-        } else if (!job.parent_job_id) {
+        } else {
             roots.push(job)
         }
     })

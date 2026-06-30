@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
     AlertCircle, Briefcase, Clock, GitBranch, Info, List, SortDesc,
     User, Users, History as HistoryIcon,
@@ -53,6 +53,22 @@ function JobtrackingMain({ isLoading, setIsLoading, setShowCreateModal, showCrea
     const [sortOrder, setSortOrder] = useState('desc')
     const [filterAssignee, setFilterAssignee] = useState('all')
 
+    const [page, setPage] = useState(1)
+    const [hasMore, setHasMore] = useState(true)
+    const [isFetchingMore, setIsFetchingMore] = useState(false)
+
+    const observer = useRef()
+    const lastJobElementRef = useCallback((node) => {
+        if (isLoading.normal || isFetchingMore) return
+        if (observer.current) observer.current.disconnect()
+        observer.current = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting && hasMore) {
+                setPage(prevPageNumber => prevPageNumber + 1)
+            }
+        })
+        if (node) observer.current.observe(node)
+    }, [isLoading.normal, isFetchingMore, hasMore])
+
     const [runningJobId, setRunningJobId] = useState(null)
 
     const loadMasters = useCallback(async () => {
@@ -65,27 +81,78 @@ function JobtrackingMain({ isLoading, setIsLoading, setShowCreateModal, showCrea
         }
     }, [])
 
-    const loadJobs = useCallback(async () => {
-        setIsLoading((p) => ({ ...p, normal: true }))
+    const loadJobs = useCallback(async (pageNumber = 1) => {
+        if (pageNumber === 1) {
+            setIsLoading((p) => ({ ...p, normal: true }))
+        } else {
+            setIsFetchingMore(true)
+        }
         try {
-            const result = await jobApi.fetchJobList({ pageSize: 100 })
-            setJobs(result.data || [])
-            const runningJob = (result.data || []).find((j) => j.running_emp_code === currentUser?.emp_code || j.status_code === 'RUNNING')
-            setRunningJobId(runningJob ? runningJob.job_id : null)
+            const pageSize = 2
+            const filters = {
+                page: pageNumber,
+                pageSize,
+                sortBy,
+                sortOrder,
+            }
+            if (searchQ) filters.search = searchQ
+
+            if (filterStatus !== 'all') {
+                const sObj = masters.statuses.find(s => s.status_code === filterStatus)
+                if (sObj) filters.status_id = sObj.id
+            }
+
+            if (filterAssignee !== 'all') {
+                if (filterAssignee === 'unassigned') {
+                    filters.assigned_to_emp_code = 'null'
+                } else if (masters.departments.some(d => d.depart_code === filterAssignee)) {
+                    filters.assigned_department_code = filterAssignee
+                } else {
+                    filters.assigned_to_emp_code = filterAssignee
+                }
+            } else if (!searchQ && filterAssignee === 'all') {
+                filters.user_scope_emp_code = currentUser?.emp_code
+            }
+
+            const result = await jobApi.fetchJobList(filters)
+            setJobs(prev => {
+                if (pageNumber === 1) return result.data || []
+                
+                const existingIds = new Set(prev.map(j => j.job_id))
+                const newJobs = (result.data || []).filter(j => !existingIds.has(j.job_id))
+                return [...prev, ...newJobs]
+            })
+            setHasMore((result.data || []).length === pageSize)
+
+            if (pageNumber === 1) {
+                const runningJob = (result.data || []).find((j) => j.running_emp_code === currentUser?.emp_code || j.status_code === 'RUNNING')
+                setRunningJobId(runningJob ? runningJob.job_id : null)
+            }
         } catch (err) {
             console.error('Failed to load jobs', err)
             setLoadError('Could not load jobs. Please try again.')
         } finally {
-            setIsLoading((p) => ({ ...p, normal: false }))
+            if (pageNumber === 1) {
+                setIsLoading((p) => ({ ...p, normal: false }))
+            } else {
+                setIsFetchingMore(false)
+            }
         }
-    }, [setIsLoading, currentUser])
+    }, [setIsLoading, currentUser, searchQ, filterStatus, filterAssignee, sortBy, sortOrder, masters])
 
     useEffect(() => {
         loadMasters()
-        if (currentUser) {
-            loadJobs()
+    }, [loadMasters])
+
+    useEffect(() => {
+        if (currentUser && masters.statuses && masters.statuses.length > 0) {
+            loadJobs(page)
         }
-    }, [loadMasters, loadJobs, currentUser])
+    }, [loadJobs, currentUser, page, masters.statuses.length])
+
+    useEffect(() => {
+        setPage(1)
+    }, [searchQ, filterStatus, filterAssignee, sortBy, sortOrder])
 
     const loadDeptScopedMasters = useCallback(async (departCode, target) => {
         if (!departCode) return
@@ -279,12 +346,12 @@ function JobtrackingMain({ isLoading, setIsLoading, setShowCreateModal, showCrea
         if (!subJobForm.title.trim() || !subJobTargetId) return
         setIsLoading((p) => ({ ...p, spinner: true }))
         try {
-            const parentJob = jobs.find((j) => j.job_id === subJobTargetId)
+            const parentJob = jobs.find((j) => String(j.job_id) === String(subJobTargetId))
             const payload = {
-                job_type_id: Number(subJobForm.job_type_id || parentJob?.job_type_id),
+                job_type_id: subJobForm.job_type_id ? Number(subJobForm.job_type_id) : Number(parentJob?.job_type_id),
                 title: subJobForm.title.trim(),
                 description: subJobForm.description.trim(),
-                priority_id: Number(subJobForm.priority_id || parentJob?.priority_id),
+                priority_id: subJobForm.priority_id ? Number(subJobForm.priority_id) : Number(parentJob?.priority_id),
                 created_by_emp_code: currentUser?.emp_code,
                 parent_job_id: subJobTargetId,
             }
@@ -340,45 +407,9 @@ function JobtrackingMain({ isLoading, setIsLoading, setShowCreateModal, showCrea
     const visibleJobs = useMemo(() => {
         const tree = buildJobTree(jobs)
         const flat = flattenJobTree(tree)
-
+        // Frontend filtering is no longer needed as we pass filters to the backend API.
         return flat
-            .filter((j) => {
-                const statusObj = masters.statuses.find((s) => s.id === j.status_id) || { status_code: j.status_code }
-                const matchStatus = filterStatus === 'all' || statusObj.status_code === filterStatus
-                const matchQ = !searchQ || j.title?.toLowerCase().includes(searchQ.toLowerCase()) || j.job_code?.toLowerCase().includes(searchQ.toLowerCase())
-                const matchAssignee = filterAssignee === 'all' || (filterAssignee === 'unassigned' && !j.assigned_to_emp_code && !j.assigned_department_code) || j.assigned_to_emp_code === filterAssignee || j.assigned_department_code === filterAssignee
-
-                // Default restriction: only show jobs created, assigned, or run by the current user
-                const isRelevantToUser =
-                    j.created_by_emp_code === currentUser?.emp_code ||
-                    j.assigned_to_emp_code === currentUser?.emp_code ||
-                    j.running_emp_code === currentUser?.emp_code;
-
-                // Override restriction if the user is actively searching or filtering by someone else
-                const matchUserScope = (searchQ || filterAssignee !== 'all') ? true : isRelevantToUser;
-
-                return matchStatus && matchQ && matchAssignee && matchUserScope
-            })
-            .sort((a, b) => {
-                let valA, valB
-                switch (sortBy) {
-                    case 'priority':
-                        valA = masters.priorities.find((p) => p.priority_id === a.priority_id)?.level ?? 99
-                        valB = masters.priorities.find((p) => p.priority_id === b.priority_id)?.level ?? 99
-                        break
-                    case 'dueDate':
-                        valA = a.due_date ? new Date(a.due_date) : new Date(8640000000000000)
-                        valB = b.due_date ? new Date(b.due_date) : new Date(8640000000000000)
-                        break
-                    case 'title':
-                        valA = a.title; valB = b.title
-                        break
-                    default:
-                        valA = new Date(a.created_date); valB = new Date(b.created_date)
-                }
-                return sortOrder === 'asc' ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1)
-            })
-    }, [jobs, masters, filterStatus, searchQ, filterAssignee, sortBy, sortOrder])
+    }, [jobs])
 
     const statCounts = useMemo(() => {
         const flat = flattenJobTree(buildJobTree(jobs))
@@ -417,7 +448,7 @@ function JobtrackingMain({ isLoading, setIsLoading, setShowCreateModal, showCrea
                     { label: 'Completed', value: statCounts.completed, color: 'green' },
                     { label: 'Referred', value: statCounts.referred, color: 'orange' },
                 ].map((stat) => (
-                    <div key={stat.label} className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+                    <div key={stat.label} className="bg-white rounded-md border border-gray-200 shadow-sm p-4">
                         <p className="text-xs text-gray-500 font-medium">{stat.label}</p>
                         <p className={`text-2xl font-bold text-${stat.color}-600 mt-1`}>{stat.value}</p>
                     </div>
@@ -428,19 +459,12 @@ function JobtrackingMain({ isLoading, setIsLoading, setShowCreateModal, showCrea
                 <input
                     type="text" placeholder="Search by title or job code..."
                     value={searchQ} onChange={(e) => setSearchQ(e.target.value)}
-                    className="flex-1 min-w-[180px] px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="flex-1 min-w-[180px] px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 />
-                <select
-                    value={filterAssignee} onChange={(e) => setFilterAssignee(e.target.value)}
-                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                    <option value="all">All Assignees</option>
-                    <option value="unassigned">Unassigned</option>
-                    {masters.employees.map((u) => <option key={u.emp_code} value={u.emp_code}>{u.emp_name}</option>)}
-                    {masters.departments.map((d) => <option key={d.depart_code} value={d.depart_code}>{d.depart_name} (Dept)</option>)}
-                </select>
+
                 <select
                     value={sortBy} onChange={(e) => setSortBy(e.target.value)}
-                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                    className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500">
                     <option value="createdAt">Sort: Date</option>
                     <option value="priority">Sort: Priority</option>
                     <option value="dueDate">Sort: Due Date</option>
@@ -448,18 +472,18 @@ function JobtrackingMain({ isLoading, setIsLoading, setShowCreateModal, showCrea
                 </select>
                 <div className="flex gap-1 flex-wrap">
                     <button onClick={() => setFilterStatus('all')}
-                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${filterStatus === 'all' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}>
+                        className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${filterStatus === 'all' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}>
                         All
                     </button>
                     {masters.statuses.map((s) => (
                         <button key={s.id} onClick={() => setFilterStatus(s.status_code)}
-                            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${filterStatus === s.status_code ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}>
+                            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${filterStatus === s.status_code ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'}`}>
                             {s.status_name}
                         </button>
                     ))}
                 </div>
                 <button onClick={() => setSortOrder((p) => (p === 'asc' ? 'desc' : 'asc'))}
-                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
+                    className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
                     <SortDesc className="w-4 h-4" />
                 </button>
             </div>
@@ -481,7 +505,7 @@ function JobtrackingMain({ isLoading, setIsLoading, setShowCreateModal, showCrea
                 </div>
             ) : (
                 <div className="space-y-2">
-                    {visibleJobs.map((job) => {
+                    {visibleJobs.map((job, index) => {
                         const statusObj = findStatusObj(job.status_id) || { status_code: job.status_code, status_name: job.status_name, color_code: job.status_color };
                         const priorityObj = findPriorityObj(job.priority_id) || { priority_name: job.priority_name, color_code: job.priority_color };
                         const isRunning = job.running_emp_code === currentUser?.emp_code || statusObj.status_code === 'RUNNING';
@@ -491,7 +515,8 @@ function JobtrackingMain({ isLoading, setIsLoading, setShowCreateModal, showCrea
 
                         return (
                             <div key={job.job_id}
-                                className={`bg-white rounded-xl border shadow-sm hover:shadow-md transition-all
+                                ref={visibleJobs.length === index + 1 ? lastJobElementRef : null}
+                                className={`bg-white rounded-lg border shadow-sm hover:shadow-md transition-all
                                     ${isRunning ? 'border-indigo-300 ring-1 ring-indigo-200' :
                                         isSubJob ? 'border-l-4 border-l-purple-400 border-gray-200' : 'border-gray-200'}`}>
                                 <div className="flex items-center gap-4 px-4 py-3">
@@ -520,7 +545,7 @@ function JobtrackingMain({ isLoading, setIsLoading, setShowCreateModal, showCrea
                                     </div>
 
                                     {isRunning && (
-                                        <div className="text-right bg-indigo-50 px-3 py-1 rounded-lg">
+                                        <div className="text-right bg-indigo-50 px-3 py-1 rounded-md">
                                             <div className="text-xs text-indigo-400">Running</div>
                                             <LiveTimer startTime={job.running_start_time || job.time_summary?.running_start_time || job.start_date} small />
                                         </div>
@@ -528,24 +553,35 @@ function JobtrackingMain({ isLoading, setIsLoading, setShowCreateModal, showCrea
 
                                     <div className="flex items-center gap-1">
                                         <button onClick={() => openJobDetails(job.job_id)}
-                                            className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all" title="View details">
+                                            className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-all" title="View details">
                                             <Info className="w-4 h-4" />
                                         </button>
                                         <button onClick={() => openSubJobModal(job.job_id)}
-                                            className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all" title="Add sub-job">
+                                            className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-all" title="Add sub-job">
                                             <GitBranch className="w-4 h-4" />
                                         </button>
                                         {!isRunning && !isDone && (
-                                            <CommonButton label="Run" variant="primary" size="small" onClick={() => handleRun(job.job_id)} disabled={!canRun} />
+                                            <button onClick={() => handleRun(job.job_id)} disabled={!canRun}
+                                                className="flex items-center gap-1.5 px-3 py-1 text-sm text-white font-semibold border border-green-500 bg-green-500 rounded-md cursor-pointer hover:bg-green-600 transition-all">
+                                                Run
+                                            </button>
                                         )}
                                         {isRunning && (
-                                            <CommonButton label="Stop" variant="danger" size="small" onClick={() => openStopModal(job.job_id)} />
+                                            <button onClick={() => openStopModal(job.job_id)}
+                                                className="flex items-center gap-1.5 px-3 py-1 text-sm text-white font-semibold border border-red-500 bg-red-500 rounded-md cursor-pointer hover:bg-red-600 transition-all">
+                                                Stop
+                                            </button>
                                         )}
                                     </div>
                                 </div>
                             </div>
-                        );
+                        )
                     })}
+                    {isFetchingMore && (
+                        <div className="py-4 flex justify-center">
+                            <div className="w-6 h-6 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -851,9 +887,6 @@ function JobtrackingMain({ isLoading, setIsLoading, setShowCreateModal, showCrea
     );
 }
 
-// ---------------------------------------------------------------------
-// Renders a single dynamic custom field input based on field_type
-// ---------------------------------------------------------------------
 function CustomFieldInput({ field, value, onChange }) {
     const commonClasses = "w-full px-3 py-2 rounded-lg text-sm border border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500";
 
@@ -864,7 +897,7 @@ function CustomFieldInput({ field, value, onChange }) {
                     className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-400" />
                 {field.field_label}
             </label>
-        );
+        )
     }
 
     return (
@@ -886,7 +919,7 @@ function CustomFieldInput({ field, value, onChange }) {
                 />
             )}
         </div>
-    );
+    )
 }
 
-export default JobtrackingMain;
+export default JobtrackingMain

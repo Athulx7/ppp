@@ -14,6 +14,8 @@ import CommonButton from '../basicComponents/CommonButton';
 import CommonInputField from '../basicComponents/CommonInputField';
 import CommonDropDown from '../basicComponents/CommonDropDown';
 import Breadcrumb from '../basicComponents/BreadCrumb';
+import { ApiCall } from '../library/constants';
+import jobApi from './components/jobApi';
 
 // Helper Functions
 function formatDuration(secs) {
@@ -50,6 +52,10 @@ const STATUS_CONFIG = {
     'on-hold': { bg: 'bg-amber-100', text: 'text-amber-700', label: 'On Hold', icon: <div className="w-2 h-2 rounded-full bg-amber-500" /> },
     'in-review': { bg: 'bg-purple-100', text: 'text-purple-700', label: 'In Review', icon: <div className="w-2 h-2 rounded-full bg-purple-500" /> },
     refer: { bg: 'bg-orange-100', text: 'text-orange-700', label: 'Referred', icon: <div className="w-2 h-2 rounded-full bg-orange-500" /> },
+    referred: { bg: 'bg-orange-100', text: 'text-orange-700', label: 'Referred', icon: <div className="w-2 h-2 rounded-full bg-orange-500" /> },
+    open: { bg: 'bg-gray-100', text: 'text-gray-600', label: 'Open', icon: <div className="w-2 h-2 rounded-full bg-gray-400" /> },
+    done: { bg: 'bg-green-100', text: 'text-green-700', label: 'Done', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
+    closed: { bg: 'bg-green-100', text: 'text-green-700', label: 'Closed', icon: <div className="w-2 h-2 rounded-full bg-green-500" /> },
 };
 
 const PRIORITY_CONFIG = {
@@ -59,206 +65,7 @@ const PRIORITY_CONFIG = {
     Critical: { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-200', dot: 'bg-red-500' },
 };
 
-const DEPARTMENTS = ['Development', 'QA', 'DevOps', 'UI/UX', 'Management', 'Support', 'Sales', 'Marketing'];
 
-// Mock Data Generator
-const generateMockEmployees = () => [
-    {
-        id: 'EMP001',
-        name: 'John Doe',
-        email: 'john.doe@company.com',
-        department: 'Development',
-        role: 'Senior Developer',
-        status: 'active',
-        joinDate: '2023-01-15',
-        avatar: null,
-        phone: '+1 234-567-8901',
-        location: 'New York, USA',
-        manager: 'Sarah Johnson',
-        skills: ['React', 'Node.js', 'Python'],
-        totalJobs: 45,
-        completedJobs: 38,
-        totalHours: 320,
-        efficiency: 92
-    },
-    {
-        id: 'EMP002',
-        name: 'Jane Smith',
-        email: 'jane.smith@company.com',
-        department: 'Development',
-        role: 'Frontend Lead',
-        status: 'active',
-        joinDate: '2023-03-20',
-        avatar: null,
-        phone: '+1 234-567-8902',
-        location: 'San Francisco, USA',
-        manager: 'Sarah Johnson',
-        skills: ['React', 'Vue', 'TypeScript'],
-        totalJobs: 38,
-        completedJobs: 35,
-        totalHours: 280,
-        efficiency: 88
-    },
-    {
-        id: 'EMP003',
-        name: 'Mike Johnson',
-        email: 'mike.johnson@company.com',
-        department: 'QA',
-        role: 'QA Lead',
-        status: 'active',
-        joinDate: '2023-02-10',
-        avatar: null,
-        phone: '+1 234-567-8903',
-        location: 'Austin, USA',
-        manager: 'Tom Wilson',
-        skills: ['Selenium', 'Cypress', 'Jest'],
-        totalJobs: 62,
-        completedJobs: 58,
-        totalHours: 410,
-        efficiency: 94
-    },
-    {
-        id: 'EMP004',
-        name: 'Sarah Williams',
-        email: 'sarah.williams@company.com',
-        department: 'DevOps',
-        role: 'DevOps Engineer',
-        status: 'active',
-        joinDate: '2023-05-05',
-        avatar: null,
-        phone: '+1 234-567-8904',
-        location: 'Seattle, USA',
-        manager: 'Mike Chen',
-        skills: ['AWS', 'Docker', 'Kubernetes'],
-        totalJobs: 28,
-        completedJobs: 25,
-        totalHours: 210,
-        efficiency: 86
-    },
-    {
-        id: 'EMP005',
-        name: 'Tom Brown',
-        email: 'tom.brown@company.com',
-        department: 'UI/UX',
-        role: 'UX Designer',
-        status: 'active',
-        joinDate: '2023-04-12',
-        avatar: null,
-        phone: '+1 234-567-8905',
-        location: 'Los Angeles, USA',
-        manager: 'Emily Davis',
-        skills: ['Figma', 'Adobe XD', 'Sketch'],
-        totalJobs: 52,
-        completedJobs: 48,
-        totalHours: 340,
-        efficiency: 91
-    },
-];
-
-const generateMockJobs = (employees) => {
-    const jobs = [];
-    const jobTitles = [
-        'Implement authentication API',
-        'Design user dashboard',
-        'Fix login page bug',
-        'Optimize database queries',
-        'Create documentation',
-        'Deploy to production',
-        'Code review session',
-        'Update dependencies',
-        'Write unit tests',
-        'Performance testing'
-    ];
-
-    employees.forEach(emp => {
-        const numJobs = Math.floor(Math.random() * 8) + 3;
-        for (let i = 0; i < numJobs; i++) {
-            const statuses = ['idle', 'running', 'completed', 'in-progress', 'on-hold', 'in-review'];
-            const priorities = ['Low', 'Medium', 'High', 'Critical'];
-            const status = statuses[Math.floor(Math.random() * statuses.length)];
-            const createdAt = new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000);
-            const estTime = Math.floor(Math.random() * 240) + 30;
-            const elapsedSecs = status === 'completed' ? estTime * 60 : Math.floor(Math.random() * estTime * 60);
-
-            const job = {
-                id: `JOB-${String(i + 1).padStart(3, '0')}-${emp.id}`,
-                title: jobTitles[Math.floor(Math.random() * jobTitles.length)],
-                description: 'Detailed job description goes here with all the requirements and specifications...',
-                status: status,
-                priority: priorities[Math.floor(Math.random() * priorities.length)],
-                estTime: estTime,
-                elapsedSecs: elapsedSecs,
-                createdAt: createdAt.toISOString(),
-                createdBy: emp,
-                assignedTo: emp,
-                assignedTeam: emp.department,
-                startedAt: status === 'running' ? Date.now() - Math.random() * 3600000 : null,
-                stoppedAt: status === 'completed' ? new Date().toISOString() : null,
-                completedAt: status === 'completed' ? new Date().toISOString() : null,
-                dueDate: new Date(Date.now() + Math.random() * 10 * 24 * 60 * 60 * 1000).toISOString(),
-                tags: ['frontend', 'api', 'urgent'],
-                comments: [],
-                attachments: [],
-                runLog: generateRunLog(emp, createdAt),
-                subJobs: [],
-                metadata: {
-                    version: 1,
-                    lastModified: new Date().toISOString(),
-                    modifiedBy: emp,
-                    history: []
-                }
-            };
-
-            // Add subjobs for some jobs
-            if (Math.random() > 0.7) {
-                const numSubJobs = Math.floor(Math.random() * 3) + 1;
-                for (let j = 0; j < numSubJobs; j++) {
-                    job.subJobs.push({
-                        id: `${job.id}:SUB-${String(j + 1).padStart(3, '0')}`,
-                        title: `Sub-task ${j + 1} for ${job.title}`,
-                        description: 'Sub-job description...',
-                        status: statuses[Math.floor(Math.random() * statuses.length)],
-                        priority: priorities[Math.floor(Math.random() * priorities.length)],
-                        estTime: Math.floor(estTime / (numSubJobs + 1)),
-                        elapsedSecs: Math.floor(Math.random() * 3600),
-                        createdAt: new Date().toISOString(),
-                        createdBy: emp,
-                        parentId: job.id,
-                        runLog: []
-                    });
-                }
-            }
-
-            jobs.push(job);
-        }
-    });
-    return jobs;
-};
-
-const generateRunLog = (employee, startDate) => {
-    const logs = [];
-    const numLogs = Math.floor(Math.random() * 5) + 1;
-    let currentDate = new Date(startDate);
-
-    for (let i = 0; i < numLogs; i++) {
-        const start = new Date(currentDate);
-        const duration = Math.floor(Math.random() * 7200) + 1800; // 30min to 2hrs
-        const end = new Date(start.getTime() + duration * 1000);
-
-        logs.push({
-            start: start.toISOString(),
-            end: end.toISOString(),
-            duration: duration,
-            status: ['in-progress', 'completed', 'on-hold'][Math.floor(Math.random() * 3)],
-            note: `Work session ${i + 1} - Completed various tasks`,
-            completedBy: employee
-        });
-
-        currentDate = new Date(end.getTime() + 24 * 60 * 60 * 1000); // Next day
-    }
-
-    return logs;
-};
 
 // Stats Card Component
 function StatsCard({ title, value, icon: Icon, trend, color = 'indigo', subtext }) {
@@ -801,9 +608,10 @@ function JobDetailModal({ job, isOpen, onClose }) {
 
 // Main Admin Dashboard Component
 function AdminJobDashboard() {
-    const [employees] = useState(generateMockEmployees());
-    const [jobs, setJobs] = useState(() => generateMockJobs(employees));
-    const [loading, setLoading] = useState(false);
+    const [employees, setEmployees] = useState([]);
+    const [jobs, setJobs] = useState([]);
+    const [departments, setDepartments] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [selectedJob, setSelectedJob] = useState(null);
     const [showEmployeeModal, setShowEmployeeModal] = useState(false);
@@ -813,6 +621,116 @@ function AdminJobDashboard() {
     const [statusFilter, setStatusFilter] = useState('all');
     const [dateRange, setDateRange] = useState('week');
     const [viewMode, setViewMode] = useState('grid'); // grid or table
+
+    useEffect(() => {
+        const loadData = async () => {
+            setLoading(true);
+            try {
+                // Fetch Departments
+                const deptRes = await ApiCall('GET', '/empmst/departmentsList');
+                let depts = [];
+                if (deptRes?.data?.data) {
+                    depts = deptRes.data.data.map(d => d.depart_name || d.department_name);
+                } else if (Array.isArray(deptRes?.data)) {
+                    depts = deptRes.data.map(d => d.depart_name || d.department_name);
+                }
+                setDepartments(depts.filter(Boolean));
+
+                // Fetch Employees
+                const empRes = await ApiCall('GET', '/empmst/employeeList?pageSize=1000');
+                let emps = [];
+                if (empRes?.data?.data) {
+                    emps = empRes.data.data.map(e => ({
+                        id: e.emp_code,
+                        name: `${e.first_name || ''} ${e.last_name || ''}`.trim() || e.emp_code,
+                        email: e.email || 'N/A',
+                        department: e.department_name || e.depart_name || 'Unassigned',
+                        department_code: e.department_code,
+                        role: e.designation_name || e.desig_name || 'Employee',
+                        status: e.status === 1 ? 'active' : 'inactive',
+                        joinDate: e.date_of_joining || '',
+                        phone: e.contact_number || '',
+                        location: 'Office',
+                        manager: e.manager_name || 'N/A',
+                        skills: [],
+                        totalJobs: 0,
+                        completedJobs: 0,
+                        totalHours: 0,
+                        efficiency: 0
+                    }));
+                }
+                // setEmployees(emps); // We will set this after mapping jobs
+
+                // Fetch Jobs
+                const jobRes = await jobApi.fetchJobList({ pageSize: 1000 });
+                const jobList = jobRes?.data || [];
+
+                const mappedJobs = jobList.map(j => {
+                    const statusName = j.status_name ? j.status_name.toLowerCase().replace(/\s+/g, '-') : 'idle';
+                    
+                    return {
+                        id: j.job_code || j.job_id?.toString(),
+                        title: j.title || 'Untitled',
+                        description: j.description || '',
+                        status: statusName,
+                        priority: j.priority_name || 'Medium',
+                        estTime: j.estimated_minutes || 0,
+                        elapsedSecs: j.total_elapsed_seconds || j.elapsed_time || 0,
+                        createdAt: j.created_date || j.created_at,
+                        createdBy: emps.find(e => e.id === j.created_by_emp_code),
+                        assignedTo: emps.find(e => e.id === j.assigned_to_emp_code) || { name: 'Unassigned', id: null },
+                        assignedTeam: j.assigned_department_code || 'Unassigned',
+                        startedAt: j.start_date,
+                        completedAt: j.completed_date,
+                        dueDate: j.due_date,
+                        tags: [],
+                        comments: [],
+                        attachments: [],
+                        runLog: [],
+                        subJobs: [],
+                        metadata: {
+                            version: 1,
+                            lastModified: j.updated_date,
+                            modifiedBy: emps.find(e => e.id === j.updated_by_emp_code)
+                        }
+                    };
+                });
+                
+                // Compute employee stats
+                emps = emps.map(emp => {
+                    const empJobs = mappedJobs.filter(j => j.assignedTo?.id === emp.id);
+                    const completedJobsList = empJobs.filter(j => j.status === 'completed' || j.status === 'done' || j.status === 'closed');
+                    const totalSecs = empJobs.reduce((acc, j) => acc + (j.elapsedSecs || 0), 0);
+                    const totalEstMins = empJobs.reduce((acc, j) => acc + (j.estTime || 0), 0);
+                    const totalElapsedMins = totalSecs / 60;
+                    
+                    let eff = 0;
+                    if (totalElapsedMins > 0 && totalEstMins > 0) {
+                        eff = Math.min(100, Math.round((totalEstMins / totalElapsedMins) * 100));
+                    } else if (completedJobsList.length > 0) {
+                        eff = 100; // if completed with no elapsed time tracking
+                    }
+                    
+                    return {
+                        ...emp,
+                        totalJobs: empJobs.length,
+                        completedJobs: completedJobsList.length,
+                        totalHours: totalSecs / 3600,
+                        efficiency: eff
+                    };
+                });
+                
+                setEmployees(emps);
+                setJobs(mappedJobs);
+            } catch (err) {
+                console.error("Error loading admin dashboard data:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadData();
+    }, []);
 
     // Calculate Dashboard Stats
     const stats = useMemo(() => {
@@ -828,14 +746,14 @@ function AdminJobDashboard() {
         const overdueJobs = jobs.filter(j => j.dueDate && new Date(j.dueDate) < new Date() && j.status !== 'completed').length;
 
         // Department wise stats
-        const deptStats = DEPARTMENTS.map(dept => {
-            const deptJobs = jobs.filter(j => j.assignedTeam === dept);
+        const deptStats = departments.map(dept => {
+            const deptJobs = jobs.filter(j => j.assignedTeam === dept || j.assignedTo?.department === dept);
             const deptEmployees = employees.filter(e => e.department === dept).length;
             return {
                 department: dept,
                 jobs: deptJobs.length,
                 employees: deptEmployees,
-                completed: deptJobs.filter(j => j.status === 'completed').length,
+                completed: deptJobs.filter(j => j.status === 'completed' || j.status === 'done' || j.status === 'closed').length,
                 hours: deptJobs.reduce((acc, j) => acc + (j.elapsedSecs / 3600), 0).toFixed(0)
             };
         });
@@ -1009,7 +927,7 @@ function AdminJobDashboard() {
                             className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         >
                             <option value="all">All Departments</option>
-                            {DEPARTMENTS.map(dept => (
+                            {departments.map(dept => (
                                 <option key={dept} value={dept}>{dept}</option>
                             ))}
                         </select>
