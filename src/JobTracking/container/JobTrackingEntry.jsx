@@ -101,14 +101,24 @@ function JobTrackingEntry() {
                             </span>
                         )}
                         <button onClick={() => setShowLunchModal(true)}
-                            className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all">
+                            className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50 transition-all font-semibold">
                             <Coffee className="w-4 h-4" />
                             {lunchBreak?.is_enabled
                                 ? `Lunch ${lunchBreak.start_time?.slice(0, 5)}–${lunchBreak.end_time?.slice(0, 5)}`
                                 : 'Set Lunch Break'}
                         </button>
-                        <CommonButton label="Create Job" variant="primary" size="small" icon={<Plus className="w-4 h-4" />} onClick={() => setShowCreateModal(true)} />
-                        <CommonButton label="View Job Calendar" variant="success" size="small" icon={<Eye className="w-4 h-4" />} onClick={() => navigate(`${getRoleBasePath()}/jobcalendar`)} />
+
+                        <button onClick={() => setShowCreateModal(true)}
+                            className="flex items-center font-semibold gap-1.5 px-3 py-2 text-sm text-white border border-blue-500 bg-indigo-500 rounded-md cursor-pointer hover:bg-indigo-600 transition-all">
+                            <Plus className="w-4 h-4" />
+                            Create Job
+                        </button>
+
+                        <button onClick={() => navigate(`${getRoleBasePath()}/jobcalendar`)}
+                            className="flex items-center font-semibold gap-1.5 px-3 py-2 text-sm text-white border border-green-500 bg-green-500 rounded-md cursor-pointer hover:bg-green-600 transition-all">
+                            <Eye className="w-4 h-4" />
+                            View Job Calendar
+                        </button>
                     </div>
                 }
                 loading={isLoading.normal}

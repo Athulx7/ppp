@@ -1,18 +1,18 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { Calendar, Clock, Coffee, GitBranch, X } from 'lucide-react';
+import React, { useEffect, useRef, useState, useMemo } from 'react'
+import { Calendar, Clock, Coffee, GitBranch, X } from 'lucide-react'
 import {
     HOURS, HOUR_HEIGHT, MIN_BLOCK_HEIGHT, WEEK_DAYS_SHORT,
     WEEK_DAYS_FULL, MONTH_NAMES, formatHour, formatDuration,
     getDensityBg, getDensityLabel, getColorClasses, buildDayBlocks, toDateStr,
-} from './CalendarUtils';
+} from './CalendarUtils'
 
 export function CurrentTimeIndicator() {
-    const [now, setNow] = useState(new Date());
+    const [now, setNow] = useState(new Date())
     useEffect(() => {
-        const t = setInterval(() => setNow(new Date()), 30000);
-        return () => clearInterval(t);
-    }, []);
-    const top = (now.getHours() + now.getMinutes() / 60) * HOUR_HEIGHT;
+        const t = setInterval(() => setNow(new Date()), 30000)
+        return () => clearInterval(t)
+    }, [])
+    const top = (now.getHours() + now.getMinutes() / 60) * HOUR_HEIGHT
     return (
         <div className="absolute left-0 right-0 z-20 pointer-events-none" style={{ top }}>
             <div className="flex items-center">
@@ -20,21 +20,19 @@ export function CurrentTimeIndicator() {
                 <div className="flex-1 h-px bg-red-400" />
             </div>
         </div>
-    );
+    )
 }
 
-// ─── Single time block in the grid ─────────────────────────────────────────
-
 export function JobBlock({ block, onClick }) {
-    const { col, totalCols } = block;
-    const top = block.startHour * HOUR_HEIGHT;
-    const height = Math.max((block.endHour - block.startHour) * HOUR_HEIGHT, MIN_BLOCK_HEIGHT);
-    const durationMins = block.duration_minutes || Math.round((block.endHour - block.startHour) * 60);
+    const { col, totalCols } = block
+    const top = block.startHour * HOUR_HEIGHT
+    const height = Math.max((block.endHour - block.startHour) * HOUR_HEIGHT, MIN_BLOCK_HEIGHT)
+    const durationMins = block.duration_minutes || Math.round((block.endHour - block.startHour) * 60)
 
-    const leftPct = `${(col / totalCols) * 100}%`;
-    const widthPct = `${(1 / totalCols) * 100 - 0.5}%`;
+    const leftPct = `${(col / totalCols) * 100}%`
+    const widthPct = `${(1 / totalCols) * 100 - 0.5}%`
 
-    const cfg = getColorClasses(block.status_color);
+    const cfg = getColorClasses(block.status_color)
 
     return (
         <div
@@ -42,7 +40,14 @@ export function JobBlock({ block, onClick }) {
             className={`absolute rounded-md px-1.5 py-1 overflow-hidden cursor-pointer
                         shadow-sm border border-white/30 hover:brightness-110 hover:shadow-md
                         transition-all ${cfg.blockBg} ${cfg.blockText}`}
-            style={{ top, height, left: leftPct, width: widthPct }}
+            style={{
+                top,
+                height,
+                left: leftPct,
+                width: widthPct,
+                borderLeftColor: block.priority_color || 'rgba(255,255,255,0.3)',
+                borderLeftWidth: block.priority_color ? '4px' : '1px'
+            }}
             title={`${block.title} — ${durationMins}m`}
         >
             {block.isRunning && (
@@ -59,31 +64,51 @@ export function JobBlock({ block, onClick }) {
                 </p>
             )}
         </div>
-    );
+    )
 }
 
-// ─── One vertical column in the time grid (one day) ────────────────────────
+export function ClusterBlock({ block, onClick }) {
+    const top = block.startHour * HOUR_HEIGHT
+    const height = Math.max((block.endHour - block.startHour) * HOUR_HEIGHT, MIN_BLOCK_HEIGHT)
 
-export function TimeGridColumn({ dateStr, allBlocks, lunchBlock, isToday, onBlockClick }) {
-    const containerRef = useRef(null);
-    const [width, setWidth] = useState(0);
+    return (
+        <div
+            onClick={() => onClick && onClick(block)}
+            className="absolute left-0.5 right-0.5 rounded-md px-2 py-1 overflow-hidden cursor-pointer shadow-sm border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 hover:shadow-md transition-all flex flex-col justify-center items-center text-center z-10"
+            style={{ top, height }}
+            title={`${block.jobs.length} jobs overlapping`}
+        >
+            <div className="flex items-center gap-1.5 bg-indigo-100 px-2 py-0.5 rounded-full border border-indigo-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+                <p className="text-xs font-bold text-indigo-700">{block.jobs.length} Jobs Overlapping</p>
+            </div>
+            {height >= 46 && (
+                <p className="text-[10px] text-indigo-500 mt-1 font-medium">
+                    Click to view all
+                </p>
+            )}
+        </div>
+    )
+}
+
+export function TimeGridColumn({ dateStr, date, allBlocks, lunchBlock, isToday, onBlockClick, onMoreClick }) {
+    const containerRef = useRef(null)
+    const [width, setWidth] = useState(0)
     useEffect(() => {
-        if (!containerRef.current) return;
-        const ro = new ResizeObserver((e) => setWidth(e[0].contentRect.width));
-        ro.observe(containerRef.current);
-        return () => ro.disconnect();
-    }, []);
+        if (!containerRef.current) return
+        const ro = new ResizeObserver((e) => setWidth(e[0].contentRect.width))
+        ro.observe(containerRef.current)
+        return () => ro.disconnect()
+    }, [])
 
-    const blocks = useMemo(() => buildDayBlocks(allBlocks, dateStr), [allBlocks, dateStr]);
+    const blocks = useMemo(() => buildDayBlocks(allBlocks, dateStr), [allBlocks, dateStr])
 
     return (
         <div ref={containerRef} className="relative flex-1 border-r border-gray-100 last:border-r-0">
-            {/* Hour lines */}
             {HOURS.map((h) => (
                 <div key={h} className="border-b border-gray-100" style={{ height: HOUR_HEIGHT }} />
             ))}
 
-            {/* Lunch shading */}
             {lunchBlock && (
                 <div
                     className="absolute left-0.5 right-0.5 bg-amber-50 border border-amber-200 rounded-md opacity-80 z-10"
@@ -100,48 +125,51 @@ export function TimeGridColumn({ dateStr, allBlocks, lunchBlock, isToday, onBloc
 
             {isToday && <CurrentTimeIndicator />}
 
-            {blocks.map((b, i) => (
-                <JobBlock
-                    key={`${b.time_log_id}-${i}`}
-                    block={b}
-                    containerWidth={width}
-                    onClick={onBlockClick}
-                />
-            ))}
+            {blocks.map((b, i) => {
+                if (b.isCluster) {
+                    return (
+                        <ClusterBlock
+                            key={`cluster-${b.id || i}`}
+                            block={b}
+                            onClick={() => onMoreClick && onMoreClick(date)}
+                        />
+                    );
+                }
+                return (
+                    <JobBlock
+                        key={`${b.time_log_id}-${i}`}
+                        block={b}
+                        onClick={onBlockClick}
+                    />
+                )
+            })}
         </div>
-    );
+    )
 }
 
-// ─── Left-side hour label column ────────────────────────────────────────────
-
-export function HourLabels() {
+export function HourLabels({ onHourClick }) {
     return (
         <div className="w-14 flex-shrink-0 bg-gray-50 border-r border-gray-200">
             {HOURS.map((h) => (
                 <div
                     key={h}
-                    className="flex items-start justify-end pr-2 text-[10px] text-gray-400 border-b border-gray-100"
+                    onClick={() => onHourClick && onHourClick(h)}
+                    className="flex items-start justify-end pr-2 text-[10px] text-gray-400 border-b border-gray-100 cursor-pointer hover:bg-gray-200 hover:text-gray-700 transition-colors"
                     style={{ height: HOUR_HEIGHT }}
                 >
                     <span className="mt-0.5">{formatHour(h)}</span>
                 </div>
             ))}
         </div>
-    );
+    )
 }
 
-// ─── Month grid ─────────────────────────────────────────────────────────────
-
-export function MonthGrid({
-    year, month, todayStr, selectedDay, onSelectDay,
-    jobsByDate, lunchEnabled,
-}) {
-    const firstDay = new Date(year, month - 1, 1).getDay();
-    const daysInMonth = new Date(year, month, 0).getDate();
+export function MonthGrid({ year, month, todayStr, selectedDay, onSelectDay, jobsByDate, lunchEnabled, }) {
+    const firstDay = new Date(year, month - 1, 1).getDay()
+    const daysInMonth = new Date(year, month, 0).getDate()
 
     return (
         <>
-            {/* Weekday headers */}
             <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
                 {WEEK_DAYS_SHORT.map((d) => (
                     <div key={d} className="py-2.5 text-center text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
@@ -150,9 +178,7 @@ export function MonthGrid({
                 ))}
             </div>
 
-            {/* Day cells */}
             <div className="grid grid-cols-7">
-                {/* Leading empty cells */}
                 {Array.from({ length: firstDay }).map((_, i) => (
                     <div key={`e${i}`} className="border-b border-r border-gray-100 bg-gray-50" style={{ height: 96 }} />
                 ))}
@@ -175,14 +201,12 @@ export function MonthGrid({
                                 ${count > 0 ? getDensityBg(count) : 'hover:bg-gray-50'}
                             `}
                         >
-                            {/* Day number */}
                             <span className={`text-xs font-semibold w-6 h-6 flex items-center justify-center rounded-full flex-shrink-0
                                 ${isToday ? 'bg-indigo-600 text-white' : 'text-gray-700'}`}>
                                 {day}
                             </span>
 
-                            {/* Job title previews (up to 2) */}
-                            {dayJobs.slice(0, 2).map((j, idx) => {
+                            {dayJobs.slice(0, 3).map((j, idx) => {
                                 const cfg = getColorClasses(j.status_color);
                                 return (
                                     <div key={idx} className={`mt-0.5 truncate text-[10px] font-medium px-1 rounded ${cfg.bg} ${cfg.text}`}>
@@ -191,14 +215,9 @@ export function MonthGrid({
                                 );
                             })}
 
-                            {/* Overflow dots */}
-                            {count > 2 && (
-                                <div className="mt-auto flex items-center gap-0.5 flex-wrap">
-                                    {dayJobs.slice(2, 6).map((j, idx) => {
-                                        const cfg = getColorClasses(j.status_color);
-                                        return <span key={idx} className={`w-1.5 h-1.5 rounded-full ${cfg.dot} ring-1 ring-white`} />;
-                                    })}
-                                    {count > 6 && <span className="text-[9px] font-bold text-gray-400">+{count - 6}</span>}
+                            {count > 3 && (
+                                <div className="mt-1 flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 text-[10px] font-medium rounded px-1 py-0.5 transition-colors">
+                                    +{count - 3} more
                                 </div>
                             )}
 
@@ -206,24 +225,21 @@ export function MonthGrid({
                                 <span className="absolute top-0.5 right-0.5 text-[9px]">☕</span>
                             )}
                         </div>
-                    );
+                    )
                 })}
             </div>
         </>
-    );
+    )
 }
 
-// ─── Week view ───────────────────────────────────────────────────────────────
-
-export function WeekView({ weekDays, todayStr, allBlocks, lunchBlock, onBlockClick, onDayClick, gridRef }) {
+export function WeekView({ weekDays, todayStr, allBlocks, lunchBlock, onBlockClick, onDayClick, gridRef, onHourClick }) {
     return (
         <div className="relative">
-            {/* Day headers */}
             <div className="flex border-b border-gray-200 bg-gray-50 sticky top-0 z-10">
                 <div className="w-14 flex-shrink-0 border-r border-gray-200" />
                 {weekDays.map((date, i) => {
-                    const ds = toDateStr(date);
-                    const isToday = ds === todayStr;
+                    const ds = toDateStr(date)
+                    const isToday = ds === todayStr
                     return (
                         <div
                             key={i}
@@ -237,35 +253,34 @@ export function WeekView({ weekDays, todayStr, allBlocks, lunchBlock, onBlockCli
                                 {date.getDate()}
                             </div>
                         </div>
-                    );
+                    )
                 })}
             </div>
 
-            {/* Scrollable grid */}
-            <div ref={gridRef} className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 360px)', minHeight: 320 }}>
+            <div ref={gridRef} className="overflow-y-auto scrollbar" style={{ maxHeight: 'calc(100vh - 360px)', minHeight: 320 }}>
                 <div className="flex">
-                    <HourLabels />
+                    <HourLabels onHourClick={onHourClick} />
                     {weekDays.map((date, i) => (
                         <TimeGridColumn
                             key={i}
+                            date={date}
                             dateStr={toDateStr(date)}
                             allBlocks={allBlocks}
                             lunchBlock={lunchBlock}
                             isToday={toDateStr(date) === todayStr}
                             onBlockClick={onBlockClick}
+                            onMoreClick={onDayClick}
                         />
                     ))}
                 </div>
             </div>
         </div>
-    );
+    )
 }
 
-// ─── Day view ────────────────────────────────────────────────────────────────
-
-export function DayView({ date, todayStr, allBlocks, lunchBlock, onBlockClick, gridRef, jobsByDate }) {
-    const ds = toDateStr(date);
-    const count = (jobsByDate[ds] || []).length;
+export function DayView({ date, todayStr, allBlocks, lunchBlock, onBlockClick, gridRef, jobsByDate, onHourClick }) {
+    const ds = toDateStr(date)
+    const count = (jobsByDate[ds] || []).length
     return (
         <div className="relative">
             <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
@@ -277,28 +292,32 @@ export function DayView({ date, todayStr, allBlocks, lunchBlock, onBlockClick, g
                     <p className="text-xs text-gray-500 mt-0.5">{count} job{count !== 1 ? 's' : ''} tracked</p>
                 )}
             </div>
-            <div ref={gridRef} className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 360px)', minHeight: 320 }}>
+            <div ref={gridRef} className="overflow-y-auto scrollbar" style={{ maxHeight: 'calc(100vh - 360px)', minHeight: 320 }}>
                 <div className="flex">
-                    <HourLabels />
+                    <HourLabels onHourClick={onHourClick} />
                     <TimeGridColumn
+                        date={date}
                         dateStr={ds}
                         allBlocks={allBlocks}
                         lunchBlock={lunchBlock}
                         isToday={ds === todayStr}
                         onBlockClick={onBlockClick}
+                        onMoreClick={(d) => {
+                            if (window.dispatchEvent) {
+                                window.dispatchEvent(new CustomEvent('open-day-detail', { detail: d }));
+                            }
+                        }}
                     />
                 </div>
             </div>
         </div>
-    );
+    )
 }
 
-// ─── Job detail slide-in panel (week/day view) ──────────────────────────────
-
 export function JobDetailPanel({ block, onClose }) {
-    if (!block) return null;
-    const cfg = getColorClasses(block.status_color);
-    const pCfg = getColorClasses(block.priority_color);
+    if (!block) return null
+    const cfg = getColorClasses(block.status_color)
+    const pCfg = getColorClasses(block.priority_color)
 
     return (
         <div className="absolute right-0 top-0 bottom-0 w-72 bg-white border-l border-gray-200 shadow-xl z-30 flex flex-col rounded-r-xl overflow-hidden">
@@ -313,8 +332,7 @@ export function JobDetailPanel({ block, onClose }) {
                     <X className="w-4 h-4 text-gray-500" />
                 </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {/* Status + Priority */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar">
                 <div className="flex items-center gap-2 flex-wrap">
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${cfg.bg} ${cfg.text}`}>
                         {block.status_name}
@@ -330,7 +348,6 @@ export function JobDetailPanel({ block, onClose }) {
                     )}
                 </div>
 
-                {/* Time session info */}
                 <div className="grid grid-cols-2 gap-2">
                     <div className="bg-gray-50 rounded-lg p-2.5">
                         <p className="text-[10px] text-gray-400 mb-0.5">Session start</p>
@@ -352,7 +369,6 @@ export function JobDetailPanel({ block, onClose }) {
                     </div>
                 </div>
 
-                {/* Job type */}
                 {block.type_name && (
                     <div className="flex items-center gap-2 text-xs text-gray-500">
                         <span className="px-2 py-0.5 bg-gray-100 rounded-full">{block.type_name}</span>
@@ -364,7 +380,6 @@ export function JobDetailPanel({ block, onClose }) {
                     </div>
                 )}
 
-                {/* Due date */}
                 {block.due_date && (
                     <div className="flex items-center gap-2 text-xs text-gray-500">
                         <Calendar className="w-3.5 h-3.5 text-gray-400" />
@@ -372,7 +387,6 @@ export function JobDetailPanel({ block, onClose }) {
                     </div>
                 )}
 
-                {/* Remarks */}
                 {block.remarks && (
                     <div>
                         <p className="text-[10px] text-gray-400 mb-1">Remarks</p>
@@ -381,14 +395,12 @@ export function JobDetailPanel({ block, onClose }) {
                 )}
             </div>
         </div>
-    );
+    )
 }
 
-// ─── Sidebar: day detail panel (month view selected day) ────────────────────
-
 export function DayDetailPanel({ selectedDay, selectedDateStr, year, month, jobsByDate, onClose, onJobClick, lunchBreak }) {
-    const dayJobs = jobsByDate[selectedDateStr] || [];
-    const density = getDensityLabel(dayJobs.length);
+    const dayJobs = jobsByDate[selectedDateStr] || []
+    const density = getDensityLabel(dayJobs.length)
 
     return (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
@@ -442,7 +454,7 @@ export function DayDetailPanel({ selectedDay, selectedDateStr, year, month, jobs
                                     </div>
                                 </div>
                             </div>
-                        );
+                        )
                     })}
                     {lunchBreak?.is_enabled && (
                         <div className="p-2 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2 mt-1">
@@ -455,18 +467,15 @@ export function DayDetailPanel({ selectedDay, selectedDateStr, year, month, jobs
                 </div>
             )}
         </div>
-    );
+    )
 }
-
-// ─── Sidebar: monthly summary stats ─────────────────────────────────────────
 
 export function MonthlySummary({ month, year, summary, jobsByDate, allJobs }) {
     const activeDays = Object.keys(jobsByDate).filter((d) =>
         d.startsWith(`${year}-${String(month).padStart(2, '0')}`)
-    ).length;
+    ).length
 
-    const countByStatus = (code) =>
-        allJobs.filter((j) => j.status_code === code).length;
+    const countByStatus = (code) => allJobs.filter((j) => j.status_code === code).length
 
     return (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
@@ -484,10 +493,8 @@ export function MonthlySummary({ month, year, summary, jobsByDate, allJobs }) {
                 ))}
             </div>
         </div>
-    );
+    )
 }
-
-// ─── Calendar toolbar (nav + view switcher) ──────────────────────────────────
 
 export function CalendarToolbar({ headerLabel, onPrev, onNext, onToday, view, onViewChange }) {
     return (
@@ -523,34 +530,115 @@ export function CalendarToolbar({ headerLabel, onPrev, onNext, onToday, view, on
                 ))}
             </div>
         </div>
-    );
+    )
 }
 
-// ─── Legend bar ─────────────────────────────────────────────────────────────
-
-export function CalendarLegend() {
+export function CalendarLegend({ priorities }) {
     return (
-        <div className="flex flex-wrap items-center gap-4 mt-3 px-1">
+        <div className="flex flex-wrap items-center gap-6 mt-3 px-1 pt-2 border-t border-gray-100">
             <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[11px] text-gray-500 font-semibold">Density:</span>
+                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Density:</span>
                 {[
-                    { label: 'None', bg: 'bg-gray-200' },
-                    { label: '1–2', bg: 'bg-green-200' },
-                    { label: '3–5', bg: 'bg-amber-200' },
-                    { label: '6+', bg: 'bg-red-200' },
+                    { label: 'None', bg: 'bg-gray-100 border border-gray-200' },
+                    { label: '1–2', bg: 'bg-green-100 border border-green-200' },
+                    { label: '3–5', bg: 'bg-amber-100 border border-amber-200' },
+                    { label: '6+', bg: 'bg-red-100 border border-red-200' },
                 ].map((item) => (
-                    <div key={item.label} className="flex items-center gap-1">
-                        <div className={`w-3 h-3 rounded ${item.bg}`} />
-                        <span className="text-[11px] text-gray-500">{item.label}</span>
+                    <div key={item.label} className="flex items-center gap-1.5">
+                        <div className={`w-3.5 h-3.5 rounded-sm ${item.bg}`} />
+                        <span className="text-[11px] text-gray-600 font-medium">{item.label}</span>
                     </div>
                 ))}
             </div>
-            <div className="flex items-center gap-1 text-[11px] text-gray-500">
-                <div className="w-5 h-px bg-red-400 relative">
-                    <div className="absolute -left-0.5 -top-[3px] w-1.5 h-1.5 rounded-full bg-red-500" />
+
+            {priorities && priorities.length > 0 && (
+                <div className="flex flex-wrap items-center gap-3">
+                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">Priority Colors:</span>
+                    {priorities.map(p => (
+                        <div key={p.priority_id} className="flex items-center gap-1.5">
+                            <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: p.color_code || '#cbd5e1' }} />
+                            <span className="text-[11px] text-gray-600 font-medium">{p.priority_name}</span>
+                        </div>
+                    ))}
                 </div>
-                Now
+            )}
+
+            <div className="flex items-center gap-2 text-[11px] text-gray-600 font-medium ml-auto">
+                <div className="w-6 h-px bg-red-400 relative">
+                    <div className="absolute -left-1 -top-[3px] w-1.5 h-1.5 rounded-full bg-red-500" />
+                </div>
+                Current Time
             </div>
         </div>
-    );
+    )
+}
+
+export function HourDetailPanel({ selectedHour, allBlocks, selectedDateStr, view, weekDays, onClose, onJobClick }) {
+    const validDates = view === 'week' ? weekDays.map(d => toDateStr(d)) : [selectedDateStr]
+
+    const hourJobs = allBlocks.filter(row => {
+        if (!row.start_time) return false
+        const sd = new Date(row.start_time)
+        const dateStr = sd.toISOString().slice(0, 10)
+        if (!validDates.includes(dateStr)) return false
+
+        const ed = row.end_time ? new Date(row.end_time) : new Date()
+        const startHour = sd.getHours() + sd.getMinutes() / 60
+        const endHour = ed.getHours() + ed.getMinutes() / 60
+
+        return startHour < selectedHour + 1 && endHour > selectedHour
+    })
+
+    return (
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50">
+                <div>
+                    <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wide">
+                        {view === 'week' ? 'Week View' : selectedDateStr}
+                    </p>
+                    <h3 className="text-base font-bold text-gray-900">
+                        {formatHour(selectedHour)} - {formatHour(selectedHour + 1)}
+                    </h3>
+                </div>
+                <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-200">
+                    <X className="w-4 h-4 text-gray-500" />
+                </button>
+            </div>
+
+            {hourJobs.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10 text-gray-400">
+                    <Clock className="w-8 h-8 mb-2 opacity-30" />
+                    <p className="text-sm">No activity in this hour</p>
+                </div>
+            ) : (
+                <div className="p-3 space-y-2 max-h-[500px] overflow-y-auto scrollbar">
+                    <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-gray-500">{hourJobs.length} job{hourJobs.length !== 1 ? 's' : ''}</span>
+                    </div>
+                    {hourJobs.map((job, idx) => {
+                        const cfg = getColorClasses(job.status_color);
+                        const pCfg = getColorClasses(job.priority_color);
+                        return (
+                            <div key={idx}
+                                className="p-3 rounded-lg border border-gray-200 hover:border-indigo-200 cursor-pointer transition-all bg-white"
+                                onClick={() => onJobClick(job)}>
+                                <div className="flex items-start gap-2">
+                                    <span className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${pCfg.dot}`} />
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
+                                            <span className="font-mono text-[11px] font-bold text-indigo-600">{job.job_code}</span>
+                                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${cfg.bg} ${cfg.text}`}>
+                                                {job.status_name}
+                                            </span>
+                                        </div>
+                                        <p className="text-sm font-medium text-gray-800 truncate">{job.title}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )
+                    })}
+                </div>
+            )}
+        </div>
+    )
 }

@@ -1,4 +1,4 @@
-import { ApiCall } from '../../library/constants';
+import { ApiCall } from '../../library/constants'
 
 const BASE = '/jobs'
 
@@ -49,25 +49,21 @@ export const createSubJob = async (parentJobId, payload) => {
 }
 
 export const updateJobStatus = async (jobId, payload) => {
-    // payload: { new_status_id, remarks, changed_by_emp_code }
     const res = await ApiCall('post', `${BASE}/${jobId}/status`, payload)
     return res?.data
 }
 
 export const assignOrReferJob = async (jobId, payload) => {
-    // payload: { action_type, to_emp_code, to_department_code, to_designation_code, remarks, action_by_emp_code }
     const res = await ApiCall('post', `${BASE}/${jobId}/assign`, payload)
     return res?.data
 }
 
 export const startJobTimer = async (jobId, payload) => {
-    // payload: { emp_code }
     const res = await ApiCall('post', `${BASE}/${jobId}/run`, payload)
     return res?.data
 }
 
 export const stopJobTimer = async (jobId, payload) => {
-    // payload: { emp_code, log_type: 'PAUSE' | 'STOP', remarks, new_status_id, refer_to_emp_code, refer_to_department_code }
     const res = await ApiCall('post', `${BASE}/${jobId}/stop`, payload)
     return res?.data
 }
@@ -78,7 +74,6 @@ export const fetchLunchBreak = async (empCode) => {
 }
 
 export const saveLunchBreak = async (payload) => {
-    // payload: { emp_code, is_enabled, start_time, end_time }
     const res = await ApiCall('post', '/lunch-break', payload)
     return res?.data
 }
