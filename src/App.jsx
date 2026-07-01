@@ -263,8 +263,8 @@ function RoleRoutes({ basePath, role }) {
 function App() {
   return (
     <Routes>
-      <Route path='/' element={<PublicRoute><AnimatelandingPage /></PublicRoute>} />
-      <Route path='/login' element={<PublicRoute><LoginPage /></PublicRoute>} />
+      <Route path='/' element={<PublicRoute><LoginPage /></PublicRoute>} />
+      <Route path='/login' element={<PublicRoute><AnimatelandingPage /></PublicRoute>} />
 
       {RoleRoutes({ basePath: '/admin', role: 'ADMIN' })}
       {RoleRoutes({ basePath: '/hr', role: 'HR' })}
