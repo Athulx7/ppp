@@ -118,21 +118,21 @@ function CommonMultiSelectionDropdown({
             </div>
 
             {isOpen && (
-                <div className="absolute z-20 w-full mt-1 bg-white rounded-lg shadow-xl border">
+                <div className="absolute z-[100] w-full mt-1 bg-white rounded-lg shadow-xl border border-indigo-500">
                     {showSearch && (
                         <input
                             type="text"
                             placeholder="Search..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full p-2 text-sm border-b outline-none"
+                            className="w-full p-2 text-sm border-b border-indigo-400 outline-none"
                             autoFocus
                         />
                     )}
 
                     {showSelectAll && (
                         <div
-                            className="flex items-center p-3 text-sm cursor-pointer border-b bg-gray-50 hover:bg-gray-100"
+                            className="flex items-center p-3 text-sm cursor-pointer text-indigo-500 font-semibold border-b border-indigo-400 bg-gray-50 hover:bg-gray-100"
                             onClick={handleSelectAll}
                         >
                             <input
@@ -157,7 +157,7 @@ function CommonMultiSelectionDropdown({
 
                                 return (
                                     <div key={option.value}
-                                        className={`flex items-center p-3 text-sm border-b last:border-b-0 ${disabledOption
+                                        className={`flex items-center p-3 text-sm border-b last:border-b-0 border-indigo-300 ${disabledOption
                                             ? "text-gray-400 cursor-not-allowed bg-gray-50"
                                             : "cursor-pointer hover:bg-indigo-50"}
                                                   ${isSelected(option.value)

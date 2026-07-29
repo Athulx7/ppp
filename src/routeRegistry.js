@@ -25,7 +25,7 @@ import SalaryAdvanceRequest from './SalaryAdvanceRequest/SalaryAdvanceRequestTes
 import SalaryAdvanceApproval from './SalaryAdvanceApproval/SalaryAdvanceApprovaltest'
 import PayrollRun from './PayrollRuns/PayrollRunstest'
 import PayrollInputstest from './PayrollRuns/PayrollInputstest'
-import PayrollSettings from './Payrollsettings/payrollSettinsTest'
+import PayrollSettingsEntry from './Payrollsettings/container/PayrollSettingsEntry'
 import MenuMappingEntry from './MenuMapping/container/MenuMappingEntry'
 import CtcReportEntry from './CtcReport/container/CtcReportEntry'
 import PayslipsEntry from './Payslips/container/PayslipsEntry'
@@ -33,7 +33,7 @@ import JobCalendar from './JobTracking/container/JobCallendarEntry'
 import AdminJobDashboard from './JobTracking/JobAdminView'
 import JobTrackingEntry from './JobTracking/container/JobTrackingEntry'
 import ChatPage from './ChatModule/Chatpage'
-import ChatBotPage from './ChatModule/ChatBotPage'
+import ChatBotEntry from './ChatBot/container/ChatBotEntry'
 import LeaveRequestMobile from './Dashboard/Mobile/Leaverequestmobile'
 import RegularizeMobile from './Dashboard/Mobile/Regularizemobile'
 import PayslipsMobile from './Dashboard/Mobile/Payslipsmobile'
@@ -41,6 +41,7 @@ import ProfileMobile from './Dashboard/Mobile/Profilemobile'
 import ManagerApprovalsMobile from './Dashboard/Mobile/Managerapprovalsmobile'
 import LeaveMasterEntry from './LeaveMaster/container/LeaveMasterEntry'
 import LeaveMasterListEntry from './LeaveMaster/container/LeaveMasterListEntry'
+import ExCmdEntry from './ExCmd/container/ExCmdEntry'
 
 export const DASHBOARD_ROUTES = {
     ADMIN: { component: AdminDashboard },
@@ -73,7 +74,8 @@ export const ALL_ROUTES = [
 
     { path: 'uploadDash', component: UploadDashboard },
     { path: 'uploadProgress/:batchId', component: UploadProgressEntry, skipCheck: true },
-    { path: 'uploadHistory', component: UploadHistoryEntry },
+    { path: 'uploadHistory', component: UploadHistoryEntry, skipCheck: true },
+
     { path: 'ctcreport', component: CtcReportEntry },
 
     { path: 'payslip', component: PayslipsEntry },
@@ -96,7 +98,7 @@ export const ALL_ROUTES = [
 
     { path: 'payrollruns', component: PayrollRun },
     { path: 'payrollinputs', component: PayrollInputstest },
-    { path: 'payrollsettings', component: PayrollSettings },
+    { path: 'payrollsettings', component: PayrollSettingsEntry},
 
     { path: 'menumapping', component: MenuMappingEntry },
 
@@ -105,7 +107,9 @@ export const ALL_ROUTES = [
     { path: 'adminjobtracking', component: AdminJobDashboard },
 
     { path: 'chat', component: ChatPage },
-    { path: 'chatbot', component: ChatBotPage },
+    { path: 'chatbot', component: ChatBotEntry },
+
+    { path: 'excmd', component: ExCmdEntry, skipCheck: true },
 
     { path: 'leave', component: LeaveRequestMobile, skipCheck: true },
     { path: 'regularize', component: RegularizeMobile, skipCheck: true },

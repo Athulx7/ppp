@@ -1,13 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Download, Grid3X3, Search, Sun, Moon } from "lucide-react";
+import { Download, Grid3X3, Search, Sun, Moon, Loader } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import { ApiCall, getRoleBasePath } from '../library/constants';
 import { usePwaInstall } from '../usePwaInstall';
 import Notifications from './Notifications';
 import { useTheme } from '../context/useTheme';
+import UserDropDown from './UserDropdwon';
 
 function TopHeader({ openMenu, setOpenMenu }) {
     const { isDark, toggleTheme } = useTheme()
+    const [isLoading, setIsLoading] = useState(false)
     const [showMobileSearch, setShowMobileSearch] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
     const [searchResults, setSearchResults] = useState([])
@@ -24,7 +26,7 @@ function TopHeader({ openMenu, setOpenMenu }) {
             setNoResults(false)
             return
         }
-
+        setIsLoading(true)
         try {
             const res = await ApiCall("GET", `/searchMenu?q=${encodeURIComponent(query)}`)
 
@@ -38,6 +40,7 @@ function TopHeader({ openMenu, setOpenMenu }) {
         catch (err) {
             console.log(err)
         }
+        setIsLoading(false)
     }
 
     const handleResultClick = (routePath) => {
@@ -96,6 +99,14 @@ function TopHeader({ openMenu, setOpenMenu }) {
                             onKeyPress={handleKeyPress}
                         />
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        {isLoading &&
+                            <div className='absolute right-3 top-1/2 transform -translate-y-1/2 text-indigo-500'>
+                                <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z" />
+                                </svg>
+                            </div>
+                        }
                     </div>
 
                     {showResults && (
@@ -197,17 +208,18 @@ function TopHeader({ openMenu, setOpenMenu }) {
                     </div>
                 )}
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center">
                     {/* messgae, nottificatiom etc..*/}
                     <Notifications />
                     <button
                         onClick={toggleTheme}
                         title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-                        className="p-2 rounded-lg text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                        className="p-2 rounded-lg text-gray-500 hover:text-indigo-600 transition-colors cursor-pointer"
                     >
                         {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                     </button>
                     <PwaInstallButton />
+                    <UserDropDown />
                 </div>
             </div>
         </>
