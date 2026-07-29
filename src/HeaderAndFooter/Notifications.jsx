@@ -190,7 +190,7 @@ function Notifications() {
 
     return (
         <>
-            <div className="relative mr-4">
+            <div className="relative">
                 <button onClick={() => setShowPanel(true)} className="p-2 rounded-lg ">
                     <Bell className="text-gray-600 cursor-pointer w-5 h-5 hover:text-indigo-600 transition-colors" />
                 </button>

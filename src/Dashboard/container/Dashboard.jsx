@@ -4,10 +4,12 @@ import SideBar from '../../HeaderAndFooter/SideBar'
 import TopHeader from '../../HeaderAndFooter/TopHeader'
 import MainMenu from '../../HeaderAndFooter/MainMenu'
 import { useIsMobile } from '../Hooks/useIsMobile'
-import { Home, Calendar, AlarmClock, FileText, User, Users, Grid3X3, } from 'lucide-react'
+import { Home, Calendar, AlarmClock, FileText, User, Users, Grid3X3, Bot } from 'lucide-react'
 import { BellButton, NotificationSheet, UpdateBanner, useNotifications } from '../Mobile/Notificationsheet'
 import { usePWA } from '../Hooks/Usepwa'
 import { getRoleBasePath } from '../../library/constants'
+import { motion, AnimatePresence } from 'framer-motion'
+import ChatBotMain from '../../ChatBot/components/ChatBotMain'
 
 function getUser() {
     try { return JSON.parse(sessionStorage.getItem('user') || '{}') }
@@ -120,6 +122,7 @@ function Dashboard() {
     const isPWAMobile = useIsMobile()
     const location = useLocation()
     const currentPath = location.pathname
+    const isChatbotPage = currentPath.endsWith('/chatbot')
 
     const [isCollapsed, setIsCollapsed] = useState(true)
     const [isMobileOpen, setIsMobileOpen] = useState(false)
@@ -134,6 +137,61 @@ function Dashboard() {
     const user = getUser()
     const isManager = Boolean(user?.is_manager || user?.isManager)
     const NAV_TABS = buildTabs(isManager)
+
+    const [isChatOpen, setIsChatOpen] = useState(false)
+    const [screenHeight, setScreenHeight] = useState(window.innerHeight)
+
+    useEffect(() => {
+        const handleResize = () => setScreenHeight(window.innerHeight)
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
+
+    const chatbotDrawerAndFloat = (
+        <>
+            <motion.div
+                drag="y"
+                dragConstraints={{ top: -screenHeight + 140, bottom: 20 }}
+                dragElastic={0.1}
+                dragMomentum={false}
+                className="fixed right-6 bottom-6 z-40 select-none cursor-grab active:cursor-grabbing"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+            >
+                <button
+                    onClick={() => setIsChatOpen(prev => !prev)}
+                    className="w-14 h-14 bg-gradient-to-tr from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/30 ring-4 ring-indigo-50 hover:ring-indigo-100 transition-all border border-indigo-700 cursor-pointer"
+                    title="AI Chatbot Assistant"
+                >
+                    <Bot size={26} className={isChatOpen ? "" : "animate-pulse"} />
+                </button>
+            </motion.div>
+
+            <AnimatePresence>
+                {isChatOpen && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 0.4 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsChatOpen(false)}
+                            className="fixed inset-0 bg-black z-45 md:hidden"
+                        />
+
+                        <motion.div
+                            initial={{ x: "100%", opacity: 0.95 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            exit={{ x: "100%", opacity: 0.95 }}
+                            transition={{ type: "tween", duration: 0.25, ease: "easeOut" }}
+                            className="fixed inset-y-0 right-0 z-50 bg-white shadow-2xl flex overflow-hidden max-w-full"
+                        >
+                            <ChatBotMain isDrawer={true} onClose={() => setIsChatOpen(false)} />
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
+        </>
+    )
 
     useEffect(() => {
         const onResize = () => {
@@ -164,6 +222,16 @@ function Dashboard() {
     )
 
     if (isPWAMobile) {
+        if (isChatbotPage) {
+            return (
+                <div className="h-screen w-screen bg-white flex flex-col overflow-hidden">
+                    <div className="flex-1 overflow-hidden">
+                        <Outlet />
+                    </div>
+                </div>
+            )
+        }
+
         return (
             <div className="h-screen w-screen bg-white flex flex-col overflow-hidden">
 
@@ -182,6 +250,17 @@ function Dashboard() {
                 <MobileBottomNav tabs={NAV_TABS} currentPath={currentPath} />
 
                 {Overlays}
+                {chatbotDrawerAndFloat}
+            </div>
+        )
+    }
+
+    if (isChatbotPage) {
+        return (
+            <div className="h-screen w-screen bg-white flex overflow-hidden">
+                <div className="flex-1 flex flex-col h-full overflow-hidden">
+                    <Outlet />
+                </div>
             </div>
         )
     }
@@ -217,6 +296,7 @@ function Dashboard() {
                 </div>
             </div>
             {Overlays}
+            {chatbotDrawerAndFloat}
         </div>
     )
 }

@@ -121,7 +121,7 @@ function CommonDropDown({
             {isOpen && (
 
                 <div
-                    className="absolute left-0 top-full mt-1 w-full bg-white rounded-lg shadow-xl border border-indigo-500 z-50"
+                    className="absolute left-0 top-full mt-1 w-full bg-white rounded-lg shadow-xl border border-indigo-500 z-[100]"
                 >
                     <div className="max-h-60 overflow-y-auto scrollbar">
                         {filteredOptions.length === 0 ? (

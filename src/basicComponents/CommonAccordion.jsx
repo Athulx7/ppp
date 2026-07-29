@@ -14,7 +14,7 @@ function CommonAccordion({
     const [isOpen, setIsOpen] = useState(defaultOpen);
 
     return (
-        <div className={`border border-gray-200 rounded-lg overflow-hidden ${className}`}>
+        <div className={`border border-gray-200 rounded-lg transition-all ${isOpen ? 'overflow-visible' : 'overflow-hidden'} ${className}`}>
             <div
                 className={`
                     flex items-center justify-between p-4 cursor-pointer

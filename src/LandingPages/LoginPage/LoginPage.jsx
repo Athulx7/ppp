@@ -76,7 +76,6 @@ function LoginPage() {
                     if (menuRes?.data?.success) {
                         const menuData = menuRes.data.data
                         const allRoutes = menuData.flatMap(m => m.items.map(i => i.routes))
-                        console.log("Menu Routes:", allRoutes)
                         sessionStorage.setItem('menuRoutes', JSON.stringify(allRoutes))
                     } else {
                         console.warn("Menu API failed")
