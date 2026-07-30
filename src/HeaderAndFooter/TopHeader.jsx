@@ -72,18 +72,18 @@ function TopHeader({ openMenu, setOpenMenu }) {
         }
     };
 
-    function PwaInstallButton() {
-        const { isInstallable, install } = usePwaInstall();
-        if (!isInstallable) return null;
-        return (
-            <button
-                onClick={install} className=' flex bg-indigo-600 text-white px-4 py-2 border-none rounded-lg text-sm font-medium'
-            >
-                <Download className="h-4 w-4 mr-3" />
-                Install App
-            </button>
-        );
-    }
+    // function PwaInstallButton() {
+    //     const { isInstallable, install } = usePwaInstall();
+    //     if (!isInstallable) return null;
+    //     return (
+    //         <button
+    //             onClick={install} className=' flex bg-indigo-600 text-white px-4 py-2 border-none rounded-lg text-sm font-medium'
+    //         >
+    //             <Download className="h-4 w-4 mr-3" />
+    //             Install App
+    //         </button>
+    //     );
+    // }
 
     return (
         <>
@@ -218,7 +218,7 @@ function TopHeader({ openMenu, setOpenMenu }) {
                     >
                         {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                     </button>
-                    <PwaInstallButton />
+                    {/* <PwaInstallButton /> */}
                     <UserDropDown />
                 </div>
             </div>

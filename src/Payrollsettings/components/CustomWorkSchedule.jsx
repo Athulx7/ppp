@@ -194,7 +194,7 @@ function CustomWorkSchedule({ isTabLoading, currentTitle }) {
     }
 
     return (
-        <div className="space-y-5 overflow-y-auto max-h-[80vh] scrollbar">
+        <div className="space-y-5 overflow-y-auto max-h-[80vh] hide-scrollbar">
             {
                 !isTabLoading && <div className="flex items-start gap-3 mb-5">
                     <div className="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
