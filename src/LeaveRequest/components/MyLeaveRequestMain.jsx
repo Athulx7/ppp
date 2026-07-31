@@ -1,21 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { Award, Calendar, CalendarPlus, Clock, Download, Loader, CheckCircle, Eye, FileText, History, MinusCircle, Send, XCircle } from 'lucide-react';
+import { StatusBadge } from "../../JobTracking/components/commonFunc";
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
-import {
-    Calendar, Clock, User, Briefcase, FileText, CheckCircle,
-    XCircle, AlertCircle, ChevronRight, Download, Eye,
-    Filter, Search, Plus, Upload, Trash2, Edit, Save,
-    ArrowLeft, Send, History, Award, Bell, MessageSquare,
-    ThumbsUp, ThumbsDown, MinusCircle, PlusCircle, Info,
-    HelpCircle, Loader, ChevronLeft,
-    CalendarPlus
-} from 'lucide-react';
-import Breadcrumb from '../basicComponents/BreadCrumb';
-import CommonDropDown from '../basicComponents/CommonDropDown';
-import CommonInputField from '../basicComponents/CommonInputField';
-import CommonDatePicker from '../basicComponents/CommonDatePicker';
-import CommonTable from '../basicComponents/commonTable';
+import LeaveRequestApply from './LeaveRequestApply';
+import LeaveRequestHistory from './LeaveRequestHistory';
 
-function LeaveRequest() {
+function MyLeaveRequestMain() {
+
     const navigate = useNavigate();
 
     // Mock current user
@@ -526,18 +517,8 @@ function LeaveRequest() {
 
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
     return (
-        <div className="p-3">
-            <Breadcrumb
-                items={[
-                    { label: 'Employee Self Service', to: '/ess' },
-                    { label: 'Leave Request' }
-                ]}
-                title="Leave Request"
-                description="Apply for leave and track your requests"
-            />
-
+        <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
                 {leaveTypes.map(leave => (
                     <div key={leave.code} className="bg-white rounded-xl shadow-sm border border-gray-300 p-4 hover:shadow-md transition-all">
@@ -568,22 +549,23 @@ function LeaveRequest() {
             </div>
 
             <div className="bg-white rounded-xl shadow-sm mb-6">
-                <div className="flex p-2 gap-1 border-b border-b-gray-300">
+                <div className="flex gap-1 border-b border-b-gray-300">
                     <button
                         onClick={() => setSelectedTab('apply')}
-                        className={`px-4 py-2 font-medium text-sm whitespace-nowrap flex items-center gap-2 rounded-lg transition-all ${selectedTab === 'apply'
-                            ? 'bg-indigo-600 text-white shadow-sm'
-                            : 'text-gray-600 hover:bg-gray-100'
+                        className={`cursor-pointer px-6 py-3 font-medium text-sm whitespace-nowrap flex items-center gap-2 transition-colors  ${selectedTab === 'apply'
+                            ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
+                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                             }`}
                     >
                         <CalendarPlus className="w-4 h-4" />
                         Request Leave
                     </button>
+
                     <button
                         onClick={() => setSelectedTab('history')}
-                        className={`px-4 py-2 font-medium text-sm whitespace-nowrap flex items-center gap-2 rounded-lg transition-all ${selectedTab === 'history'
-                            ? 'bg-indigo-600 text-white shadow-sm'
-                            : 'text-gray-600 hover:bg-gray-100'
+                        className={`cursor-pointer px-6 py-3 font-medium text-sm whitespace-nowrap flex items-center gap-2 transition-colors ${selectedTab === 'history'
+                            ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
+                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                             }`}
                     >
                         <History className="w-4 h-4" />
@@ -591,182 +573,37 @@ function LeaveRequest() {
                     </button>
                 </div>
 
-                <div className="">
-                    {selectedTab === 'apply' && (
-                        <div className='p-3'>
-                            <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-lg font-semibold text-gray-900">
-                                    Select Leave Dates
-                                </h3>
-                                <div className="flex items-center gap-4">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-4 h-4 bg-indigo-200 rounded"></div>
-                                        <span className="text-sm text-gray-600">Selected Range</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-4 h-4 bg-red-100 border border-red-300 rounded"></div>
-                                        <span className="text-sm text-gray-600">Existing Leave</span>
-                                    </div>
-                                    {selectedStartDate && (
-                                        <button
-                                            onClick={handleClearSelection}
-                                            className="text-sm text-red-600 hover:text-red-800"
-                                        >
-                                            Clear Selection
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
 
-                            <div className="flex justify-between items-center mb-4">
-                                <button
-                                    onClick={handlePrevMonth}
-                                    className="p-2 hover:bg-gray-100 rounded-lg"
-                                >
-                                    <ChevronLeft className="w-5 h-5" />
-                                </button>
-                                <h4 className="text-lg font-medium">
-                                    {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-                                </h4>
-                                <button
-                                    onClick={handleNextMonth}
-                                    className="p-2 hover:bg-gray-100 rounded-lg"
-                                >
-                                    <ChevronRight className="w-5 h-5" />
-                                </button>
-                            </div>
+                {selectedTab === 'apply' && (
+                    <LeaveRequestApply
+                        selectedStartDate={selectedStartDate}
+                        handleClearSelection={handleClearSelection}
+                        handlePrevMonth={handlePrevMonth}
+                        monthNames={monthNames}
+                        currentDate={currentDate}
+                        handleNextMonth={handleNextMonth}
+                        weekDays={weekDays}
+                        isDateInRange={isDateInRange}
+                        leaveRequests={leaveRequests}
+                        isDateSelected={isDateSelected}
+                        handleDateClick={handleDateClick}
+                        handleDateHover={handleDateHover}
+                        selectedEndDate={selectedEndDate}
+                        calculateLeaveDays={calculateLeaveDays}
+                    />)}
 
-                            <div className="border border-gray-300 rounded-lg overflow-hidden">
-                                {/* Week Days Header */}
-                                <div className="grid grid-cols-7 bg-gray-50 border-b border-b-gray-300">
-                                    {weekDays.map(day => (
-                                        <div key={day} className="p-3 text-center text-sm font-medium text-gray-600">
-                                            {day}
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* Calendar Days */}
-                                <div className="grid grid-cols-7">
-                                    {Array.from({ length: getDaysInMonth(currentDate).startingDay }).map((_, index) => (
-                                        <div key={`empty-${index}`} className="p-3 border-b border-r border-b-gray-300 border-r-gray-300 bg-gray-50"></div>
-                                    ))}
-
-                                    {Array.from({ length: getDaysInMonth(currentDate).daysInMonth }).map((_, index) => {
-                                        const day = index + 1;
-                                        const dateStr = new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toISOString().split('T')[0];
-                                        const isPast = new Date(dateStr) < new Date(new Date().setHours(0, 0, 0, 0));
-                                        const isInRange = isDateInRange(dateStr);
-                                        const isSelected = isDateSelected(dateStr);
-
-                                        // Check if there's an existing leave on this date
-                                        const hasLeave = leaveRequests.some(req =>
-                                            req.status !== 'rejected' && req.status !== 'cancelled' &&
-                                            dateStr >= req.from_date && dateStr <= req.to_date
-                                        );
-
-                                        return (
-                                            <div
-                                                key={day}
-                                                onClick={() => !isPast && handleDateClick(day)}
-                                                onMouseEnter={() => !isPast && handleDateHover(day)}
-                                                className={`p-3 border-b border-r border-b-gray-300 border-r-gray-300 relative cursor-pointer h-16 transition-all
-                                                    ${isPast ? ' cursor-not-allowed' : 'hover:bg-gray-50'}
-                                                    ${isInRange ? 'bg-indigo-50' : ''}
-                                                    ${isSelected ? 'bg-indigo-100 border-indigo-300' : ''}
-                                                    ${hasLeave ? 'bg-red-50' : ''}
-                                                `}
-                                            >
-                                                <div className="flex flex-col items-center">
-                                                    <span className={`text-sm font-medium
-                                                        ${isPast ? 'text-gray-400' : 'text-gray-700'}
-                                                        ${isSelected ? 'text-indigo-700' : ''}
-                                                        ${hasLeave ? 'text-red-700' : ''}
-                                                    `}>
-                                                        {day}
-                                                    </span>
-                                                    {hasLeave && (
-                                                        <span className="text-xs text-red-600 mt-1">Leave</span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-
-                            {selectedStartDate && (
-                                <div className="mt-4 p-4 bg-indigo-50 rounded-lg">
-                                    <div className="flex justify-between items-center">
-                                        <div>
-                                            <p className="text-sm text-indigo-700">Selected Dates</p>
-                                            <p className="font-medium text-indigo-900">
-                                                {selectedStartDate} {selectedEndDate ? `to ${selectedEndDate}` : '(select end date)'}
-                                            </p>
-                                            {selectedStartDate && selectedEndDate && (
-                                                <p className="text-sm text-indigo-600 mt-1">
-                                                    Total: {calculateLeaveDays(selectedStartDate, selectedEndDate)} days
-                                                </p>
-                                            )}
-                                        </div>
-                                        {!selectedEndDate && (
-                                            <p className="text-sm text-indigo-600">
-                                                Click another date to complete selection
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {selectedTab === 'history' && (
-                        <div>
-                            {/* Filters */}
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-3">
-
-                                <CommonDropDown
-                                    label=""
-                                    value={statusFilter}
-                                    onChange={setStatusFilter}
-                                    options={[
-                                        { label: 'All Status', value: 'all' },
-                                        { label: 'Pending', value: 'pending' },
-                                        { label: 'Approved', value: 'approved' },
-                                        { label: 'Rejected', value: 'rejected' },
-                                        { label: 'Cancelled', value: 'cancelled' }
-                                    ]}
-                                    placeholder="Filter by Status"
-                                />
-
-                                <CommonDatePicker
-                                    label=""
-                                    value={dateRange.from}
-                                    onChange={(val) => setDateRange({ ...dateRange, from: val })}
-                                    placeholder="From Date"
-                                />
-
-                                <CommonDatePicker
-                                    label=""
-                                    value={dateRange.to}
-                                    onChange={(val) => setDateRange({ ...dateRange, to: val })}
-                                    placeholder="To Date"
-                                />
-                            </div>
-
-                            <CommonTable
-                                columns={requestColumns}
-                                data={filteredRequests}
-                                itemsPerPage={5}
-                                showSearch={false}
-                                showPagination={true}
-                            />
-                        </div>
-                    )}
-                </div>
+                {selectedTab === 'history' && (<LeaveRequestHistory
+                    statusFilter={statusFilter}
+                    setStatusFilter={setStatusFilter}
+                    dateRange={dateRange}
+                    setDateRange={setDateRange}
+                    requestColumns={requestColumns}
+                    filteredRequests={filteredRequests}
+                />)}
             </div>
 
-            {/* Apply Leave Modal */}
+
+
             {showApplyModal && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto scrollbar">
@@ -1092,8 +929,8 @@ function LeaveRequest() {
                     </div>
                 </div>
             )}
-        </div>
-    );
+        </>
+    )
 }
 
-export default LeaveRequest;
+export default MyLeaveRequestMain
