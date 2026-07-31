@@ -18,10 +18,11 @@ import UploadHistoryEntry from './UploadCenter/container/UploadHistoryEntry'
 import LeaveSettingEntry from './LeaveSetting/container/LeaveSettingEntry'
 import LeaveSettingAddEditEntry from './LeaveSetting/container/LeaveSettingAddEditEntry'
 import LeaveApprovalWorkflow from './LeaveApprovalWorkFlow/LeaveApprovalWorkflowTest'
-import LeaveRequest from './LeaveRequest/LeaveRequestTest'
+import MyLeaveRequestEntry from './LeaveRequest/container/MyLeaveRequestEntry'
 import MyLeavesEntry from './LeaveMyLeavss/container/MyLeavesEntry'
 import LeaveApproval from './LeaveApproval/LeaveApprovalTest'
-import SalaryAdvanceRequest from './SalaryAdvanceRequest/SalaryAdvanceRequestTest'
+import LeaveApprovalEntry from './LeaveApproval/container/LeaveApprovalEntry'
+import SalaryAdvanceRequestEntry from './SalaryAdvanceRequest/container/SalaryAdvanceRequestEntry'
 import SalaryAdvanceApproval from './SalaryAdvanceApproval/SalaryAdvanceApprovaltest'
 import PayrollRun from './PayrollRuns/PayrollRunstest'
 import PayrollInputstest from './PayrollRuns/PayrollInputstest'
@@ -89,11 +90,11 @@ export const ALL_ROUTES = [
     { path: 'leave-settings/edit', component: LeaveSettingAddEditEntry, skipCheck: true },
 
     { path: 'leaveapprovalworkflow', component: LeaveApprovalWorkflow },
-    { path: 'leaveRequest', component: LeaveRequest },
+    { path: 'leaveRequest', component: MyLeaveRequestEntry },
     { path: 'myleves', component: MyLeavesEntry },
-    { path: 'leaveapproval', component: LeaveApproval },
+    { path: 'leaveapproval', component: LeaveApprovalEntry },
 
-    { path: 'salaryadvanceRequest', component: SalaryAdvanceRequest },
+    { path: 'salaryadvanceRequest', component: SalaryAdvanceRequestEntry },
     { path: 'salaryadvanceapproval', component: SalaryAdvanceApproval },
 
     { path: 'payrollruns', component: PayrollRun },
