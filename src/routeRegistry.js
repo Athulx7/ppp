@@ -20,7 +20,6 @@ import LeaveSettingAddEditEntry from './LeaveSetting/container/LeaveSettingAddEd
 import LeaveApprovalWorkflow from './LeaveApprovalWorkFlow/LeaveApprovalWorkflowTest'
 import MyLeaveRequestEntry from './LeaveRequest/container/MyLeaveRequestEntry'
 import MyLeavesEntry from './LeaveMyLeavss/container/MyLeavesEntry'
-import LeaveApproval from './LeaveApproval/LeaveApprovalTest'
 import LeaveApprovalEntry from './LeaveApproval/container/LeaveApprovalEntry'
 import SalaryAdvanceRequestEntry from './SalaryAdvanceRequest/container/SalaryAdvanceRequestEntry'
 import SalaryAdvanceApproval from './SalaryAdvanceApproval/SalaryAdvanceApprovaltest'
