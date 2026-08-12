@@ -3,7 +3,7 @@ import { CalendarDays } from 'lucide-react'
 
 function UpcomingEvents({ upcomingEvents }) {
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
             <h3 className="font-bold text-gray-900 text-sm mb-3 flex items-center gap-2">
                 <CalendarDays size={15} className="text-indigo-600" /> Upcoming (14 days)
             </h3>

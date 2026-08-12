@@ -3,7 +3,7 @@ import { CalendarDays, BellPlus } from 'lucide-react'
 
 function SelectedDayPanel({ selectedDate, selDs, getEvents, openModal }) {
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
             <div className="flex items-center justify-between mb-3">
                 <h3 className="font-bold text-gray-900 text-sm">
                     {selectedDate.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })}
@@ -20,7 +20,7 @@ function SelectedDayPanel({ selectedDate, selDs, getEvents, openModal }) {
                         <p className="text-xs">No events</p>
                     </div>
                 ) : getEvents(selDs).map((ev, i) => (
-                    <div key={i} className={`flex items-start gap-2 p-2.5 rounded-xl border ${ev.color || 'bg-gray-50 text-gray-700'}`}>
+                    <div key={i} className={`flex items-start gap-2 p-2.5 rounded-md border ${ev.color || 'bg-gray-50 text-gray-700'}`}>
                         <div className="flex-1 min-w-0">
                             <p className="text-xs font-semibold truncate">{ev.title || ev.name || ev.type}</p>
                             <p className="text-[10px] opacity-70 mt-0.5">{ev.category}</p>

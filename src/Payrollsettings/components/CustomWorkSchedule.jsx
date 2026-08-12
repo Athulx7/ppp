@@ -46,6 +46,9 @@ function CustomWorkSchedule({ isTabLoading, currentTitle }) {
     const [overtimeApplicable, setOvertimeApplicable] = useState(false)
     const [overtimeRate, setOvertimeRate] = useState(1.5)
     const [shiftAllowance, setShiftAllowance] = useState(0)
+    const [overtimeCarryForward, setOvertimeCarryForward] = useState(false)
+    const [overtimeCarryForwardMaxMins, setOvertimeCarryForwardMaxMins] = useState(30)
+    const [overtimeCarryForwardScope, setOvertimeCarryForwardScope] = useState('weekly')
 
     const [editingSchedule, setEditingSchedule] = useState(null)
     const [tableSearch, setTableSearch] = useState('')
@@ -123,7 +126,10 @@ function CustomWorkSchedule({ isTabLoading, currentTitle }) {
                     endTime,
                     overtimeApplicable,
                     overtimeRate: parseFloat(overtimeRate),
-                    shiftAllowance: parseFloat(shiftAllowance)
+                    shiftAllowance: parseFloat(shiftAllowance),
+                    overtimeCarryForward,
+                    overtimeCarryForwardMaxMins: parseInt(overtimeCarryForwardMaxMins || 30, 10),
+                    overtimeCarryForwardScope
                 }
             }
 
@@ -387,6 +393,42 @@ function CustomWorkSchedule({ isTabLoading, currentTitle }) {
                                 onChange={(e) => setShiftAllowance(e)}
                             />
                         </div>
+
+                        {overtimeApplicable && (
+                            <div className="p-4 bg-indigo-50/60 rounded-xl border border-indigo-100 space-y-3">
+                                <p className="text-xs font-bold text-indigo-900 flex items-center gap-1.5">
+                                    ⏱️ Overtime Carry Forward Settings
+                                </p>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <CommonSwitch
+                                        checked={overtimeCarryForward}
+                                        onChange={(checked) => setOvertimeCarryForward(checked)}
+                                        label={'Enable Carry Forward'}
+                                    />
+
+                                    {overtimeCarryForward && (
+                                        <>
+                                            <CommonInputField
+                                                label="Max Carry Forward Mins (Per Day)"
+                                                type="number"
+                                                value={overtimeCarryForwardMaxMins}
+                                                onChange={(e) => setOvertimeCarryForwardMaxMins(e)}
+                                            />
+
+                                            <CommonDropDown
+                                                label="Reset Policy"
+                                                value={overtimeCarryForwardScope}
+                                                options={[
+                                                    { label: 'Weekly (Reset at Week End / No Carry to Next Week)', value: 'weekly' },
+                                                    { label: 'Monthly (Reset at Month End)', value: 'monthly' }
+                                                ]}
+                                                onChange={(val) => setOvertimeCarryForwardScope(val)}
+                                            />
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
                         {errorMessage && (
                             <div className="p-3 bg-red-50 text-red-700 text-xs rounded-lg flex items-center gap-2">

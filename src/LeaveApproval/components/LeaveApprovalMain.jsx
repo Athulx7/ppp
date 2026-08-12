@@ -1,5 +1,5 @@
 import { CalendarDays, CheckCircle, Eye, Loader, ThumbsDown, ThumbsUp, XCircle, Shield, Users, UserCheck, User, CheckSquare, XSquare } from 'lucide-react';
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import CommonDropDown from '../../basicComponents/CommonDropDown';
 import CommonDatePicker from '../../basicComponents/CommonDatePicker';
 import CommonTable from '../../basicComponents/commonTable';
@@ -7,6 +7,8 @@ import LeaveApprovalCalendar from './LeaveApprovalCalendar';
 import ApproveRejectActionModal from './ApproveRejectActionModal';
 import LeaveApprovalDetailModal from './LeaveApprovalDetailModal';
 import DateLeaveDetailsModal from './DateLeaveDetailsModal';
+import { ApiCall } from '../../library/constants';
+import { showStatusToast } from '../../basicComponents/CommonStatusPopUp';
 
 function LeaveApprovalMain({ isLoading, setIsLoading }) {
 
@@ -31,6 +33,8 @@ function LeaveApprovalMain({ isLoading, setIsLoading }) {
     const [searchQuery, setSearchQuery] = useState('');
 
     // Data states
+    const [workSchedule, setWorkSchedule] = useState(null);
+    const [holidays, setHolidays] = useState([]);
     const [pendingRequests, setPendingRequests] = useState([]);
     const [approvedRequests, setApprovedRequests] = useState([]);
     const [rejectedRequests, setRejectedRequests] = useState([]);
@@ -61,231 +65,86 @@ function LeaveApprovalMain({ isLoading, setIsLoading }) {
         byLeaveType: {}
     });
 
-    // Dummy employees data
-    const employees = [
-        { emp_code: 'EMP001', emp_name: 'John Doe', designation: 'HR Manager', department: 'HR' },
-        { emp_code: 'EMP002', emp_name: 'Athul Krishna', designation: 'Junior Software Engineer', department: 'Engineering' },
-        { emp_code: 'EMP003', emp_name: 'Michael Chen', designation: 'Tech Lead', department: 'Engineering' },
-        { emp_code: 'EMP004', emp_name: 'Sarah Johnson', designation: 'Sales Manager', department: 'Sales' },
-        { emp_code: 'EMP005', emp_name: 'David Kumar', designation: 'Accountant', department: 'Finance' },
-        { emp_code: 'EMP006', emp_name: 'Priya Patel', designation: 'HR Executive', department: 'HR' },
-        { emp_code: 'EMP007', emp_name: 'Robert Wilson', designation: 'Software Engineer', department: 'Engineering' },
-        { emp_code: 'EMP008', emp_name: 'Lisa Wong', designation: 'Marketing Specialist', department: 'Marketing' },
-        { emp_code: 'EMP009', emp_name: 'Thomas Brown', designation: 'Sales Executive', department: 'Sales' },
-        { emp_code: 'EMP010', emp_name: 'Amanda Lee', designation: 'Financial Analyst', department: 'Finance' }
-    ];
+    const [userInfo, setUserInfo] = useState({ is_hr_or_admin: false });
 
-    // Departments
-    const departments = [
-        { value: '', label: 'All Departments' },
-        { value: 'Engineering', label: 'Engineering' },
-        { value: 'HR', label: 'Human Resources' },
-        { value: 'Sales', label: 'Sales' },
-        { value: 'Marketing', label: 'Marketing' },
-        { value: 'Finance', label: 'Finance' },
-        { value: 'Operations', label: 'Operations' }
-    ];
+    // Dynamic dropdown options derived from backend data
+    const departments = useMemo(() => {
+        const uniqueDepts = Array.from(new Set(allRequests.map(r => r.department).filter(Boolean)));
+        return [
+            { value: '', label: 'All Departments' },
+            ...uniqueDepts.map(d => ({ value: d, label: d }))
+        ];
+    }, [allRequests]);
 
-    // Leave types
-    const leaveTypes = [
-        { value: '', label: 'All Leave Types' },
-        { value: 'CL', label: 'Casual Leave' },
-        { value: 'SL', label: 'Sick Leave' },
-        { value: 'EL', label: 'Earned Leave' },
-        { value: 'CO', label: 'Compensatory Off' },
-        { value: 'ML', label: 'Maternity Leave' },
-        { value: 'PL', label: 'Paternity Leave' },
-        { value: 'LWP', label: 'Leave Without Pay' }
-    ];
+    const leaveTypes = useMemo(() => {
+        const typeMap = new Map();
+        allRequests.forEach(r => {
+            if (r.leave_type && !typeMap.has(r.leave_type)) {
+                typeMap.set(r.leave_type, r.leave_name || r.leave_type);
+            }
+        });
+        return [
+            { value: '', label: 'All Leave Types' },
+            ...Array.from(typeMap.entries()).map(([code, name]) => ({ value: code, label: `${name} (${code})` }))
+        ];
+    }, [allRequests]);
 
-    // Dummy leave requests data
+    const employeeOptions = useMemo(() => {
+        const empMap = new Map();
+        allRequests.forEach(r => {
+            if (r.emp_code && !empMap.has(r.emp_code)) {
+                empMap.set(r.emp_code, r.emp_name || r.emp_code);
+            }
+        });
+        return [
+            { value: '', label: 'All Employees' },
+            ...Array.from(empMap.entries()).map(([code, name]) => ({ value: code, label: `${name} (${code})` }))
+        ];
+    }, [allRequests]);
+
+    // Fetch downline requests & calendar data on mount
     useEffect(() => {
-        const generateDummyRequests = () => {
-            const requests = [
-                {
-                    id: 'LR001',
-                    emp_code: 'EMP002',
-                    emp_name: 'Athul Krishna',
-                    designation: 'Junior Software Engineer',
-                    department: 'Engineering',
-                    leave_type: 'CL',
-                    leave_name: 'Casual Leave',
-                    from_date: '2026-03-15',
-                    to_date: '2026-03-17',
-                    days: 3,
-                    reason: 'Family function',
-                    status: 'pending',
-                    applied_on: '2026-03-10',
-                    contact_number: '9876543210',
-                    address: 'Bangalore',
-                    documents: [],
-                    reporting_manager: 'Michael Chen',
-                    reporting_manager_code: 'EMP003'
-                },
-                {
-                    id: 'LR002',
-                    emp_code: 'EMP007',
-                    emp_name: 'Robert Wilson',
-                    designation: 'Software Engineer',
-                    department: 'Engineering',
-                    leave_type: 'SL',
-                    leave_name: 'Sick Leave',
-                    from_date: '2026-03-12',
-                    to_date: '2026-03-13',
-                    days: 2,
-                    reason: 'Viral fever',
-                    status: 'pending',
-                    applied_on: '2026-03-11',
-                    contact_number: '9876543217',
-                    address: 'Bangalore',
-                    documents: ['medical_certificate.pdf'],
-                    reporting_manager: 'Michael Chen',
-                    reporting_manager_code: 'EMP003'
-                },
-                {
-                    id: 'LR003',
-                    emp_code: 'EMP004',
-                    emp_name: 'Sarah Johnson',
-                    designation: 'Sales Manager',
-                    department: 'Sales',
-                    leave_type: 'EL',
-                    leave_name: 'Earned Leave',
-                    from_date: '2026-03-20',
-                    to_date: '2026-03-25',
-                    days: 6,
-                    reason: 'Vacation with family',
-                    status: 'pending',
-                    applied_on: '2026-03-05',
-                    contact_number: '9876543214',
-                    address: 'Goa',
-                    documents: [],
-                    reporting_manager: 'John Doe',
-                    reporting_manager_code: 'EMP001'
-                },
-                {
-                    id: 'LR004',
-                    emp_code: 'EMP006',
-                    emp_name: 'Priya Patel',
-                    designation: 'HR Executive',
-                    department: 'HR',
-                    leave_type: 'CL',
-                    leave_name: 'Casual Leave',
-                    from_date: '2026-03-18',
-                    to_date: '2026-03-19',
-                    days: 2,
-                    reason: 'Personal work',
-                    status: 'approved',
-                    applied_on: '2026-03-08',
-                    approved_by: 'John Admin',
-                    approved_on: '2026-03-09',
-                    comments: 'Approved',
-                    contact_number: '9876543216',
-                    address: 'Bangalore',
-                    reporting_manager: 'John Doe',
-                    reporting_manager_code: 'EMP001'
-                },
-                {
-                    id: 'LR005',
-                    emp_code: 'EMP009',
-                    emp_name: 'Thomas Brown',
-                    designation: 'Sales Executive',
-                    department: 'Sales',
-                    leave_type: 'CO',
-                    leave_name: 'Compensatory Off',
-                    from_date: '2026-03-14',
-                    to_date: '2026-03-14',
-                    days: 1,
-                    reason: 'Comp off for Sunday work',
-                    status: 'approved',
-                    applied_on: '2026-03-07',
-                    approved_by: 'Sarah Johnson',
-                    approved_on: '2026-03-08',
-                    comments: 'Approved',
-                    contact_number: '9876543219',
-                    address: 'Bangalore',
-                    reporting_manager: 'Sarah Johnson',
-                    reporting_manager_code: 'EMP004'
-                },
-                {
-                    id: 'LR006',
-                    emp_code: 'EMP005',
-                    emp_name: 'David Kumar',
-                    designation: 'Accountant',
-                    department: 'Finance',
-                    leave_type: 'SL',
-                    leave_name: 'Sick Leave',
-                    from_date: '2026-03-05',
-                    to_date: '2026-03-07',
-                    days: 3,
-                    reason: 'Medical checkup',
-                    status: 'rejected',
-                    applied_on: '2026-03-01',
-                    rejected_by: 'John Admin',
-                    rejected_on: '2026-03-02',
-                    comments: 'Team already has 2 members on leave',
-                    contact_number: '9876543215',
-                    address: 'Bangalore',
-                    reporting_manager: 'Amanda Lee',
-                    reporting_manager_code: 'EMP010'
-                },
-                {
-                    id: 'LR007',
-                    emp_code: 'EMP003',
-                    emp_name: 'Michael Chen',
-                    designation: 'Tech Lead',
-                    department: 'Engineering',
-                    leave_type: 'EL',
-                    leave_name: 'Earned Leave',
-                    from_date: '2026-03-25',
-                    to_date: '2026-03-30',
-                    days: 6,
-                    reason: 'Family trip',
-                    status: 'pending',
-                    applied_on: '2026-03-12',
-                    contact_number: '9876543213',
-                    address: 'Kerala',
-                    documents: [],
-                    reporting_manager: 'John Doe',
-                    reporting_manager_code: 'EMP001'
-                },
-                {
-                    id: 'LR008',
-                    emp_code: 'EMP008',
-                    emp_name: 'Lisa Wong',
-                    designation: 'Marketing Specialist',
-                    department: 'Marketing',
-                    leave_type: 'CL',
-                    leave_name: 'Casual Leave',
-                    from_date: '2026-03-22',
-                    to_date: '2026-03-23',
-                    days: 2,
-                    reason: 'Personal work',
-                    status: 'pending',
-                    applied_on: '2026-03-13',
-                    contact_number: '9876543218',
-                    address: 'Bangalore',
-                    reporting_manager: 'Sarah Johnson',
-                    reporting_manager_code: 'EMP004'
-                }
-            ];
-
-            // Split into categories
-            const pending = requests.filter(r => r.status === 'pending');
-            const approved = requests.filter(r => r.status === 'approved');
-            const rejected = requests.filter(r => r.status === 'rejected');
-
-            setPendingRequests(pending);
-            setApprovedRequests(approved);
-            setRejectedRequests(rejected);
-            setAllRequests(requests);
-            setFilteredRequests(requests);
-
-            // Calculate stats
-            calculateStats(requests);
-        };
-
-        generateDummyRequests();
+        fetchInitialData();
     }, []);
+
+    async function fetchInitialData() {
+        try {
+            if (setIsLoading) setIsLoading({ normal: false, spinner: true });
+
+            // Fetch Downline Requests for Logged-In Manager
+            const reqRes = await ApiCall('GET', '/leaveapproval/getDownlineRequests');
+            const reqList = reqRes?.data?.data || [];
+            if (reqRes?.data?.user) {
+                setUserInfo(reqRes.data.user);
+            }
+            if (Array.isArray(reqList)) {
+                setAllRequests(reqList);
+                const pending = reqList.filter(r => r.status === 'pending');
+                const approved = reqList.filter(r => r.status === 'approved');
+                const rejected = reqList.filter(r => r.status === 'rejected');
+                setPendingRequests(pending);
+                setApprovedRequests(approved);
+                setRejectedRequests(rejected);
+                calculateStats(reqList);
+            }
+
+            // Fetch Manager Work Schedule
+            const schedRes = await ApiCall('GET', '/leaverequest/userWorkSchedule');
+            if (schedRes?.data?.data) {
+                setWorkSchedule(schedRes.data.data);
+            }
+
+            // Fetch Company Holidays
+            const holidayRes = await ApiCall('GET', '/leaverequest/holidays');
+            if (holidayRes?.data?.data) {
+                setHolidays(Array.isArray(holidayRes.data.data) ? holidayRes.data.data : []);
+            }
+        } catch (err) {
+            console.error('Error fetching leave approval initial data:', err);
+        } finally {
+            if (setIsLoading) setIsLoading({ normal: false, spinner: false });
+        }
+    }
 
     // Filter requests based on user role and selections
     useEffect(() => {
@@ -415,84 +274,80 @@ function LeaveApprovalMain({ isLoading, setIsLoading }) {
         setShowDetailsModal(true);
     };
 
-    const handleActionSubmit = () => {
+    const handleActionSubmit = async () => {
         if (!actionComment && actionType === 'reject') {
-            alert('Please provide a reason for rejection');
+            showStatusToast({ type: 'warning', title: 'Validation Warning', message: 'Please provide a reason for rejection' });
             return;
         }
 
-        // Update request status
-        const updatedRequests = allRequests.map(r => {
-            if (r.id === selectedRequest.id) {
-                return {
-                    ...r,
-                    status: actionType === 'approve' ? 'approved' : 'rejected',
-                    [`${actionType}d_by`]: currentUser.emp_name,
-                    [`${actionType}d_on`]: new Date().toISOString().split('T')[0],
-                    comments: actionComment || (actionType === 'approve' ? 'Approved' : 'Rejected')
-                };
-            }
-            return r;
-        });
+        if (!selectedRequest?.id) return;
 
-        // Update state
-        setAllRequests(updatedRequests);
-
-        // Update filtered lists
-        const pending = updatedRequests.filter(r => r.status === 'pending');
-        const approved = updatedRequests.filter(r => r.status === 'approved');
-        const rejected = updatedRequests.filter(r => r.status === 'rejected');
-
-        setPendingRequests(pending);
-        setApprovedRequests(approved);
-        setRejectedRequests(rejected);
-
-        // Close modal
-        setShowActionModal(false);
-        setSelectedRequest(null);
-        setActionComment('');
-
-        // Show success message
-        alert(`Leave request ${actionType === 'approve' ? 'approved' : 'rejected'} successfully`);
-    };
-
-    const handleBulkAction = (action) => {
-        if (filteredRequests.length === 0) return;
-
-        const selectedIds = filteredRequests
-            .filter(r => r.status === 'pending')
-            .map(r => r.id);
-
-        if (selectedIds.length === 0) {
-            alert('No pending requests to process');
-            return;
-        }
-
-        if (window.confirm(`Are you sure you want to ${action} ${selectedIds.length} requests?`)) {
-            const updatedRequests = allRequests.map(r => {
-                if (selectedIds.includes(r.id)) {
-                    return {
-                        ...r,
-                        status: action,
-                        [`${action}d_by`]: currentUser.emp_name,
-                        [`${action}d_on`]: new Date().toISOString().split('T')[0],
-                        comments: action === 'approve' ? 'Bulk approved' : 'Bulk rejected'
-                    };
-                }
-                return r;
+        try {
+            const endpoint = actionType === 'approve' ? '/leaveapproval/approve' : '/leaveapproval/reject';
+            const response = await ApiCall('POST', endpoint, {
+                id: selectedRequest.id,
+                comments: actionComment || (actionType === 'approve' ? 'Approved' : 'Rejected')
             });
 
-            setAllRequests(updatedRequests);
+            if (response?.data?.success) {
+                showStatusToast({
+                    type: 'success',
+                    title: 'Success',
+                    message: `Leave request ${actionType === 'approve' ? 'approved' : 'rejected'} successfully`
+                });
+                setShowActionModal(false);
+                setSelectedRequest(null);
+                setActionComment('');
+                fetchInitialData();
+            } else {
+                showStatusToast({
+                    type: 'error',
+                    title: 'Error',
+                    message: response?.data?.message || `Failed to ${actionType} request`
+                });
+            }
+        } catch (err) {
+            showStatusToast({
+                type: 'error',
+                title: 'Error',
+                message: 'Failed to process request: ' + (err.data?.message || err.message || 'Error occurred')
+            });
+        }
+    };
 
-            const pending = updatedRequests.filter(r => r.status === 'pending');
-            const approved = updatedRequests.filter(r => r.status === 'approved');
-            const rejected = updatedRequests.filter(r => r.status === 'rejected');
+    const handleBulkAction = async (action) => {
+        if (filteredRequests.length === 0) return;
 
-            setPendingRequests(pending);
-            setApprovedRequests(approved);
-            setRejectedRequests(rejected);
+        const pendingList = filteredRequests.filter(r => r.status === 'pending');
+        if (pendingList.length === 0) {
+            showStatusToast({ type: 'warning', title: 'No Pending Requests', message: 'No pending requests available to process' });
+            return;
+        }
 
-            alert(`${selectedIds.length} requests ${action}d successfully`);
+        try {
+            const endpoint = action === 'approve' ? '/leaveapproval/approve' : '/leaveapproval/reject';
+            let successCount = 0;
+
+            for (const req of pendingList) {
+                const res = await ApiCall('POST', endpoint, {
+                    id: req.id,
+                    comments: action === 'approve' ? 'Bulk approved' : 'Bulk rejected'
+                });
+                if (res?.data?.success) successCount++;
+            }
+
+            showStatusToast({
+                type: 'success',
+                title: 'Bulk Processed',
+                message: `${successCount} leave request(s) ${action === 'approve' ? 'approved' : 'rejected'} successfully`
+            });
+            fetchInitialData();
+        } catch (err) {
+            showStatusToast({
+                type: 'error',
+                title: 'Error',
+                message: 'Error processing bulk requests: ' + (err.data?.message || err.message || 'Error occurred')
+            });
         }
     };
 
@@ -634,6 +489,21 @@ function LeaveApprovalMain({ isLoading, setIsLoading }) {
             }
         },
         {
+            header: "Approver Level",
+            cell: row => {
+                const code = row.approver_heihrarchy_code;
+                const label = code === 'HR' ? 'HR Approval' : (code ? `Hierarchy (${code})` : 'Reporting Manager');
+                const badgeStyle = code === 'HR'
+                    ? 'bg-purple-100 text-purple-800 border-purple-200'
+                    : (code ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-slate-100 text-slate-700 border-slate-200');
+                return (
+                    <span className={`px-2 py-0.5 rounded text-[11px] font-medium border ${badgeStyle}`}>
+                        {label}
+                    </span>
+                );
+            }
+        },
+        {
             header: "Duration",
             cell: row => (
                 <div>
@@ -727,13 +597,24 @@ function LeaveApprovalMain({ isLoading, setIsLoading }) {
 
                 <div className="p-3 md:p-4 ">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2 md:gap-3">
-                        <CommonDropDown
-                            label=""
-                            value={selectedDepartment}
-                            onChange={setSelectedDepartment}
-                            options={departments}
-                            placeholder="Department"
-                        />
+                        {userInfo?.is_hr_or_admin && (
+                            <>
+                                <CommonDropDown
+                                    label=""
+                                    value={selectedDepartment}
+                                    onChange={setSelectedDepartment}
+                                    options={departments}
+                                    placeholder="Department"
+                                />
+                                <CommonDropDown
+                                    label=""
+                                    value={selectedEmployee}
+                                    onChange={setSelectedEmployee}
+                                    options={employeeOptions}
+                                    placeholder="Employee"
+                                />
+                            </>
+                        )}
                         <CommonDropDown
                             label=""
                             value={selectedLeaveType}
@@ -791,6 +672,8 @@ function LeaveApprovalMain({ isLoading, setIsLoading }) {
                 currentDate={currentDate} handleNextMonth={handleNextMonth}
                 weekDays={weekDays}
                 getDaysInMonth={getDaysInMonth} hasLeaveOnDate={hasLeaveOnDate}
+                workSchedule={workSchedule}
+                holidays={holidays}
             />
 
             {showActionModal && selectedRequest && (

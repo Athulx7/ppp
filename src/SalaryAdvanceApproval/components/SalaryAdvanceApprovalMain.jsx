@@ -4,14 +4,17 @@ import CommonDropDown from "../../basicComponents/CommonDropDown";
 import SalaryAdvanceApprovalReq from "./SalaryAdvanceApprovalReq";
 import ApprovalDetails from "./ApprovalDetails";
 import SalaryAdvApproActionModal from "./SalaryAdvApproActionModal";
+import { ApiCall } from "../../library/constants";
 
 function SalaryAdvanceApprovalMain({ isLoading, setIsLoading }) {
+    const [loading, setLoading] = useState(true);
+
     const [currentUser, setCurrentUser] = useState({
-        emp_code: 'ADMIN001',
-        emp_name: 'John Admin',
-        role: 'hr',
-        designation: 'HR Manager',
-        department: 'Human Resources'
+        emp_code: '',
+        emp_name: '',
+        role: '',
+        designation: '',
+        department: ''
     });
 
     // State for different views
@@ -24,11 +27,14 @@ function SalaryAdvanceApprovalMain({ isLoading, setIsLoading }) {
     // Data states
     const [allRequests, setAllRequests] = useState([]);
     const [filteredRequests, setFilteredRequests] = useState([]);
+    const [departments, setDepartments] = useState([]);
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [showActionModal, setShowActionModal] = useState(false);
     const [actionType, setActionType] = useState(''); // 'approve', 'reject', 'disburse'
     const [actionComment, setActionComment] = useState('');
+    const [submittingAction, setSubmittingAction] = useState(false);
+
     const [disbursementDetails, setDisbursementDetails] = useState({
         mode: 'bank_transfer',
         reference: '',
@@ -48,184 +54,33 @@ function SalaryAdvanceApprovalMain({ isLoading, setIsLoading }) {
         pendingAmount: 0
     });
 
-    // Departments
-    const departments = [
-        { value: '', label: 'All Departments' },
-        { value: 'Engineering', label: 'Engineering' },
-        { value: 'HR', label: 'Human Resources' },
-        { value: 'Sales', label: 'Sales' },
-        { value: 'Marketing', label: 'Marketing' },
-        { value: 'Finance', label: 'Finance' }
-    ];
+    // Fetch dynamic approval list from backend
+    const fetchApprovalData = async () => {
+        try {
+            setLoading(true);
+            if (setIsLoading) setIsLoading(true);
 
-    // Dummy data
-    useEffect(() => {
-        const dummyRequests = [
-            {
-                id: 'SAR001',
-                emp_code: 'EMP002',
-                emp_name: 'Athul Krishna',
-                designation: 'Junior Software Engineer',
-                department: 'Engineering',
-                doj: '2023-06-15',
-                salary: 45000,
-                request_date: '2024-02-15',
-                amount: 30000,
-                purpose: 'Medical emergency - Father hospitalized',
-                tenure: 3,
-                monthly_deduction: 10000,
-                preferred_date: '2024-02-25',
-                emergency_contact: '9876543210',
-                emergency_relation: 'Spouse',
-                comments: 'Urgent requirement',
-                status: 'pending',
-                documents: ['medical_report.pdf'],
-                eligibility: {
-                    max_eligible: 90000,
-                    used: 25000,
-                    remaining: 65000
+            const res = await ApiCall('get', '/salaryadvance/approval-list');
+            if (res.data?.success) {
+                const data = res.data.data;
+                const requests = data.requests || [];
+                setAllRequests(requests);
+                setDepartments(data.departments || [{ value: '', label: 'All Departments' }]);
+                if (data.currentUser) {
+                    setCurrentUser(data.currentUser);
                 }
-            },
-            {
-                id: 'SAR002',
-                emp_code: 'EMP005',
-                emp_name: 'David Kumar',
-                designation: 'Accountant',
-                department: 'Finance',
-                doj: '2022-03-10',
-                salary: 55000,
-                request_date: '2024-02-10',
-                amount: 50000,
-                purpose: 'Home renovation - Bathroom repair',
-                tenure: 4,
-                monthly_deduction: 12500,
-                preferred_date: '2024-02-20',
-                emergency_contact: '9876543215',
-                emergency_relation: 'Brother',
-                comments: '',
-                status: 'pending',
-                documents: ['quotation.pdf'],
-                eligibility: {
-                    max_eligible: 110000,
-                    used: 0,
-                    remaining: 110000
-                }
-            },
-            {
-                id: 'SAR003',
-                emp_code: 'EMP008',
-                emp_name: 'Lisa Wong',
-                designation: 'Marketing Specialist',
-                department: 'Marketing',
-                doj: '2023-11-01',
-                salary: 50000,
-                request_date: '2024-02-12',
-                amount: 25000,
-                purpose: 'Education fees - Child school fees',
-                tenure: 3,
-                monthly_deduction: 8333,
-                preferred_date: '2024-02-22',
-                emergency_contact: '9876543218',
-                emergency_relation: 'Spouse',
-                comments: 'Fee payment deadline 28th Feb',
-                status: 'approved',
-                approved_by: 'John Admin',
-                approved_date: '2024-02-13',
-                approved_comments: 'Approved as per policy',
-                documents: ['fee_slip.pdf'],
-                eligibility: {
-                    max_eligible: 100000,
-                    used: 0,
-                    remaining: 100000
-                }
-            },
-            {
-                id: 'SAR004',
-                emp_code: 'EMP003',
-                emp_name: 'Michael Chen',
-                designation: 'Tech Lead',
-                department: 'Engineering',
-                doj: '2021-08-15',
-                salary: 85000,
-                request_date: '2024-02-08',
-                amount: 100000,
-                purpose: 'Wedding expenses - Sister marriage',
-                tenure: 5,
-                monthly_deduction: 20000,
-                preferred_date: '2024-02-18',
-                emergency_contact: '9876543213',
-                emergency_relation: 'Father',
-                comments: 'Need advance for marriage arrangements',
-                status: 'rejected',
-                rejected_by: 'John Admin',
-                rejected_date: '2024-02-09',
-                rejection_reason: 'Amount exceeds eligible limit. Max eligible is ₹85,000 (2 months salary)',
-                eligibility: {
-                    max_eligible: 170000,
-                    used: 50000,
-                    remaining: 120000
-                }
-            },
-            {
-                id: 'SAR005',
-                emp_code: 'EMP006',
-                emp_name: 'Priya Patel',
-                designation: 'HR Executive',
-                department: 'HR',
-                doj: '2023-01-15',
-                salary: 40000,
-                request_date: '2024-02-05',
-                amount: 20000,
-                purpose: 'Travel advance for official trip',
-                tenure: 2,
-                monthly_deduction: 10000,
-                preferred_date: '2024-02-15',
-                emergency_contact: '9876543216',
-                emergency_relation: 'Brother',
-                comments: 'Travel advance - will be settled with bills',
-                status: 'disbursed',
-                approved_by: 'John Admin',
-                approved_date: '2024-02-06',
-                disbursed_by: 'Finance Dept',
-                disbursed_date: '2024-02-07',
-                disbursement_ref: 'TRX123456',
-                documents: ['travel_approval.pdf'],
-                eligibility: {
-                    max_eligible: 80000,
-                    used: 0,
-                    remaining: 80000
-                }
-            },
-            {
-                id: 'SAR006',
-                emp_code: 'EMP009',
-                emp_name: 'Thomas Brown',
-                designation: 'Sales Executive',
-                department: 'Sales',
-                doj: '2023-09-01',
-                salary: 38000,
-                request_date: '2024-02-14',
-                amount: 15000,
-                purpose: 'Vehicle repair - Essential for work commute',
-                tenure: 2,
-                monthly_deduction: 7500,
-                preferred_date: '2024-02-24',
-                emergency_contact: '9876543219',
-                emergency_relation: 'Spouse',
-                comments: 'Bike breakdown, need for client visits',
-                status: 'pending',
-                documents: ['repair_estimate.pdf'],
-                eligibility: {
-                    max_eligible: 76000,
-                    used: 0,
-                    remaining: 76000
-                }
+                calculateStats(requests);
             }
-        ];
+        } catch (err) {
+            console.error("Error loading salary advance approval list:", err);
+        } finally {
+            setLoading(false);
+            if (setIsLoading) setIsLoading(false);
+        }
+    };
 
-        setAllRequests(dummyRequests);
-        setFilteredRequests(dummyRequests);
-        calculateStats(dummyRequests);
+    useEffect(() => {
+        fetchApprovalData()
     }, []);
 
     // Filter requests
@@ -247,16 +102,19 @@ function SalaryAdvanceApprovalMain({ isLoading, setIsLoading }) {
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
             filtered = filtered.filter(r =>
-                r.emp_name.toLowerCase().includes(query) ||
-                r.emp_code.toLowerCase().includes(query) ||
-                r.purpose.toLowerCase().includes(query) ||
-                r.id.toLowerCase().includes(query)
+                (r.emp_name && r.emp_name.toLowerCase().includes(query)) ||
+                (r.emp_code && r.emp_code.toLowerCase().includes(query)) ||
+                (r.purpose && r.purpose.toLowerCase().includes(query)) ||
+                (r.id && r.id.toLowerCase().includes(query))
             );
         }
 
         // Department filter
         if (selectedDepartment) {
-            filtered = filtered.filter(r => r.department === selectedDepartment);
+            filtered = filtered.filter(r =>
+                r.department_code === selectedDepartment ||
+                r.department === selectedDepartment
+            );
         }
 
         // Date range
@@ -335,7 +193,7 @@ function SalaryAdvanceApprovalMain({ isLoading, setIsLoading }) {
         setShowDetailsModal(true);
     };
 
-    const handleActionSubmit = () => {
+    const handleActionSubmit = async () => {
         if (actionType === 'reject' && !actionComment) {
             alert('Please provide a reason for rejection');
             return;
@@ -352,46 +210,42 @@ function SalaryAdvanceApprovalMain({ isLoading, setIsLoading }) {
             }
         }
 
-        const updatedRequests = allRequests.map(r => {
-            if (r.id === selectedRequest.id) {
-                if (actionType === 'approve') {
-                    return {
-                        ...r,
-                        status: 'approved',
-                        approved_by: currentUser.emp_name,
-                        approved_date: new Date().toISOString().split('T')[0],
-                        approved_comments: actionComment
-                    };
-                } else if (actionType === 'reject') {
-                    return {
-                        ...r,
-                        status: 'rejected',
-                        rejected_by: currentUser.emp_name,
-                        rejected_date: new Date().toISOString().split('T')[0],
-                        rejection_reason: actionComment
-                    };
-                } else if (actionType === 'disburse') {
-                    return {
-                        ...r,
-                        status: 'disbursed',
-                        disbursed_by: currentUser.emp_name,
-                        disbursed_date: disbursementDetails.date,
-                        disbursement_ref: disbursementDetails.reference,
-                        disbursement_mode: disbursementDetails.mode
-                    };
-                }
+        try {
+            setSubmittingAction(true);
+            let endpoint = '';
+            let payload = {};
+
+            if (actionType === 'approve') {
+                endpoint = '/salaryadvance/approve';
+                payload = { id: selectedRequest.id, comments: actionComment };
+            } else if (actionType === 'reject') {
+                endpoint = '/salaryadvance/reject';
+                payload = { id: selectedRequest.id, rejection_reason: actionComment };
+            } else if (actionType === 'disburse') {
+                endpoint = '/salaryadvance/disburse';
+                payload = {
+                    id: selectedRequest.id,
+                    mode: disbursementDetails.mode,
+                    reference: disbursementDetails.reference,
+                    date: disbursementDetails.date
+                };
             }
-            return r;
-        });
 
-        setAllRequests(updatedRequests);
-        calculateStats(updatedRequests);
+            const res = await ApiCall('post', endpoint, payload);
 
-        setShowActionModal(false);
-        setSelectedRequest(null);
-        setActionComment('');
-
-        alert(`Request ${actionType === 'approve' ? 'approved' : actionType === 'reject' ? 'rejected' : 'marked as disbursed'} successfully`);
+            if (res.data?.success) {
+                setShowActionModal(false);
+                setSelectedRequest(null);
+                setActionComment('');
+                alert(res.data.message || `Request ${actionType === 'approve' ? 'approved' : actionType === 'reject' ? 'rejected' : 'marked as disbursed'} successfully`);
+                fetchApprovalData();
+            }
+        } catch (err) {
+            const msg = err.data?.message || err.message || `Failed to ${actionType} request`;
+            alert(msg);
+        } finally {
+            setSubmittingAction(false);
+        }
     };
 
     const StatusBadge = ({ status }) => {
@@ -411,6 +265,17 @@ function SalaryAdvanceApprovalMain({ isLoading, setIsLoading }) {
             </span>
         );
     };
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="flex items-center gap-3 text-indigo-600 font-medium">
+                    <Loader className="w-6 h-6 animate-spin" />
+                    <span>Loading Salary Advance Approvals...</span>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <>
@@ -478,152 +343,99 @@ function SalaryAdvanceApprovalMain({ isLoading, setIsLoading }) {
                 <div className="bg-white rounded-md shadow-sm border border-gray-200 p-2 md:p-3">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-xs text-gray-500">Pending Amt</p>
-                            <p className="text-lg font-bold text-purple-600">₹{stats.pendingAmount.toLocaleString()}</p>
+                            <p className="text-xs text-gray-500">Pending Amount</p>
+                            <p className="text-lg font-bold text-indigo-600">₹{(stats.pendingAmount / 1000).toFixed(1)}k</p>
                         </div>
-                        <div className="p-1.5 bg-purple-100 rounded-md">
-                            <DollarSign className="w-4 h-4 text-purple-600" />
+                        <div className="p-1.5 bg-indigo-100 rounded-md">
+                            <DollarSign className="w-4 h-4 text-indigo-600" />
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="bg-white rounded-md shadow-sm">
-                <div className="flex border-b border-gray-300 flex-wrap gap-1 overflow-x-auto scrollbar p-1">
-                    <button
-                        onClick={() => setSelectedTab('pending')}
-                        className={`cursor-pointer px-6 py-3 font-medium text-sm whitespace-nowrap rounded-sm flex items-center gap-2 transition-colors ${selectedTab === 'pending'
-                            ? 'bg-yellow-500 text-white'
-                            : 'text-gray-600 hover:bg-gray-100'
-                            }`}
-                    >
-                        Pending ({stats.pending})
-                    </button>
-                    <button
-                        onClick={() => setSelectedTab('approved')}
-                        className={`cursor-pointer px-6 py-3 font-medium text-sm whitespace-nowrap rounded-sm flex items-center gap-2 transition-colors ${selectedTab === 'approved'
-                            ? 'bg-green-600 text-white'
-                            : 'text-gray-600 hover:bg-gray-100'
-                            }`}
-                    >
-                        Approved ({stats.approved})
-                    </button>
-                    <button
-                        onClick={() => setSelectedTab('rejected')}
-                        className={`cursor-pointer px-6 py-3 font-medium text-sm whitespace-nowrap rounded-sm flex items-center gap-2 transition-colors ${selectedTab === 'rejected'
-                            ? 'bg-red-600 text-white'
-                            : 'text-gray-600 hover:bg-gray-100'
-                            }`}
-                    >
-                        Rejected ({stats.rejected})
-                    </button>
-                    <button
-                        onClick={() => setSelectedTab('disbursed')}
-                        className={`cursor-pointer px-6 py-3 font-medium text-sm whitespace-nowrap rounded-sm flex items-center gap-2 transition-colors ${selectedTab === 'disbursed'
-                            ? 'bg-blue-600 text-white'
-                            : 'text-gray-600 hover:bg-gray-100'
-                            }`}
-                    >
-                        Disbursed ({stats.disbursed})
-                    </button>
-                    <button
-                        onClick={() => setSelectedTab('all')}
-                        className={`cursor-pointer px-6 py-3 font-medium text-sm whitespace-nowrap rounded-sm flex items-center gap-2 transition-colors ${selectedTab === 'all'
-                            ? 'bg-indigo-600 text-white'
-                            : 'text-gray-600 hover:bg-gray-100'
-                            }`}
-                    >
-                        All ({stats.total})
-                    </button>
+            <div className="bg-white rounded-md shadow-sm border border-gray-200 mb-4 md:mb-6">
+                <div className="border-b border-gray-200 overflow-x-auto">
+                    <div className="flex space-x-1 p-2 min-w-max">
+                        {[
+                            { id: 'pending', label: `Pending (${stats.pending})` },
+                            { id: 'approved', label: `Approved (${stats.approved})` },
+                            { id: 'disbursed', label: `Disbursed (${stats.disbursed})` },
+                            { id: 'rejected', label: `Rejected (${stats.rejected})` },
+                            { id: 'all', label: `All Requests (${stats.total})` }
+                        ].map(tab => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setSelectedTab(tab.id)}
+                                className={`px-4 py-2 text-xs md:text-sm font-medium rounded-md transition-colors whitespace-nowrap ${selectedTab === tab.id
+                                    ? 'bg-indigo-600 text-white'
+                                    : 'text-gray-600 hover:bg-gray-100'
+                                    }`}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
-                <div className="p-3 md:p-4 border-b border-b-gray-200">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2 md:gap-3">
-                        <div className="relative lg:col-span-2">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <div className="p-4 space-y-4">
+                    <div className="flex flex-col md:flex-row gap-4">
+                        <div className="flex-1 relative">
+                            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                             <input
                                 type="text"
-                                placeholder="Search by name, ID, purpose..."
-                                className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                                placeholder="Search by name, ID, or purpose..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-md text-xs md:text-sm focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
                             />
                         </div>
 
-                        <CommonDropDown
-                            label=""
-                            value={selectedDepartment}
-                            onChange={setSelectedDepartment}
-                            options={departments}
-                            placeholder="Department"
-                        />
-
-                        <div className="flex gap-1">
-                            <input
-                                type="number"
-                                placeholder="Min Amt"
-                                className="w-1/2 px-2 py-2 text-sm border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-indigo-500"
-                                value={amountRange.min}
-                                onChange={(e) => setAmountRange({ ...amountRange, min: e.target.value })}
-                            />
-                            <input
-                                type="number"
-                                placeholder="Max Amt"
-                                className="w-1/2 px-2 py-2 text-sm border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-indigo-500"
-                                value={amountRange.max}
-                                onChange={(e) => setAmountRange({ ...amountRange, max: e.target.value })}
+                        <div className="w-full md:w-48">
+                            <CommonDropDown
+                                options={departments}
+                                value={selectedDepartment}
+                                onChange={(e) => setSelectedDepartment(e.target.value)}
+                                placeholder="Department"
                             />
                         </div>
-
-                        <button
-                            onClick={() => {
-                                setSearchQuery('');
-                                setSelectedDepartment('');
-                                setDateRange({ from: '', to: '' });
-                                setAmountRange({ min: '', max: '' });
-                            }}
-                            className="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm"
-                        >
-                            Clear
-                        </button>
                     </div>
                 </div>
-
-                <SalaryAdvanceApprovalReq
-                    filteredRequests={filteredRequests}
-                    handleViewDetails={handleViewDetails}
-                    handleApprove={handleApprove}
-                    handleReject={handleReject}
-                    handleDisburse={handleDisburse}
-                />
             </div>
 
-            {showDetailsModal && selectedRequest && (
-                <ApprovalDetails
-                    setShowDetailsModal={setShowDetailsModal}
-                    setSelectedRequest={setSelectedRequest}
-                    selectedRequest={selectedRequest}
-                    handleApprove={handleApprove}
-                    handleReject={handleReject}
-                    handleDisburse={handleDisburse}
-                />
-            )}
+            <SalaryAdvanceApprovalReq
+                filteredRequests={filteredRequests}
+                selectedTab={selectedTab}
+                handleViewDetails={handleViewDetails}
+                handleApprove={handleApprove}
+                handleReject={handleReject}
+                handleDisburse={handleDisburse}
+            />
 
-            {showActionModal && selectedRequest && (
-                <SalaryAdvApproActionModal
-                    setShowActionModal={setShowActionModal}
-                    actionType={actionType}
-                    selectedRequest={selectedRequest}
-                    handleActionSubmit={handleActionSubmit}
-                    actionComment={actionComment}
-                    setActionComment={setActionComment}
-                    disbursementDetails={disbursementDetails}
-                    setDisbursementDetails={setDisbursementDetails}
-                    StatusBadge={StatusBadge}
-                />
-            )}
+            <ApprovalDetails
+                showDetailsModal={showDetailsModal}
+                selectedRequest={selectedRequest}
+                setShowDetailsModal={setShowDetailsModal}
+                setSelectedRequest={setSelectedRequest}
+                handleApprove={handleApprove}
+                handleReject={handleReject}
+                handleDisburse={handleDisburse}
+            />
+
+            <SalaryAdvApproActionModal
+                showActionModal={showActionModal}
+                actionType={actionType}
+                setShowActionModal={setShowActionModal}
+                setSelectedRequest={setSelectedRequest}
+                selectedRequest={selectedRequest}
+                actionComment={actionComment}
+                setActionComment={setActionComment}
+                disbursementDetails={disbursementDetails}
+                setDisbursementDetails={setDisbursementDetails}
+                handleActionSubmit={handleActionSubmit}
+                submittingAction={submittingAction}
+            />
         </>
-    )
+    );
 }
 
-export default SalaryAdvanceApprovalMain
+export default SalaryAdvanceApprovalMain;

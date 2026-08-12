@@ -18,12 +18,18 @@ function LeaveRequestApply({
     handlePrevMonth,
     monthNames, currentDate, handleNextMonth, weekDays, isDateInRange,
     leaveRequests, isDateSelected, handleDateClick, handleDateHover, selectedEndDate,
-    calculateLeaveDays
+    calculateLeaveDays,
+    workSchedule,
+    holidays = []
 }) {
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+    const activeWorkWeek = workSchedule?.work_week && Array.isArray(workSchedule.work_week)
+        ? workSchedule.work_week.map(w => String(w).toLowerCase()) : ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
+
     return (
         <>
             <div className='p-3'>
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex justify-between items-center">
                     <h3 className="text-lg font-semibold text-gray-900">
                         Select Leave Dates
                     </h3>
@@ -35,6 +41,14 @@ function LeaveRequestApply({
                         <div className="flex items-center gap-2">
                             <div className="w-4 h-4 bg-red-100 border border-red-300 rounded"></div>
                             <span className="text-sm text-gray-600">Existing Leave</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 bg-amber-100 border border-amber-300 rounded"></div>
+                            <span className="text-sm text-gray-600">Holiday</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 bg-gray-200 border border-gray-300 rounded"></div>
+                            <span className="text-sm text-gray-600">Off Day</span>
                         </div>
                         {selectedStartDate && (
                             <button
@@ -50,7 +64,7 @@ function LeaveRequestApply({
                 <div className="flex justify-between items-center mb-4">
                     <button
                         onClick={handlePrevMonth}
-                        className="p-2 hover:bg-gray-100 rounded-lg"
+                        className="p-2 hover:bg-gray-100 rounded-lg cursor-pointer"
                     >
                         <ChevronLeft className="w-5 h-5" />
                     </button>
@@ -59,14 +73,14 @@ function LeaveRequestApply({
                     </h4>
                     <button
                         onClick={handleNextMonth}
-                        className="p-2 hover:bg-gray-100 rounded-lg"
+                        className="p-2 hover:bg-gray-100 rounded-lg cursor-pointer"
                     >
                         <ChevronRight className="w-5 h-5" />
                     </button>
                 </div>
 
                 <div className="border border-gray-300 rounded-lg overflow-hidden">
-                    {/* Week Days Header */}
+
                     <div className="grid grid-cols-7 bg-gray-50 border-b border-b-gray-300">
                         {weekDays.map(day => (
                             <div key={day} className="p-3 text-center text-sm font-medium text-gray-600">
@@ -75,24 +89,30 @@ function LeaveRequestApply({
                         ))}
                     </div>
 
-                    {/* Calendar Days */}
+
                     <div className="grid grid-cols-7">
                         {Array.from({ length: getDaysInMonth(currentDate).startingDay }).map((_, index) => (
                             <div key={`empty-${index}`} className="p-3 border-b border-r border-b-gray-300 border-r-gray-300 bg-gray-50"></div>
                         ))}
 
                         {Array.from({ length: getDaysInMonth(currentDate).daysInMonth }).map((_, index) => {
-                            const day = index + 1;
-                            const dateStr = new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toISOString().split('T')[0];
-                            const isPast = new Date(dateStr) < new Date(new Date().setHours(0, 0, 0, 0));
-                            const isInRange = isDateInRange(dateStr);
-                            const isSelected = isDateSelected(dateStr);
+                            const day = index + 1
+                            const dateObj = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
+                            const year = currentDate.getFullYear()
+                            const month = String(currentDate.getMonth() + 1).padStart(2, '0')
+                            const dayPad = String(day).padStart(2, '0')
+                            const dateStr = `${year}-${month}-${dayPad}`
+                            const isPast = dateObj < new Date(new Date().setHours(0, 0, 0, 0))
+                            const isInRange = isDateInRange(dateStr)
+                            const isSelected = isDateSelected(dateStr)
+                            const dayName = dayNames[dateObj.getDay()]
+                            const isWorkDay = activeWorkWeek.includes(dayName)
+                            const holiday = (holidays || []).find(h => h.holiday_date === dateStr)
 
-                            // Check if there's an existing leave on this date
                             const hasLeave = leaveRequests.some(req =>
                                 req.status !== 'rejected' && req.status !== 'cancelled' &&
                                 dateStr >= req.from_date && dateStr <= req.to_date
-                            );
+                            )
 
                             return (
                                 <div
@@ -100,23 +120,32 @@ function LeaveRequestApply({
                                     onClick={() => !isPast && handleDateClick(day)}
                                     onMouseEnter={() => !isPast && handleDateHover(day)}
                                     className={`p-3 border-b border-r border-b-gray-300 border-r-gray-300 relative cursor-pointer h-16 transition-all
-                                                    ${isPast ? ' cursor-not-allowed' : 'hover:bg-gray-50'}
+                                                    ${isPast ? ' cursor-not-allowed text-gray-400' : 'hover:bg-gray-50'}
+                                                    ${!isWorkDay ? 'bg-gray-100/60' : ''}
+                                                    ${holiday ? 'bg-amber-50/80 border-amber-200' : ''}
                                                     ${isInRange ? 'bg-indigo-50' : ''}
                                                     ${isSelected ? 'bg-indigo-100 border-indigo-300' : ''}
                                                     ${hasLeave ? 'bg-red-50' : ''}
                                                 `}
                                 >
-                                    <div className="flex flex-col items-center">
+                                    <div className="flex flex-col items-center justify-between h-full">
                                         <span className={`text-sm font-medium
                                                         ${isPast ? 'text-gray-400' : 'text-gray-700'}
                                                         ${isSelected ? 'text-indigo-700' : ''}
                                                         ${hasLeave ? 'text-red-700' : ''}
+                                                        ${holiday ? 'text-amber-800' : ''}
                                                     `}>
                                             {day}
                                         </span>
-                                        {hasLeave && (
-                                            <span className="text-xs text-red-600 mt-1">Leave</span>
-                                        )}
+                                        {hasLeave ? (
+                                            <span className="text-xs text-red-600 font-medium">Leave</span>
+                                        ) : holiday ? (
+                                            <span className="text-[10px] bg-amber-100 text-amber-800 border border-amber-300 px-1.5 py-0.5 rounded truncate max-w-full" title={holiday.holiday_name}>
+                                                🎉 {holiday.holiday_name}
+                                            </span>
+                                        ) : !isWorkDay ? (
+                                            <span className="text-[10px] bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded">Off</span>
+                                        ) : null}
                                     </div>
                                 </div>
                             );

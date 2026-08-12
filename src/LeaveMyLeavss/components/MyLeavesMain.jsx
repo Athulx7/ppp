@@ -3,20 +3,11 @@ import { useEffect, useState, useMemo } from "react";
 import MyLeaveOverView from "./MyLeaveOverView";
 import MyLeaveHistory from "./MyLeaveHistory";
 import MyLeaveAnalytics from "./MyLeaveAnalytics";
+import { ApiCall } from "../../library/constants";
 
 function MyLeavesMain({ isLoading, setIsLoading }) {
     const [selectedTab, setSelectedTab] = useState('overview');
-    const [currentUser, setCurrentUser] = useState({
-        emp_code: 'EMP002',
-        emp_name: 'Athul Krishna',
-        designation: 'Junior Software Engineer',
-        department: 'Engineering',
-        employment_type: 'Permanent',
-        doj: '2023-06-15',
-        manager: 'Michael Chen',
-        manager_code: 'EMP003',
-        profile_pic: null
-    });
+    const [allMyLeaves, setAllMyLeaves] = useState([])
 
     // State for different views
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
@@ -62,299 +53,185 @@ function MyLeavesMain({ isLoading, setIsLoading }) {
         { value: '12', label: 'December' }
     ];
 
-    // Leave types with details
-    const leaveTypes = [
-        {
-            code: 'CL',
-            name: 'Casual Leave',
-            icon: <Sun className="w-5 h-5" />,
-            color: 'bg-blue-100 text-blue-800',
-            gradient: 'from-blue-500 to-blue-600',
-            lightBg: 'bg-blue-50',
-            borderColor: 'border-blue-200',
-            hex: '#3b82f6',
-            description: 'For urgent matters, personal work'
-        },
-        {
-            code: 'SL',
-            name: 'Sick Leave',
-            icon: <Heart className="w-5 h-5" />,
-            color: 'bg-green-100 text-green-800',
-            gradient: 'from-green-500 to-green-600',
-            lightBg: 'bg-green-50',
-            borderColor: 'border-green-200',
-            hex: '#10b981',
-            description: 'Medical emergencies, health issues'
-        },
-        {
-            code: 'EL',
-            name: 'Earned Leave',
-            icon: <Award className="w-5 h-5" />,
-            color: 'bg-purple-100 text-purple-800',
-            gradient: 'from-purple-500 to-purple-600',
-            lightBg: 'bg-purple-50',
-            borderColor: 'border-purple-200',
-            hex: '#8b5cf6',
-            description: 'Accumulated leave'
-        },
-        {
-            code: 'CO',
-            name: 'Compensatory Off',
-            icon: <Clock className="w-5 h-5" />,
-            color: 'bg-orange-100 text-orange-800',
-            gradient: 'from-orange-500 to-orange-600',
-            lightBg: 'bg-orange-50',
-            borderColor: 'border-orange-200',
-            hex: '#f59e0b',
-            description: 'For working on holidays'
-        },
-        {
-            code: 'LWP',
-            name: 'Leave Without Pay',
-            icon: <MinusCircle className="w-5 h-5" />,
-            color: 'bg-gray-100 text-gray-800',
-            gradient: 'from-gray-500 to-gray-600',
-            lightBg: 'bg-gray-50',
-            borderColor: 'border-gray-200',
-            hex: '#6b7280',
-            description: 'Unpaid leave'
-        },
-        {
-            code: 'ML',
-            name: 'Maternity Leave',
-            icon: <Heart className="w-5 h-5" />,
-            color: 'bg-pink-100 text-pink-800',
-            gradient: 'from-pink-500 to-pink-600',
-            lightBg: 'bg-pink-50',
-            borderColor: 'border-pink-200',
-            hex: '#ec4899',
-            description: 'Maternity leave'
-        },
-        {
-            code: 'PL',
-            name: 'Paternity Leave',
-            icon: <User className="w-5 h-5" />,
-            color: 'bg-indigo-100 text-indigo-800',
-            gradient: 'from-indigo-500 to-indigo-600',
-            lightBg: 'bg-indigo-50',
-            borderColor: 'border-indigo-200',
-            hex: '#6366f1',
-            description: 'Paternity leave'
+    useEffect(() => {
+        getAllMyLeaveData()
+    }, [])
+
+    async function getAllMyLeaveData() {
+        setIsLoading({ normal: true, spinner: false })
+        try {
+            const response = await ApiCall('GET', '/myleaves/getAllMyLeaves')
+            console.log('myleaves response:', response)
+
+            const resData = response?.data?.data?.data || response?.data?.data || response?.data || {}
+
+            const rawBalance = resData.leaveBalance || resData.leave_balance || resData.balances || (Array.isArray(resData) ? resData : [])
+            if (Array.isArray(rawBalance)) {
+                const formattedBalance = rawBalance.map(item => ({
+                    id: item.id,
+                    leave_type_id: item.leave_type_id,
+                    leave_code: item.LeaveTypeCode || item.leave_code || '',
+                    leave_name: item.LeaveTypeName || item.leave_name || '',
+                    total: Number(item.allocated_days ?? item.total ?? 0),
+                    used: Number(item.used_days ?? item.used ?? 0),
+                    pending: Number(item.pending_days ?? item.pending ?? 0),
+                    upcoming: Number(item.upcoming_days ?? item.upcoming ?? 0),
+                    available: Number(item.available_days ?? item.available ?? 0),
+                    carry_forward: Number(item.carry_forward_days ?? item.carry_forward ?? 0),
+                    expiring_on: item.carry_forward_expiry || item.expiring_on || null,
+                    valid_from: item.valid_from,
+                    valid_to: item.valid_to,
+                    utilization_percentage: item.utilization_percentage
+                }))
+                setLeaveBalance(formattedBalance)
+            }
+
+            const history = resData.leaveHistory || resData.leave_history || resData.history
+            if (Array.isArray(history)) {
+                setLeaveHistory(history)
+                setFilteredHistory(history)
+            }
+
+            const upcoming = resData.upcomingLeaves || resData.upcoming_leaves || resData.upcoming
+            if (Array.isArray(upcoming)) {
+                setUpcomingLeaves(upcoming)
+            }
+
+            const holidayList = resData.holidays || resData.holidayList || resData.holiday_list
+            if (Array.isArray(holidayList)) {
+                setHolidays(holidayList)
+            }
+
+            // Fetch leave history from dedicated history API
+            fetchLeaveHistory()
         }
-    ];
+        catch (err) {
+            console.error('Error fetching all my leaves data:', err)
+        }
+        setIsLoading({ normal: false, spinner: false })
+    }
 
-    // Dummy leave balance data
-    useEffect(() => {
-        const dummyBalance = [
-            {
-                leave_code: 'CL',
-                leave_name: 'Casual Leave',
-                total: 12,
-                used: 4,
-                pending: 1,
-                available: 7,
-                carry_forward: 2,
-                expiring_on: '2026-12-31',
-                color: 'blue'
-            },
-            {
-                leave_code: 'SL',
-                leave_name: 'Sick Leave',
-                total: 10,
-                used: 5,
-                pending: 0,
-                available: 5,
-                carry_forward: 0,
-                expiring_on: null,
-                color: 'green'
-            },
-            {
-                leave_code: 'EL',
-                leave_name: 'Earned Leave',
-                total: 18,
-                used: 6,
-                pending: 2,
-                available: 10,
-                carry_forward: 8,
-                expiring_on: '2025-12-31',
-                color: 'purple'
-            },
-            {
-                leave_code: 'CO',
-                leave_name: 'Compensatory Off',
-                total: 2,
-                used: 0,
-                pending: 0,
-                available: 2,
-                carry_forward: 2,
-                expiring_on: '2026-06-30',
-                color: 'orange'
-            },
-            {
-                leave_code: 'LWP',
-                leave_name: 'Leave Without Pay',
-                total: 0,
-                used: 0,
-                pending: 0,
-                available: 0,
-                carry_forward: 0,
-                expiring_on: null,
-                color: 'gray'
+    async function fetchLeaveHistory(year = selectedYear, month = selectedMonth, status = statusFilter) {
+        try {
+            const params = new URLSearchParams()
+            if (year) params.append('year', year)
+            if (month) params.append('month', month)
+            if (status && status !== 'all') params.append('status', status)
+
+            const query = params.toString() ? `?${params.toString()}` : ''
+            const response = await ApiCall('GET', `/myleaves/getLeaveHistory${query}`)
+            const resData = response?.data?.data || response?.data || []
+            if (Array.isArray(resData)) {
+                setLeaveHistory(resData)
+                setFilteredHistory(resData)
             }
-        ];
-        setLeaveBalance(dummyBalance);
-    }, []);
+        } catch (err) {
+            console.warn('Dedicated leave history API error or not available:', err)
+        }
+    }
 
-    // Dummy leave history data
-    useEffect(() => {
-        const dummyHistory = [
-            {
-                id: 'LR001',
-                leave_type: 'CL',
-                leave_name: 'Casual Leave',
-                from_date: '2026-02-15',
-                to_date: '2026-02-17',
-                days: 3,
-                reason: 'Family function',
-                status: 'approved',
-                applied_on: '2026-02-10',
-                approved_by: 'Michael Chen',
-                approved_on: '2026-02-11',
-                comments: 'Approved',
-                contact_number: '9876543210'
-            },
-            {
-                id: 'LR002',
-                leave_type: 'SL',
-                leave_name: 'Sick Leave',
-                from_date: '2026-02-05',
-                to_date: '2026-02-06',
-                days: 2,
-                reason: 'Viral fever',
-                status: 'approved',
-                applied_on: '2026-02-05',
-                approved_by: 'Michael Chen',
-                approved_on: '2026-02-05',
-                comments: 'Take care',
-                contact_number: '9876543210'
-            },
-            {
-                id: 'LR003',
-                leave_type: 'EL',
-                leave_name: 'Earned Leave',
-                from_date: '2026-03-01',
-                to_date: '2026-03-05',
-                days: 5,
-                reason: 'Vacation',
-                status: 'pending',
-                applied_on: '2026-02-20',
-                contact_number: '9876543210'
-            },
-            {
-                id: 'LR004',
-                leave_type: 'CL',
-                leave_name: 'Casual Leave',
-                from_date: '2026-01-10',
-                to_date: '2026-01-12',
-                days: 3,
-                reason: 'Personal work',
-                status: 'rejected',
-                applied_on: '2026-01-05',
-                rejected_by: 'Michael Chen',
-                rejected_on: '2026-01-06',
-                comments: 'Team already has 3 members on leave',
-                contact_number: '9876543210'
-            },
-            {
-                id: 'LR005',
-                leave_type: 'CO',
-                leave_name: 'Compensatory Off',
-                from_date: '2026-02-25',
-                to_date: '2026-02-26',
-                days: 2,
-                reason: 'Comp off for Sunday work',
-                status: 'approved',
-                applied_on: '2026-02-18',
-                approved_by: 'Michael Chen',
-                approved_on: '2026-02-19',
-                comments: 'Approved',
-                contact_number: '9876543210'
-            },
-            {
-                id: 'LR006',
-                leave_type: 'SL',
-                leave_name: 'Sick Leave',
-                from_date: '2026-01-20',
-                to_date: '2026-01-22',
-                days: 3,
-                reason: 'Medical checkup',
-                status: 'approved',
-                applied_on: '2026-01-19',
-                approved_by: 'Michael Chen',
-                approved_on: '2026-01-19',
-                comments: 'Get well soon',
-                contact_number: '9876543210'
+    async function fetchLeaveAnalytics(year = selectedYear) {
+        try {
+            const query = year ? `?year=${year}` : ''
+            const response = await ApiCall('GET', `/myleaves/getLeaveAnalytics${query}`)
+            const resData = response?.data?.data || response?.data
+            if (resData) {
+                if (resData.leaveStats) setLeaveStats(resData.leaveStats)
+                if (Array.isArray(resData.leaveBalance) && resData.leaveBalance.length > 0) {
+                    const formattedBalance = resData.leaveBalance.map(item => ({
+                        id: item.id,
+                        leave_type_id: item.leave_type_id,
+                        leave_code: item.leave_code || item.LeaveTypeCode || '',
+                        leave_name: item.leave_name || item.LeaveTypeName || '',
+                        total: Number(item.total ?? item.allocated_days ?? 0),
+                        used: Number(item.used ?? item.used_days ?? 0),
+                        pending: Number(item.pending ?? item.pending_days ?? 0),
+                        upcoming: Number(item.upcoming ?? item.upcoming_days ?? 0),
+                        available: Number(item.available ?? item.available_days ?? 0),
+                        carry_forward: Number(item.carry_forward ?? item.carry_forward_days ?? 0),
+                        expiring_on: item.expiring_on || item.carry_forward_expiry || null
+                    }))
+                    setLeaveBalance(formattedBalance)
+                }
             }
-        ];
-        setLeaveHistory(dummyHistory);
-        setFilteredHistory(dummyHistory);
-    }, []);
+        } catch (err) {
+            console.warn('Leave analytics API error:', err)
+        }
+    }
 
-    // Dummy upcoming leaves
-    useEffect(() => {
-        const dummyUpcoming = [
-            {
-                id: 'UP001',
-                leave_type: 'EL',
-                leave_name: 'Earned Leave',
-                from_date: '2026-03-01',
-                to_date: '2026-03-05',
-                days: 5,
-                status: 'approved',
-                reason: 'Vacation'
-            },
-            {
-                id: 'UP002',
-                leave_type: 'CL',
-                leave_name: 'Casual Leave',
-                from_date: '2026-03-10',
-                to_date: '2026-03-10',
-                days: 1,
-                status: 'pending',
-                reason: 'Personal work'
-            }
-        ];
-        setUpcomingLeaves(dummyUpcoming);
-    }, []);
+    // Dynamic Leave types metadata helper
+    const leaveTypes = useMemo(() => {
+        const defaultLeaveStyleMap = {
+            CL: { icon: <Sun className="w-5 h-5" />, color: 'bg-blue-100 text-blue-800', gradient: 'from-blue-500 to-blue-600', lightBg: 'bg-blue-50', borderColor: 'border-blue-200', hex: '#3b82f6' },
+            SL: { icon: <Heart className="w-5 h-5" />, color: 'bg-green-100 text-green-800', gradient: 'from-green-500 to-green-600', lightBg: 'bg-green-50', borderColor: 'border-green-200', hex: '#10b981' },
+            EL: { icon: <Award className="w-5 h-5" />, color: 'bg-purple-100 text-purple-800', gradient: 'from-purple-500 to-purple-600', lightBg: 'bg-purple-50', borderColor: 'border-purple-200', hex: '#8b5cf6' },
+            CO: { icon: <Clock className="w-5 h-5" />, color: 'bg-orange-100 text-orange-800', gradient: 'from-orange-500 to-orange-600', lightBg: 'bg-orange-50', borderColor: 'border-orange-200', hex: '#f59e0b' },
+            LWP: { icon: <MinusCircle className="w-5 h-5" />, color: 'bg-gray-100 text-gray-800', gradient: 'from-gray-500 to-gray-600', lightBg: 'bg-gray-50', borderColor: 'border-gray-200', hex: '#6b7280' },
+            ML: { icon: <Heart className="w-5 h-5" />, color: 'bg-pink-100 text-pink-800', gradient: 'from-pink-500 to-pink-600', lightBg: 'bg-pink-50', borderColor: 'border-pink-200', hex: '#ec4899' },
+            PL: { icon: <User className="w-5 h-5" />, color: 'bg-indigo-100 text-indigo-800', gradient: 'from-indigo-500 to-indigo-600', lightBg: 'bg-indigo-50', borderColor: 'border-indigo-200', hex: '#6366f1' }
+        };
 
-    // Dummy holidays
-    useEffect(() => {
-        const currentYear = new Date().getFullYear();
-        const dummyHolidays = [
-            { date: `${currentYear}-01-26`, name: 'Republic Day', type: 'national' },
-            { date: `${currentYear}-08-15`, name: 'Independence Day', type: 'national' },
-            { date: `${currentYear}-10-02`, name: 'Gandhi Jayanti', type: 'national' },
-            { date: `${currentYear}-11-12`, name: 'Diwali', type: 'festival' },
-            { date: `${currentYear}-12-25`, name: 'Christmas', type: 'festival' }
-        ];
-        setHolidays(dummyHolidays);
-    }, []);
+        if (!leaveBalance || leaveBalance.length === 0) return [];
+
+        return leaveBalance.map(item => {
+            const code = (item.leave_code || '').toUpperCase();
+            const style = defaultLeaveStyleMap[code] || {
+                icon: <Award className="w-5 h-5" />,
+                color: 'bg-indigo-100 text-indigo-800',
+                gradient: 'from-indigo-500 to-indigo-600',
+                lightBg: 'bg-indigo-50',
+                borderColor: 'border-indigo-200',
+                hex: '#6366f1'
+            };
+
+            return {
+                code: item.leave_code,
+                name: item.leave_name,
+                description: item.description || `${item.leave_name} Policy`,
+                ...style
+            };
+        });
+    }, [leaveBalance]);
 
     // Calculate leave statistics (feeds the Analytics tab)
     useEffect(() => {
-        const totalLeaves = leaveBalance.reduce((sum, item) => sum + item.total, 0);
-        const totalUsed = leaveBalance.reduce((sum, item) => sum + item.used, 0);
-        const totalPending = leaveBalance.reduce((sum, item) => sum + item.pending, 0);
-        const totalAvailable = leaveBalance.reduce((sum, item) => sum + item.available, 0);
+        if (!leaveBalance || leaveBalance.length === 0) {
+            setLeaveStats({
+                totalLeaves: 0,
+                totalUsed: 0,
+                totalPending: 0,
+                totalAvailable: 0,
+                utilizationRate: '0.0',
+                monthlyLeaves: Array(12).fill(0),
+                averagePerMonth: '0.0',
+                mostUsedLeave: null,
+                leastUsedLeave: null
+            });
+            return;
+        }
 
-        const utilizationRate = ((totalUsed / totalLeaves) * 100).toFixed(1);
+        const totalLeaves = leaveBalance.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
+        const totalUsed = leaveBalance.reduce((sum, item) => sum + (Number(item.used) || 0), 0);
+        const totalPending = leaveBalance.reduce((sum, item) => sum + (Number(item.pending) || 0), 0);
+        const totalAvailable = leaveBalance.reduce((sum, item) => sum + (Number(item.available) || 0), 0);
+
+        const utilizationRate = totalLeaves > 0 ? ((totalUsed / totalLeaves) * 100).toFixed(1) : '0.0';
 
         // Monthly trend data
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const monthlyLeaves = months.map((_, index) => {
-            const month = String(index + 1).padStart(2, '0');
-            return leaveHistory.filter(l => l.from_date?.startsWith(`2026-${month}`)).length;
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const currentYearStr = selectedYear || new Date().getFullYear().toString();
+        const monthlyLeaves = monthNames.map((_, index) => {
+            const monthStr = String(index + 1).padStart(2, '0');
+            return leaveHistory.filter(l => l.from_date?.startsWith(`${currentYearStr}-${monthStr}`)).length;
         });
+
+        const mostUsed = leaveBalance.length > 0
+            ? leaveBalance.reduce((max, item) => ((item.used || 0) > (max?.used || 0) ? item : max), leaveBalance[0])
+            : null;
+
+        const leastUsed = leaveBalance.length > 0
+            ? leaveBalance.reduce((min, item) => ((item.used || 0) < (min?.used || 0) ? item : min), leaveBalance[0])
+            : null;
 
         setLeaveStats({
             totalLeaves,
@@ -364,10 +241,10 @@ function MyLeavesMain({ isLoading, setIsLoading }) {
             utilizationRate,
             monthlyLeaves,
             averagePerMonth: (totalUsed / 12).toFixed(1),
-            mostUsedLeave: leaveBalance.reduce((max, item) => item.used > max.used ? item : max, leaveBalance[0]),
-            leastUsedLeave: leaveBalance.reduce((min, item) => item.used < min.used ? item : min, leaveBalance[0])
+            mostUsedLeave: mostUsed,
+            leastUsedLeave: leastUsed
         });
-    }, [leaveBalance, leaveHistory]);
+    }, [leaveBalance, leaveHistory, selectedYear]);
 
     // Filter history based on search and filters
     useEffect(() => {
@@ -583,7 +460,10 @@ function MyLeavesMain({ isLoading, setIsLoading }) {
             <div className="bg-white rounded-xl shadow-sm mb-6">
                 <div className="flex overflow-x-auto scrollbar">
                     <button
-                        onClick={() => setSelectedTab('overview')}
+                        onClick={() => {
+                            setSelectedTab('overview');
+                            getAllMyLeaveData();
+                        }}
                         className={`cursor-pointer px-6 py-3 font-medium text-sm whitespace-nowrap flex items-center gap-2 transition-colors ${selectedTab === 'overview'
                             ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
                             : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
@@ -594,7 +474,10 @@ function MyLeavesMain({ isLoading, setIsLoading }) {
                     </button>
 
                     <button
-                        onClick={() => setSelectedTab('history')}
+                        onClick={() => {
+                            setSelectedTab('history');
+                            fetchLeaveHistory();
+                        }}
                         className={`cursor-pointer px-6 py-3 font-medium text-sm whitespace-nowrap flex items-center gap-2 transition-colors ${selectedTab === 'history'
                             ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
                             : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
@@ -605,7 +488,10 @@ function MyLeavesMain({ isLoading, setIsLoading }) {
                     </button>
 
                     <button
-                        onClick={() => setSelectedTab('analytics')}
+                        onClick={() => {
+                            setSelectedTab('analytics');
+                            fetchLeaveAnalytics();
+                        }}
                         className={`cursor-pointer px-6 py-3 font-medium text-sm whitespace-nowrap flex items-center gap-2 transition-colors ${selectedTab === 'analytics'
                             ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
                             : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'

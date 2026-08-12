@@ -1,52 +1,38 @@
-import { Award, Calendar, CalendarPlus, Clock, Download, Loader, CheckCircle, Eye, FileText, History, MinusCircle, Send, XCircle } from 'lucide-react';
+import { Award, Calendar, CalendarPlus, Clock, Download, Loader, CheckCircle, Eye, FileText, History, MinusCircle, Send, XCircle, Upload, Info, Sun, Heart, User } from 'lucide-react';
 import { StatusBadge } from "../../JobTracking/components/commonFunc";
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom';
 import LeaveRequestApply from './LeaveRequestApply';
 import LeaveRequestHistory from './LeaveRequestHistory';
+import CommonDropDown from '../../basicComponents/CommonDropDown';
+import CommonInputField from '../../basicComponents/CommonInputField';
+import { ApiCall } from '../../library/constants';
+import CommonConfirmPopup from '../../basicComponents/CommonConfirmPopup';
+import { showStatusToast } from '../../basicComponents/CommonStatusPopUp';
 
 function MyLeaveRequestMain() {
 
-    const navigate = useNavigate();
+    const [workSchedule, setWorkSchedule] = useState(null)
+    const [leaveBalance, setLeaveBalance] = useState([])
+    const [leaveRequests, setLeaveRequests] = useState([])
+    const [filteredRequests, setFilteredRequests] = useState([])
+    const [holidays, setHolidays] = useState([])
+    const [confirmState, setConfirmState] = useState({ open: false, requestId: null, loading: false })
 
-    // Mock current user
-    const [currentUser, setCurrentUser] = useState({
-        emp_code: 'EMP002',
-        emp_name: 'Athul Krishna',
-        designation: 'Junior Software Engineer',
-        department: 'Engineering',
-        employment_type: 'Permanent',
-        doj: '2023-06-15',
-        manager: 'Michael Chen',
-        manager_code: 'EMP003',
-        leave_balance: {
-            casual: 8,
-            sick: 5,
-            earned: 12,
-            comp_off: 2,
-            unpaid: 0
-        }
-    });
+    const [currentDate, setCurrentDate] = useState(new Date())
+    const [selectedStartDate, setSelectedStartDate] = useState(null)
+    const [selectedEndDate, setSelectedEndDate] = useState(null)
+    const [isSelecting, setIsSelecting] = useState(false)
+    const [showApplyModal, setShowApplyModal] = useState(false)
+    const [hoverDate, setHoverDate] = useState(null)
 
-    // Calendar state
-    const [currentDate, setCurrentDate] = useState(new Date());
-    const [selectedStartDate, setSelectedStartDate] = useState(null);
-    const [selectedEndDate, setSelectedEndDate] = useState(null);
-    const [isSelecting, setIsSelecting] = useState(false);
-    const [showApplyModal, setShowApplyModal] = useState(false);
-    const [hoverDate, setHoverDate] = useState(null);
+    const [selectedTab, setSelectedTab] = useState('apply')
+    const [selectedRequest, setSelectedRequest] = useState(null)
+    const [showDetailsModal, setShowDetailsModal] = useState(false)
+    const [searchQuery, setSearchQuery] = useState('')
+    const [statusFilter, setStatusFilter] = useState('all')
+    const [dateRange, setDateRange] = useState({ from: '', to: '' })
 
-    // State for new leave request
-    const [selectedTab, setSelectedTab] = useState('apply'); // 'apply', 'history', 'balance'
-    const [leaveRequests, setLeaveRequests] = useState([]);
-    const [filteredRequests, setFilteredRequests] = useState([]);
-    const [selectedRequest, setSelectedRequest] = useState(null);
-    const [showDetailsModal, setShowDetailsModal] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [statusFilter, setStatusFilter] = useState('all');
-    const [dateRange, setDateRange] = useState({ from: '', to: '' });
-
-    // New leave request form
     const [newRequest, setNewRequest] = useState({
         leave_type: '',
         from_date: '',
@@ -59,370 +45,310 @@ function MyLeaveRequestMain() {
         handover_notes: '',
         documents: [],
         urgent: false
-    });
+    })
 
-    // Leave types with details
-    const leaveTypes = [
-        {
-            code: 'CL',
-            name: 'Casual Leave',
-            balance: 8,
-            total: 12,
-            color: 'bg-blue-100 text-blue-800',
-            icon: <Calendar className="w-4 h-4" />,
-            description: 'For urgent matters, personal work',
-            max_consecutive: 5,
-            min_notice: 1,
-            requires_document: false
-        },
-        {
-            code: 'SL',
-            name: 'Sick Leave',
-            balance: 5,
-            total: 10,
-            color: 'bg-green-100 text-green-800',
-            icon: <Award className="w-4 h-4" />,
-            description: 'Medical emergencies, health issues',
-            max_consecutive: 3,
-            min_notice: 0,
-            requires_document: true
-        },
-        {
-            code: 'EL',
-            name: 'Earned Leave',
-            balance: 12,
-            total: 18,
-            color: 'bg-purple-100 text-purple-800',
-            icon: <Clock className="w-4 h-4" />,
-            description: 'Accumulated leave',
-            max_consecutive: 10,
-            min_notice: 7,
-            requires_document: false
-        },
-        {
-            code: 'CO',
-            name: 'Compensatory Off',
-            balance: 2,
-            total: 2,
-            color: 'bg-orange-100 text-orange-800',
-            icon: <Award className="w-4 h-4" />,
-            description: 'For working on holidays',
-            max_consecutive: 2,
-            min_notice: 1,
-            requires_document: false
-        },
-        {
-            code: 'UL',
-            name: 'Unpaid Leave',
-            balance: 0,
-            total: 0,
-            color: 'bg-gray-100 text-gray-800',
-            icon: <MinusCircle className="w-4 h-4" />,
-            description: 'Leave without pay',
-            max_consecutive: 15,
-            min_notice: 3,
-            requires_document: false
-        }
-    ];
-
-    // Dummy leave requests data
     useEffect(() => {
-        const dummyRequests = [
-            {
-                id: 'LR001',
-                leave_type: 'CL',
-                leave_name: 'Casual Leave',
-                from_date: '2024-02-15',
-                to_date: '2024-02-17',
-                days: 3,
-                reason: 'Family function',
-                status: 'approved',
-                applied_on: '2024-02-10',
-                approved_by: 'Michael Chen',
-                approved_on: '2024-02-11',
-                comments: 'Approved',
-                contact_number: '9876543210',
-                address: 'Bangalore'
-            },
-            {
-                id: 'LR002',
-                leave_type: 'SL',
-                leave_name: 'Sick Leave',
-                from_date: '2024-02-05',
-                to_date: '2024-02-06',
-                days: 2,
-                reason: 'Viral fever',
-                status: 'approved',
-                applied_on: '2024-02-05',
-                approved_by: 'Michael Chen',
-                approved_on: '2024-02-05',
-                comments: 'Take care',
-                contact_number: '9876543210',
-                address: 'Bangalore',
-                documents: ['medical_certificate.pdf']
-            },
-            {
-                id: 'LR003',
-                leave_type: 'EL',
-                leave_name: 'Earned Leave',
-                from_date: '2024-03-01',
-                to_date: '2024-03-05',
-                days: 5,
-                reason: 'Vacation',
-                status: 'pending',
-                applied_on: '2024-02-20',
-                contact_number: '9876543210',
-                address: 'Goa'
-            },
-            {
-                id: 'LR004',
-                leave_type: 'CL',
-                leave_name: 'Casual Leave',
-                from_date: '2024-01-10',
-                to_date: '2024-01-12',
-                days: 3,
-                reason: 'Personal work',
-                status: 'rejected',
-                applied_on: '2024-01-05',
-                rejected_by: 'Michael Chen',
-                rejected_on: '2024-01-06',
-                comments: 'Team already has 3 members on leave',
-                contact_number: '9876543210',
-                address: 'Bangalore'
-            },
-            {
-                id: 'LR005',
-                leave_type: 'CO',
-                leave_name: 'Compensatory Off',
-                from_date: '2024-02-25',
-                to_date: '2024-02-26',
-                days: 2,
-                reason: 'Comp off for Sunday work',
-                status: 'pending',
-                applied_on: '2024-02-18',
-                contact_number: '9876543210',
-                address: 'Bangalore'
-            },
-            {
-                id: 'LR006',
-                leave_type: 'SL',
-                leave_name: 'Sick Leave',
-                from_date: '2024-01-20',
-                to_date: '2024-01-22',
-                days: 3,
-                reason: 'Medical checkup',
-                status: 'approved',
-                applied_on: '2024-01-19',
-                approved_by: 'Michael Chen',
-                approved_on: '2024-01-19',
-                comments: 'Get well soon',
-                contact_number: '9876543210',
-                address: 'Bangalore'
+        fetchInitialData()
+    }, [])
+
+    async function fetchInitialData() {
+        try {
+            const schedRes = await ApiCall('GET', '/leaverequest/userWorkSchedule')
+            if (schedRes?.data?.data) {
+                setWorkSchedule(schedRes.data.data)
             }
-        ];
-        setLeaveRequests(dummyRequests);
-        setFilteredRequests(dummyRequests);
-    }, []);
 
-    // Filter requests based on search and filters
+            const holidayRes = await ApiCall('GET', '/leaverequest/holidays')
+            if (holidayRes?.data?.data) {
+                setHolidays(Array.isArray(holidayRes.data.data) ? holidayRes.data.data : [])
+            }
+
+            const balanceRes = await ApiCall('GET', '/myleaves/getAllMyLeaves')
+            const resData = balanceRes?.data?.data?.data || balanceRes?.data?.data || balanceRes?.data || {}
+            const rawBalance = resData.leaveBalance || resData.leave_balance || resData.balances || (Array.isArray(resData) ? resData : [])
+            if (Array.isArray(rawBalance)) {
+                const formattedBalance = rawBalance.map(item => ({
+                    id: item.id,
+                    leave_type_id: item.leave_type_id,
+                    leave_code: item.LeaveTypeCode || item.leave_code || '',
+                    leave_name: item.LeaveTypeName || item.leave_name || '',
+                    total: Number(item.allocated_days ?? item.total ?? 0),
+                    used: Number(item.used_days ?? item.used ?? 0),
+                    pending: Number(item.pending_days ?? item.pending ?? 0),
+                    available: Number(item.available_days ?? item.available ?? 0),
+                    carry_forward: Number(item.carry_forward_days ?? item.carry_forward ?? 0)
+                }))
+                setLeaveBalance(formattedBalance)
+            }
+
+            const reqRes = await ApiCall('GET', '/leaverequest/myRequests')
+            const reqList = reqRes?.data?.data || []
+            if (Array.isArray(reqList)) {
+                setLeaveRequests(reqList)
+                setFilteredRequests(reqList)
+            }
+        } catch (err) {
+            console.error('Error fetching initial leave request data:', err)
+        }
+    }
+
+    const leaveTypes = useMemo(() => {
+        const defaultStyleMap = {
+            CL: { icon: <Calendar className="w-4 h-4" />, color: 'bg-blue-100 text-blue-800', description: 'For urgent matters, personal work' },
+            SL: { icon: <Award className="w-4 h-4" />, color: 'bg-green-100 text-green-800', description: 'Medical emergencies, health issues' },
+            EL: { icon: <Clock className="w-4 h-4" />, color: 'bg-purple-100 text-purple-800', description: 'Accumulated leave' },
+            CO: { icon: <Award className="w-4 h-4" />, color: 'bg-orange-100 text-orange-800', description: 'For working on holidays' },
+            LWP: { icon: <MinusCircle className="w-4 h-4" />, color: 'bg-gray-100 text-gray-800', description: 'Unpaid leave' },
+            ML: { icon: <Heart className="w-4 h-4" />, color: 'bg-pink-100 text-pink-800', description: 'Maternity leave' },
+            PL: { icon: <User className="w-4 h-4" />, color: 'bg-indigo-100 text-indigo-800', description: 'Paternity leave' }
+        }
+
+        if (!leaveBalance || leaveBalance.length === 0) return []
+
+        return leaveBalance.map(item => {
+            const code = (item.leave_code || '').toUpperCase()
+            const style = defaultStyleMap[code] || {
+                icon: <Award className="w-4 h-4" />,
+                color: 'bg-indigo-100 text-indigo-800',
+                description: `${item.leave_name} Policy`
+            }
+
+            return {
+                code: item.leave_code,
+                name: item.leave_name,
+                balance: item.available,
+                total: item.total,
+                leave_type_id: item.leave_type_id,
+                ...style
+            }
+        })
+    }, [leaveBalance])
+
     useEffect(() => {
-        let filtered = leaveRequests;
+        let filtered = leaveRequests
 
         if (statusFilter !== 'all') {
-            filtered = filtered.filter(req => req.status === statusFilter);
+            filtered = filtered.filter(req => req.status === statusFilter)
         }
 
         if (searchQuery) {
-            const query = searchQuery.toLowerCase();
+            const query = searchQuery.toLowerCase()
             filtered = filtered.filter(req =>
                 req.leave_name.toLowerCase().includes(query) ||
                 req.reason.toLowerCase().includes(query) ||
                 req.id.toLowerCase().includes(query)
-            );
+            )
         }
 
         if (dateRange.from) {
-            filtered = filtered.filter(req => req.from_date >= dateRange.from);
+            filtered = filtered.filter(req => req.from_date >= dateRange.from)
         }
         if (dateRange.to) {
-            filtered = filtered.filter(req => req.to_date <= dateRange.to);
+            filtered = filtered.filter(req => req.to_date <= dateRange.to)
         }
 
-        setFilteredRequests(filtered);
-    }, [leaveRequests, statusFilter, searchQuery, dateRange]);
-
-    // Calendar functions
-    const getDaysInMonth = (date) => {
-        const year = date.getFullYear();
-        const month = date.getMonth();
-        const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 0);
-        const daysInMonth = lastDay.getDate();
-        const startingDay = firstDay.getDay(); // 0 = Sunday, 1 = Monday, etc.
-
-        return { daysInMonth, startingDay };
-    };
+        setFilteredRequests(filtered)
+    }, [leaveRequests, statusFilter, searchQuery, dateRange])
 
     const handlePrevMonth = () => {
-        setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
-    };
+        setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))
+    }
 
     const handleNextMonth = () => {
-        setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+        setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))
     };
 
     const handleDateClick = (day) => {
-        const clickedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-        const dateStr = clickedDate.toISOString().split('T')[0];
+        const clickedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
+        const dateStr = clickedDate.toISOString().split('T')[0]
 
-        // Don't allow past dates
         if (clickedDate < new Date(new Date().setHours(0, 0, 0, 0))) {
-            return;
+            return
         }
 
         if (!isSelecting && !selectedStartDate) {
-            // Start selection
-            setSelectedStartDate(dateStr);
-            setIsSelecting(true);
+            setSelectedStartDate(dateStr)
+            setIsSelecting(true)
         } else if (isSelecting && selectedStartDate && !selectedEndDate) {
-            // Complete selection
             if (new Date(dateStr) >= new Date(selectedStartDate)) {
-                setSelectedEndDate(dateStr);
-                setIsSelecting(false);
-
-                // Open apply modal with selected dates
+                setSelectedEndDate(dateStr)
+                setIsSelecting(false)
                 setNewRequest({
                     ...newRequest,
                     from_date: selectedStartDate,
                     to_date: dateStr
-                });
-                setShowApplyModal(true);
+                })
+                setShowApplyModal(true)
             } else {
-                // If end date is before start date, reset and start new selection
-                setSelectedStartDate(dateStr);
-                setSelectedEndDate(null);
+                setSelectedStartDate(dateStr)
+                setSelectedEndDate(null)
             }
         } else {
-            // Reset and start new selection
-            setSelectedStartDate(dateStr);
-            setSelectedEndDate(null);
-            setIsSelecting(true);
+            setSelectedStartDate(dateStr)
+            setSelectedEndDate(null)
+            setIsSelecting(true)
         }
-    };
+    }
 
     const handleDateHover = (day) => {
         if (isSelecting && selectedStartDate && !selectedEndDate) {
-            const hoverDateStr = new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toISOString().split('T')[0];
-            setHoverDate(hoverDateStr);
+            const hoverDateStr = new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toISOString().split('T')[0]
+            setHoverDate(hoverDateStr)
         }
-    };
+    }
 
     const handleClearSelection = () => {
-        setSelectedStartDate(null);
-        setSelectedEndDate(null);
-        setIsSelecting(false);
-        setHoverDate(null);
-    };
+        setSelectedStartDate(null)
+        setSelectedEndDate(null)
+        setIsSelecting(false)
+        setHoverDate(null)
+    }
 
     const isDateInRange = (dateStr) => {
-        if (!selectedStartDate) return false;
+        if (!selectedStartDate) return false
         if (selectedEndDate) {
-            return dateStr >= selectedStartDate && dateStr <= selectedEndDate;
+            return dateStr >= selectedStartDate && dateStr <= selectedEndDate
         }
         if (hoverDate && isSelecting) {
-            return (dateStr >= selectedStartDate && dateStr <= hoverDate) ||
-                (dateStr <= selectedStartDate && dateStr >= hoverDate);
+            return (dateStr >= selectedStartDate && dateStr <= hoverDate) || (dateStr <= selectedStartDate && dateStr >= hoverDate)
         }
-        return dateStr === selectedStartDate;
-    };
+        return dateStr === selectedStartDate
+    }
 
     const isDateSelected = (dateStr) => {
-        return dateStr === selectedStartDate || dateStr === selectedEndDate;
-    };
+        return dateStr === selectedStartDate || dateStr === selectedEndDate
+    }
 
-    const handleApplyLeave = () => {
-        // Validate form
-        if (!newRequest.leave_type || !newRequest.reason) {
-            alert('Please select leave type and provide reason');
+    const handleApplyLeave = async () => {
+        if (!newRequest.leave_type || !newRequest.reason || !newRequest.from_date || !newRequest.to_date) {
+            showStatusToast({ type: 'warning', title: 'Validation Warning', message: 'Please select leave type, dates, and provide a reason' })
+            return
+        }
+
+        // 1. Validation: Overlapping existing pending or approved leave request
+        const hasOverlap = leaveRequests.some(req => {
+            if (req.status === 'cancelled' || req.status === 'rejected') return false
+            return (newRequest.from_date <= req.to_date && newRequest.to_date >= req.from_date)
+        })
+
+        if (hasOverlap) {
+            showStatusToast({ type: 'warning', title: 'Overlapping Request', message: 'You have already applied or been approved for leave on date(s) within this range.' })
+            return
+        }
+
+        const selectedLeaveType = leaveBalance.find(l => l.leave_code === newRequest.leave_type);
+        if (!selectedLeaveType) {
+            showStatusToast({ type: 'warning', title: 'Invalid Selection', message: 'Selected leave type is invalid or not allocated' })
             return;
         }
 
         const days = calculateLeaveDays(newRequest.from_date, newRequest.to_date, newRequest.half_day);
 
-        // Check leave balance
-        const leaveType = leaveTypes.find(l => l.code === newRequest.leave_type);
-        if (leaveType && leaveType.balance < days && newRequest.leave_type !== 'UL') {
-            alert(`Insufficient leave balance. Available: ${leaveType.balance} days`);
+        // 2. Validation: No working days in range (all holidays or off-days)
+        if (days <= 0) {
+            showStatusToast({ type: 'warning', title: 'Invalid Date Range', message: 'The selected date range contains no working days (all selected days are holidays or off-days).' })
             return;
         }
 
-        // Create new request
-        const newLeaveRequest = {
-            id: `LR${String(leaveRequests.length + 1).padStart(3, '0')}`,
-            leave_type: newRequest.leave_type,
-            leave_name: leaveTypes.find(l => l.code === newRequest.leave_type)?.name,
-            from_date: newRequest.from_date,
-            to_date: newRequest.to_date,
-            days: days,
-            half_day: newRequest.half_day,
-            half_day_type: newRequest.half_day ? newRequest.half_day_type : null,
-            reason: newRequest.reason,
-            status: 'pending',
-            applied_on: new Date().toISOString().split('T')[0],
-            contact_number: newRequest.contact_number || currentUser.contact_number,
-            address: newRequest.address_during_leave,
-            handover_notes: newRequest.handover_notes,
-            urgent: newRequest.urgent
-        };
+        // 3. Validation: Insufficient balance
+        if (selectedLeaveType.available < days && newRequest.leave_type !== 'LWP' && newRequest.leave_type !== 'UL') {
+            showStatusToast({ type: 'warning', title: 'Insufficient Balance', message: `Insufficient leave balance. Available: ${selectedLeaveType.available} days` })
+            return;
+        }
 
-        setLeaveRequests([newLeaveRequest, ...leaveRequests]);
-        setShowApplyModal(false);
-        handleClearSelection();
-        setNewRequest({
-            leave_type: '',
-            from_date: '',
-            to_date: '',
-            half_day: false,
-            half_day_type: 'first_half',
-            reason: '',
-            contact_number: '',
-            address_during_leave: '',
-            handover_notes: '',
-            documents: [],
-            urgent: false
-        });
-    };
+        try {
+            const payload = {
+                leave_type_id: selectedLeaveType.leave_type_id,
+                from_date: newRequest.from_date,
+                to_date: newRequest.to_date,
+                total_days: days,
+                is_half_day: newRequest.half_day,
+                half_day_session: newRequest.half_day ? newRequest.half_day_type : null,
+                reason: newRequest.reason,
+                contact_number: newRequest.contact_number,
+                address_during_leave: newRequest.address_during_leave,
+                handover_notes: newRequest.handover_notes,
+                is_urgent: newRequest.urgent
+            };
 
-    // Calculate leave days (excluding weekends)
+            const response = await ApiCall('POST', '/leaverequest/apply', payload);
+            if (response?.data?.success) {
+                showStatusToast({ type: 'success', title: 'Success', message: 'Leave request submitted successfully!' })
+                setShowApplyModal(false);
+                handleClearSelection();
+                setNewRequest({
+                    leave_type: '',
+                    from_date: '',
+                    to_date: '',
+                    half_day: false,
+                    half_day_type: 'first_half',
+                    reason: '',
+                    contact_number: '',
+                    address_during_leave: '',
+                    handover_notes: '',
+                    documents: [],
+                    urgent: false
+                });
+                fetchInitialData();
+            }
+        } catch (err) {
+            showStatusToast({ type: 'error', title: 'Error', message: 'Failed to submit leave request: ' + (err.data?.message || err.message || 'Error occurred') })
+        }
+    }
+
     const calculateLeaveDays = (fromDate, toDate, halfDay = false) => {
-        const start = new Date(fromDate);
-        const end = new Date(toDate);
-        let days = 0;
+        if (!fromDate || !toDate) return 0
+        const start = new Date(fromDate)
+        const end = new Date(toDate)
+        let days = 0
+
+        const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+        const activeWorkWeek = workSchedule?.work_week && Array.isArray(workSchedule.work_week)
+            ? workSchedule.work_week.map(w => String(w).toLowerCase()) : ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
 
         for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-            const day = d.getDay();
-            if (day !== 0 && day !== 6) { // Exclude weekends (0 = Sunday, 6 = Saturday)
-                days++;
+            const y = d.getFullYear()
+            const m = String(d.getMonth() + 1).padStart(2, '0')
+            const dayPad = String(d.getDate()).padStart(2, '0')
+            const dayStr = `${y}-${m}-${dayPad}`
+            const dayName = dayNames[d.getDay()]
+            const isWorkDay = activeWorkWeek.includes(dayName)
+            const isHoliday = (holidays || []).some(h => h.holiday_date === dayStr)
+
+            if (isWorkDay && !isHoliday) {
+                days++
             }
         }
 
-        return halfDay ? days - 0.5 : days;
-    };
+        return halfDay ? Math.max(0.5, days - 0.5) : days
+    }
 
     const handleCancelRequest = (id) => {
-        if (window.confirm('Are you sure you want to cancel this request?')) {
-            setLeaveRequests(leaveRequests.map(req =>
-                req.id === id ? { ...req, status: 'cancelled' } : req
-            ));
+        setConfirmState({ open: true, requestId: id, loading: false })
+    }
+
+    const executeCancelRequest = async () => {
+        if (!confirmState.requestId) return
+        setConfirmState(prev => ({ ...prev, loading: true }))
+        try {
+            const res = await ApiCall('POST', '/leaverequest/cancel', { id: confirmState.requestId })
+            if (res?.data?.success) {
+                showStatusToast({ type: 'success', title: 'Success', message: 'Leave request cancelled successfully' })
+                fetchInitialData()
+            } else {
+                showStatusToast({ type: 'error', title: 'Error', message: res?.data?.message || 'Failed to cancel request' })
+            }
+        } catch (err) {
+            showStatusToast({ type: 'error', title: 'Error', message: 'Failed to cancel leave request: ' + (err.data?.message || err.message || 'Error occurred') })
         }
-    };
+        setConfirmState({ open: false, requestId: null, loading: false })
+    }
 
     const handleViewDetails = (request) => {
         setSelectedRequest(request);
         setShowDetailsModal(true);
-    };
+    }
 
-    // Status badge component
     const StatusBadge = ({ status }) => {
         const config = {
             'approved': { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircle, label: 'Approved' },
@@ -441,7 +367,6 @@ function MyLeaveRequestMain() {
         );
     };
 
-    // Requests Table Columns
     const requestColumns = [
         {
             header: "Actions",
@@ -521,7 +446,7 @@ function MyLeaveRequestMain() {
         <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
                 {leaveTypes.map(leave => (
-                    <div key={leave.code} className="bg-white rounded-xl shadow-sm border border-gray-300 p-4 hover:shadow-md transition-all">
+                    <div key={leave.code} className="bg-white rounded-md shadow-sm border border-gray-300 p-4 hover:shadow-md transition-all">
                         <div className="flex justify-between items-start mb-2">
                             <div className={`p-2 rounded-lg ${leave.color}`}>
                                 {leave.icon}
@@ -548,7 +473,7 @@ function MyLeaveRequestMain() {
                 ))}
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm mb-6">
+            <div className="bg-white rounded-lg shadow-sm mb-6">
                 <div className="flex gap-1 border-b border-b-gray-300">
                     <button
                         onClick={() => setSelectedTab('apply')}
@@ -590,6 +515,8 @@ function MyLeaveRequestMain() {
                         handleDateHover={handleDateHover}
                         selectedEndDate={selectedEndDate}
                         calculateLeaveDays={calculateLeaveDays}
+                        workSchedule={workSchedule}
+                        holidays={holidays}
                     />)}
 
                 {selectedTab === 'history' && (<LeaveRequestHistory
@@ -621,7 +548,6 @@ function MyLeaveRequestMain() {
                         </div>
 
                         <div className="p-6 space-y-6">
-                            {/* Selected Dates Summary */}
                             <div className="bg-indigo-50 p-4 rounded-lg">
                                 <div className="flex justify-between items-center">
                                     <div>
@@ -636,9 +562,9 @@ function MyLeaveRequestMain() {
                                 </div>
                             </div>
 
-                            {/* Leave Type */}
                             <CommonDropDown
-                                label="Leave Type *"
+                                required
+                                label="Leave Type"
                                 value={newRequest.leave_type}
                                 onChange={(val) => setNewRequest({ ...newRequest, leave_type: val })}
                                 options={leaveTypes.map(l => ({
@@ -691,17 +617,16 @@ function MyLeaveRequestMain() {
                                 </div>
                             )}
 
-                            {/* Reason */}
                             <CommonInputField
-                                label="Reason for Leave *"
+                                required
+                                label="Reason for Leave"
                                 value={newRequest.reason}
-                                onChange={(e) => setNewRequest({ ...newRequest, reason: e.target.value })}
+                                onChange={(e) => setNewRequest({ ...newRequest, reason: e })}
                                 placeholder="Brief description of your leave reason"
                                 multiline
                                 rows={3}
                             />
 
-                            {/* Urgent Flag */}
                             <div className="flex items-center gap-3">
                                 <label className="flex items-center gap-2 cursor-pointer">
                                     <input
@@ -719,33 +644,15 @@ function MyLeaveRequestMain() {
                                 )}
                             </div>
 
-                            {/* Contact Information */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <CommonInputField
-                                    label="Contact Number During Leave"
-                                    value={newRequest.contact_number}
-                                    onChange={(e) => setNewRequest({ ...newRequest, contact_number: e.target.value })}
-                                    placeholder="Your mobile number"
-                                />
-                                <CommonInputField
-                                    label="Address During Leave"
-                                    value={newRequest.address_during_leave}
-                                    onChange={(e) => setNewRequest({ ...newRequest, address_during_leave: e.target.value })}
-                                    placeholder="Where can you be reached?"
-                                />
-                            </div>
-
-                            {/* Handover Notes */}
                             <CommonInputField
                                 label="Work Handover Notes"
                                 value={newRequest.handover_notes}
-                                onChange={(e) => setNewRequest({ ...newRequest, handover_notes: e.target.value })}
+                                onChange={(e) => setNewRequest({ ...newRequest, handover_notes: e })}
                                 placeholder="Who will handle your work? Any important tasks to note?"
                                 multiline
                                 rows={2}
                             />
 
-                            {/* Document Upload */}
                             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                                 <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                                 <p className="text-sm text-gray-600 mb-1">Upload supporting documents</p>
@@ -755,15 +662,13 @@ function MyLeaveRequestMain() {
                                 </button>
                             </div>
 
-                            {/* Important Notes */}
                             <div className="bg-yellow-50 p-4 rounded-lg">
                                 <div className="flex items-start gap-3">
                                     <Info className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
                                     <div>
                                         <p className="font-medium text-yellow-800">Important Information</p>
                                         <ul className="text-sm text-yellow-700 mt-2 list-disc list-inside space-y-1">
-                                            <li>Your request will be sent to {currentUser.manager} for approval</li>
-                                            <li>Medical certificate required for sick leaves longer than 2 days</li>
+                                            <li>Your request will be sent to for approval</li>
                                             <li>You can track request status in the History tab</li>
                                         </ul>
                                     </div>
@@ -929,6 +834,18 @@ function MyLeaveRequestMain() {
                     </div>
                 </div>
             )}
+
+            <CommonConfirmPopup
+                isOpen={confirmState.open}
+                onConfirm={executeCancelRequest}
+                onCancel={() => setConfirmState({ open: false, requestId: null, loading: false })}
+                title="Cancel Leave Request"
+                message="Are you sure you want to cancel this leave request?"
+                confirmLabel="Yes, Cancel"
+                cancelLabel="No, Keep"
+                variant="danger"
+                loading={confirmState.loading}
+            />
         </>
     )
 }

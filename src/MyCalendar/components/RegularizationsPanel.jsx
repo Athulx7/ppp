@@ -4,7 +4,7 @@ import StatusBadge from './StatusBadge'
 
 function RegularizationsPanel({ regRequests, openModal }) {
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
             <div className="flex items-center justify-between mb-3">
                 <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
                     <AlarmClock size={15} className="text-emerald-600" /> Regularizations

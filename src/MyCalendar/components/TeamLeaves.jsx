@@ -10,7 +10,7 @@ const TEAM_LEAVE_DATA = [
 
 function TeamLeaves() {
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
             <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <Users size={18} className="text-indigo-600" />
                 Team Leaves This Month

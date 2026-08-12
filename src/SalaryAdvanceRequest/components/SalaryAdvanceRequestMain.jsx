@@ -8,22 +8,25 @@ import {
     Building, Users, Settings, RefreshCw, History,
     HdIcon
 } from 'lucide-react';
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 import NewSalaryAdvanceRequest from './NewSalaryAdvanceRequest';
 import EligibilityAndInfo from './EligibilityAndInfo';
 import SalaryAdvanceRequestModals from './SalaryAdvanceRequestModals';
+import { ApiCall } from '../../library/constants';
 
 function SalaryAdvanceRequestMain() {
+    const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
 
     const [currentUser, setCurrentUser] = useState({
-        emp_code: 'EMP002',
-        emp_name: 'Athul Krishna',
-        designation: 'Junior Software Engineer',
-        department: 'Engineering',
-        doj: '2023-06-15',
-        salary: 45000,
-        bank_account: 'XXXX XXXX 1234',
-        ifsc: 'HDFC0001234'
+        emp_code: '',
+        emp_name: '',
+        designation: '',
+        department: '',
+        doj: '',
+        salary: 0,
+        bank_account: '',
+        ifsc: ''
     });
 
     // State for request form
@@ -41,14 +44,15 @@ function SalaryAdvanceRequestMain() {
     // State for eligibility and limits
     const [eligibility, setEligibility] = useState({
         is_eligible: true,
-        max_eligible_amount: 90000, // 2 months salary
-        min_amount: 5000,
-        max_amount: 90000,
+        eligibility_message: '',
+        max_eligible_amount: 0,
+        min_amount: 0,
+        max_amount: 0,
         used_advances: 0,
-        pending_advances: 25000,
-        remaining_limit: 65000,
-        tenure_options: [1, 2, 3, 4, 5, 6],
-        interest_rate: 0, // 0% for salary advance
+        pending_advances: 0,
+        remaining_limit: 0,
+        tenure_options: [1, 2, 3, 4, 5],
+        interest_rate: 0,
         processing_fee: 0
     });
 
@@ -65,65 +69,32 @@ function SalaryAdvanceRequestMain() {
     const [errors, setErrors] = useState({});
     const [touched, setTouched] = useState({});
 
-    // Dummy existing requests
-    useEffect(() => {
-        const dummyRequests = [
-            {
-                id: 'SAR001',
-                request_date: '2024-02-15',
-                amount: 30000,
-                purpose: 'Medical emergency',
-                tenure: 3,
-                monthly_deduction: 10000,
-                status: 'approved',
-                approved_by: 'John Admin',
-                approved_date: '2024-02-16',
-                disbursed_date: '2024-02-17',
-                remaining_balance: 20000,
-                next_deduction: '2024-03-01',
-                comments: 'Approved'
-            },
-            {
-                id: 'SAR002',
-                request_date: '2024-01-10',
-                amount: 25000,
-                purpose: 'Home renovation',
-                tenure: 5,
-                monthly_deduction: 5000,
-                status: 'pending',
-                remaining_balance: 25000,
-                comments: 'Under review'
-            },
-            {
-                id: 'SAR003',
-                request_date: '2023-12-05',
-                amount: 15000,
-                purpose: 'Education fees',
-                tenure: 3,
-                monthly_deduction: 5000,
-                status: 'completed',
-                approved_by: 'Sarah Johnson',
-                approved_date: '2023-12-06',
-                disbursed_date: '2023-12-07',
-                completed_date: '2024-03-01',
-                remaining_balance: 0,
-                comments: 'Fully repaid'
-            },
-            {
-                id: 'SAR004',
-                request_date: '2024-02-20',
-                amount: 40000,
-                purpose: 'Wedding expenses',
-                tenure: 4,
-                monthly_deduction: 10000,
-                status: 'rejected',
-                rejected_by: 'John Admin',
-                rejected_date: '2024-02-21',
-                rejection_reason: 'Insufficient tenure for advance amount',
-                comments: 'Please reduce amount or increase tenure'
+    // Fetch dynamic salary advance info & user requests
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            const [infoRes, requestsRes] = await Promise.all([
+                ApiCall('get', '/salaryadvance/info'),
+                ApiCall('get', '/salaryadvance/my-requests')
+            ]);
+
+            if (infoRes.data?.success) {
+                setCurrentUser(infoRes.data.data.currentUser || {});
+                setEligibility(infoRes.data.data.eligibility || {});
             }
-        ];
-        setExistingRequests(dummyRequests);
+
+            if (requestsRes.data?.success) {
+                setExistingRequests(requestsRes.data.data || []);
+            }
+        } catch (err) {
+            console.error("Failed to load salary advance details:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
     }, []);
 
     // Calculate monthly deduction
@@ -138,10 +109,10 @@ function SalaryAdvanceRequestMain() {
 
         if (!requestData.advance_amount) {
             newErrors.advance_amount = 'Advance amount is required';
-        } else if (requestData.advance_amount < eligibility.min_amount) {
+        } else if (parseFloat(requestData.advance_amount) < eligibility.min_amount) {
             newErrors.advance_amount = `Minimum amount is ₹${eligibility.min_amount}`;
-        } else if (requestData.advance_amount > eligibility.max_eligible_amount) {
-            newErrors.advance_amount = `Maximum eligible amount is ₹${eligibility.max_eligible_amount}`;
+        } else if (parseFloat(requestData.advance_amount) > eligibility.remaining_limit) {
+            newErrors.advance_amount = `Maximum eligible remaining amount is ₹${eligibility.remaining_limit}`;
         }
 
         if (!requestData.purpose) {
@@ -177,115 +148,127 @@ function SalaryAdvanceRequestMain() {
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         const newErrors = validateForm();
         setErrors(newErrors);
 
         if (Object.keys(newErrors).length === 0) {
-            // Create new request
-            const newRequest = {
-                id: `SAR${Date.now()}`,
-                request_date: new Date().toISOString().split('T')[0],
-                ...requestData,
-                amount: parseInt(requestData.advance_amount),
-                tenure: parseInt(requestData.repayment_tenure),
-                monthly_deduction: calculateMonthlyDeduction(),
-                status: 'pending',
-                remaining_balance: parseInt(requestData.advance_amount)
-            };
+            try {
+                setSubmitting(true);
+                const res = await ApiCall('post', '/salaryadvance/request', requestData);
 
-            setSubmittedRequest(newRequest);
-            setShowSuccessModal(true);
+                if (res.data?.success) {
+                    const newRequest = {
+                        id: res.data.request_code,
+                        request_date: new Date().toISOString().split('T')[0],
+                        ...requestData,
+                        amount: parseInt(requestData.advance_amount),
+                        tenure: parseInt(requestData.repayment_tenure),
+                        monthly_deduction: calculateMonthlyDeduction(),
+                        status: res.data.status || 'pending',
+                        remaining_balance: parseInt(requestData.advance_amount)
+                    };
 
-            // Reset form
-            setRequestData({
-                advance_amount: '',
-                purpose: '',
-                repayment_tenure: '3',
-                preferred_date: '',
-                emergency_contact: '',
-                emergency_relation: '',
-                comments: '',
-                supporting_documents: []
-            });
-            setTouched({});
+                    setSubmittedRequest(newRequest);
+                    setShowSuccessModal(true);
+
+                    // Reset form
+                    setRequestData({
+                        advance_amount: '',
+                        purpose: '',
+                        repayment_tenure: '3',
+                        preferred_date: '',
+                        emergency_contact: '',
+                        emergency_relation: '',
+                        comments: '',
+                        supporting_documents: []
+                    });
+                    setTouched({});
+
+                    // Refresh dynamic state & requests list from backend
+                    fetchData();
+                }
+            } catch (err) {
+                const msg = err.data?.message || err.message || "Failed to submit request";
+                alert(msg);
+            } finally {
+                setSubmitting(false);
+            }
         }
     };
 
-    const handleCancelRequest = () => {
+    const handleCancelRequest = async () => {
         if (!cancellationReason) {
             alert('Please provide a reason for cancellation');
             return;
         }
 
-        // Update request status
-        setExistingRequests(existingRequests.map(req =>
-            req.id === selectedRequest.id
-                ? { ...req, status: 'cancelled', cancellation_reason: cancellationReason, cancelled_date: new Date().toISOString().split('T')[0] }
-                : req
-        ));
+        try {
+            const res = await ApiCall('post', '/salaryadvance/cancel', {
+                id: selectedRequest.id,
+                cancellation_reason: cancellationReason
+            });
 
-        setShowCancelModal(false);
-        setSelectedRequest(null);
-        setCancellationReason('');
-        alert('Request cancelled successfully');
+            if (res.data?.success) {
+                setShowCancelModal(false);
+                setSelectedRequest(null);
+                setCancellationReason('');
+                alert('Request cancelled successfully');
+                fetchData();
+            }
+        } catch (err) {
+            const msg = err.data?.message || err.message || "Failed to cancel request";
+            alert(msg);
+        }
     };
 
     const getEligibilityStatus = () => {
-        const remaining = eligibility.remaining_limit;
+        if (!eligibility.is_eligible) return { color: 'red', text: 'Ineligible' };
+        const remaining = eligibility.remaining_limit || 0;
         if (remaining <= 0) return { color: 'red', text: 'No remaining limit' };
-        if (remaining < eligibility.max_eligible_amount * 0.2) return { color: 'yellow', text: 'Low limit remaining' };
+        if (remaining < (eligibility.max_eligible_amount || 0) * 0.2) return { color: 'yellow', text: 'Low limit remaining' };
         return { color: 'green', text: 'Eligible' };
     };
 
     const eligibilityStatus = getEligibilityStatus();
 
-    // Status badge component
-    const StatusBadge = ({ status }) => {
-        const config = {
-            'approved': { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircle, label: 'Approved' },
-            'pending': { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: Loader, label: 'Pending' },
-            'rejected': { bg: 'bg-red-100', text: 'text-red-800', icon: XCircle, label: 'Rejected' },
-            'completed': { bg: 'bg-blue-100', text: 'text-blue-800', icon: Check, label: 'Completed' },
-            'cancelled': { bg: 'bg-gray-100', text: 'text-gray-800', icon: X, label: 'Cancelled' },
-            'disbursed': { bg: 'bg-purple-100', text: 'text-purple-800', icon: CreditCard, label: 'Disbursed' }
-        };
-        const cfg = config[status] || config.pending;
-        const Icon = cfg.icon;
-
+    if (loading) {
         return (
-            <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 w-fit ${cfg.bg} ${cfg.text}`}>
-                <HdIcon className="w-3 h-3" />
-                {cfg.label}
-            </span>
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="flex items-center gap-3 text-indigo-600 font-medium">
+                    <Loader className="w-6 h-6 animate-spin" />
+                    <span>Loading Salary Advance Details...</span>
+                </div>
+            </div>
         );
-    };
+    }
+
     return (
         <>
             <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-md shadow-lg p-4 md:p-6 mb-4 md:mb-6 text-white">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h3 className="text-lg md:text-xl font-semibold mb-1">Welcome, {currentUser.emp_name}</h3>
-                        <p className="text-indigo-100 text-sm">{currentUser.designation} • {currentUser.department}</p>
+                        <h3 className="text-lg md:text-xl font-semibold mb-1">Welcome, {currentUser.emp_name || 'Employee'}</h3>
+                        <p className="text-indigo-100 text-sm">{currentUser.designation || 'N/A'} • {currentUser.department || 'N/A'}</p>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
                         <div>
-                            <p className="text-indigo-200 text-xs">Monthly Salary</p>
-                            <p className="text-lg font-semibold">₹{currentUser.salary.toLocaleString()}</p>
+                            <p className="text-indigo-200 text-xs">Monthly Net Salary</p>
+                            <p className="text-lg font-semibold">₹{(currentUser.salary || 0).toLocaleString()}</p>
                         </div>
                         <div>
                             <p className="text-indigo-200 text-xs">Max Eligible</p>
-                            <p className="text-lg font-semibold">₹{eligibility.max_eligible_amount.toLocaleString()}</p>
+                            <p className="text-lg font-semibold">₹{(eligibility.max_eligible_amount || 0).toLocaleString()}</p>
                         </div>
                         <div>
                             <p className="text-indigo-200 text-xs">Used/Pending</p>
-                            <p className="text-lg font-semibold">₹{eligibility.used_advances.toLocaleString()}</p>
+                            <p className="text-lg font-semibold">₹{((eligibility.used_advances || 0) + (eligibility.pending_advances || 0)).toLocaleString()}</p>
                         </div>
                         <div>
                             <p className="text-indigo-200 text-xs">Remaining</p>
-                            <p className="text-lg font-semibold">₹{eligibility.remaining_limit.toLocaleString()}</p>
+                            <p className="text-lg font-semibold">₹{(eligibility.remaining_limit || 0).toLocaleString()}</p>
                         </div>
                     </div>
                 </div>
@@ -300,6 +283,7 @@ function SalaryAdvanceRequestMain() {
                     errors={errors}
                     eligibility={eligibility}
                     calculateMonthlyDeduction={calculateMonthlyDeduction}
+                    submitting={submitting}
                 />
 
                 <EligibilityAndInfo
@@ -316,17 +300,19 @@ function SalaryAdvanceRequestMain() {
                 showSuccessModal={showSuccessModal}
                 submittedRequest={submittedRequest}
                 setShowCancelModal={setShowCancelModal}
-                setShowSuccessModal={setShowSuccessModal} setSubmittedRequest={setSubmittedRequest}
+                setShowSuccessModal={setShowSuccessModal}
+                setSubmittedRequest={setSubmittedRequest}
                 setSelectedRequest={setSelectedRequest}
                 setShowDetailsModal={setShowDetailsModal}
                 showDetailsModal={showDetailsModal}
                 selectedRequest={selectedRequest}
-                showCancelModal={showCancelModal} cancellationReason={cancellationReason}
-                setCancellationReason={setCancellationReason} handleCancelRequest
+                showCancelModal={showCancelModal}
+                cancellationReason={cancellationReason}
+                setCancellationReason={setCancellationReason}
+                handleCancelRequest={handleCancelRequest}
             />
-
         </>
-    )
+    );
 }
 
-export default SalaryAdvanceRequestMain
+export default SalaryAdvanceRequestMain;
