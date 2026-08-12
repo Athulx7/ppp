@@ -22,7 +22,7 @@ import MyLeaveRequestEntry from './LeaveRequest/container/MyLeaveRequestEntry'
 import MyLeavesEntry from './LeaveMyLeavss/container/MyLeavesEntry'
 import LeaveApprovalEntry from './LeaveApproval/container/LeaveApprovalEntry'
 import SalaryAdvanceRequestEntry from './SalaryAdvanceRequest/container/SalaryAdvanceRequestEntry'
-import SalaryAdvanceApproval from './SalaryAdvanceApproval/SalaryAdvanceApprovaltest'
+import SalaryAdvanceApprovalEntry from './SalaryAdvanceApproval/container/SalaryAdvanceApprovalEntry'
 import PayrollRun from './PayrollRuns/PayrollRunstest'
 import PayrollInputstest from './PayrollRuns/PayrollInputstest'
 import PayrollSettingsEntry from './Payrollsettings/container/PayrollSettingsEntry'
@@ -94,7 +94,7 @@ export const ALL_ROUTES = [
     { path: 'leaveapproval', component: LeaveApprovalEntry },
 
     { path: 'salaryadvanceRequest', component: SalaryAdvanceRequestEntry },
-    { path: 'salaryadvanceapproval', component: SalaryAdvanceApproval },
+    { path: 'salaryadvanceapproval', component: SalaryAdvanceApprovalEntry },
 
     { path: 'payrollruns', component: PayrollRun },
     { path: 'payrollinputs', component: PayrollInputstest },
