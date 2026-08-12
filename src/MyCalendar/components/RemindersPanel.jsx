@@ -3,7 +3,7 @@ import { BellRing, Check, Trash2 } from 'lucide-react'
 
 function RemindersPanel({ upcomingReminders, handleReminderComplete, handleReminderDelete }) {
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
             <div className="flex items-center justify-between mb-3">
                 <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
                     <BellRing size={15} className="text-amber-500" /> Reminders

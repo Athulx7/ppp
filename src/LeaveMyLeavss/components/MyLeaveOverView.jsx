@@ -67,57 +67,61 @@ function MyLeaveOverView({
                 <div>
                     <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-4">Leave Balance</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-                        {leaveBalance?.map(item => {
-                            const leaveType = leaveTypes.find(l => l.code === item.leave_code);
-                            const usedPct = item.total > 0 ? Math.round((item.used / item.total) * 100) : 0;
-                            const expiryInfo = getExpiryInfo(item.expiring_on);
-                            return (
-                                <div key={item.leave_code} className={`bg-white border rounded-xl p-4 md:p-5 flex flex-col gap-4 ${leaveType?.borderColor}`}>
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div className="flex items-center gap-3 min-w-0">
-                                            <div className={`p-2 rounded-lg shrink-0 ${leaveType?.color}`}>
-                                                {leaveType?.icon}
+                        {leaveBalance && leaveBalance.length > 0 ? (
+                            leaveBalance.map(item => {
+                                const leaveType = leaveTypes.find(l => l.code === item.leave_code);
+                                const usedPct = item.total > 0 ? Math.round((item.used / item.total) * 100) : 0;
+                                const expiryInfo = getExpiryInfo(item.expiring_on);
+                                return (
+                                    <div key={item.leave_code} className={`bg-white border rounded-xl p-4 md:p-5 flex flex-col gap-4 ${leaveType?.borderColor || 'border-gray-200'}`}>
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div className={`p-2 rounded-lg shrink-0 ${leaveType?.color || 'bg-gray-100'}`}>
+                                                    {leaveType?.icon}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <h4 className="font-semibold text-gray-900 text-sm md:text-base truncate">{item.leave_name}</h4>
+                                                    <p className="text-xs text-gray-500 truncate">{leaveType?.description || ''}</p>
+                                                </div>
                                             </div>
-                                            <div className="min-w-0">
-                                                <h4 className="font-semibold text-gray-900 text-sm md:text-base truncate">{item.leave_name}</h4>
-                                                <p className="text-xs text-gray-500 truncate">{leaveType?.description}</p>
+                                            <ProgressRing percentage={usedPct} color={leaveType?.hex || '#4f46e5'} />
+                                        </div>
+
+                                        <div className="grid grid-cols-3 gap-2 text-center border-t border-gray-100 pt-3">
+                                            <div>
+                                                <div className="text-lg md:text-xl font-bold text-indigo-600">{item.available}</div>
+                                                <div className="text-[11px] text-gray-500">Available</div>
+                                            </div>
+                                            <div>
+                                                <div className="text-lg md:text-xl font-bold text-gray-900">{item.used}</div>
+                                                <div className="text-[11px] text-gray-500">Used</div>
+                                            </div>
+                                            <div>
+                                                <div className="text-lg md:text-xl font-bold text-orange-600">{item.pending}</div>
+                                                <div className="text-[11px] text-gray-500">Pending</div>
                                             </div>
                                         </div>
-                                        <ProgressRing percentage={usedPct} color={leaveType?.hex} />
-                                    </div>
 
-                                    <div className="grid grid-cols-3 gap-2 text-center border-t border-gray-100 pt-3">
-                                        <div>
-                                            <div className="text-lg md:text-xl font-bold text-indigo-600">{item.available}</div>
-                                            <div className="text-[11px] text-gray-500">Available</div>
-                                        </div>
-                                        <div>
-                                            <div className="text-lg md:text-xl font-bold text-gray-900">{item.used}</div>
-                                            <div className="text-[11px] text-gray-500">Used</div>
-                                        </div>
-                                        <div>
-                                            <div className="text-lg md:text-xl font-bold text-orange-600">{item.pending}</div>
-                                            <div className="text-[11px] text-gray-500">Pending</div>
-                                        </div>
+                                        {(item.carry_forward > 0 || expiryInfo) && (
+                                            <div className="flex flex-col gap-1 -mt-1">
+                                                {item.carry_forward > 0 && (
+                                                    <p className="text-xs text-green-600">
+                                                        +{item.carry_forward} days carried forward
+                                                    </p>
+                                                )}
+                                                {expiryInfo && (
+                                                    <p className={`text-xs ${expiryInfo.className}`}>
+                                                        {expiryInfo.label}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
-
-                                    {(item.carry_forward > 0 || expiryInfo) && (
-                                        <div className="flex flex-col gap-1 -mt-1">
-                                            {item.carry_forward > 0 && (
-                                                <p className="text-xs text-green-600">
-                                                    +{item.carry_forward} days carried forward
-                                                </p>
-                                            )}
-                                            {expiryInfo && (
-                                                <p className={`text-xs ${expiryInfo.className}`}>
-                                                    {expiryInfo.label}
-                                                </p>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            )
-                        })}
+                                )
+                            })
+                        ) : (
+                            <p className="text-sm text-gray-500 text-center col-span-full py-4 bg-gray-50 rounded-lg">No leave balance records found</p>
+                        )}
                     </div>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
@@ -200,23 +204,27 @@ function MyLeaveOverView({
                 <div>
                     <h4 className="font-medium text-gray-900 mb-3">Recent Activity</h4>
                     <div className="space-y-3">
-                        {recentActivity.map(leave => {
-                            const leaveType = leaveTypes.find(l => l.code === leave.leave_type);
-                            return (
-                                <div key={leave.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                    <div className="flex items-center gap-3 min-w-0">
-                                        <div className={`p-2 rounded-lg shrink-0 ${leaveType?.color}`}>
-                                            {leaveType?.icon}
+                        {recentActivity && recentActivity.length > 0 ? (
+                            recentActivity.map(leave => {
+                                const leaveType = leaveTypes.find(l => l.code === leave.leave_type);
+                                return (
+                                    <div key={leave.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className={`p-2 rounded-lg shrink-0 ${leaveType?.color || 'bg-gray-100'}`}>
+                                                {leaveType?.icon}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="font-medium text-sm truncate">{leave.leave_name}</p>
+                                                <p className="text-xs text-gray-500 truncate">{leave.from_date} to {leave.to_date} • {leave.days} days</p>
+                                            </div>
                                         </div>
-                                        <div className="min-w-0">
-                                            <p className="font-medium text-sm truncate">{leave.leave_name}</p>
-                                            <p className="text-xs text-gray-500 truncate">{leave.from_date} to {leave.to_date} • {leave.days} days</p>
-                                        </div>
+                                        <StatusBadge status={leave.status} />
                                     </div>
-                                    <StatusBadge status={leave.status} />
-                                </div>
-                            );
-                        })}
+                                );
+                            })
+                        ) : (
+                            <p className="text-sm text-gray-500 text-center py-4 bg-gray-50 rounded-lg">No recent activity</p>
+                        )}
                     </div>
                 </div>
             </div>

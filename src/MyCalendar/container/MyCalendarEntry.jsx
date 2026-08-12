@@ -4,7 +4,6 @@ import BreadCrumb from '../../basicComponents/BreadCrumb'
 import { useCalendarState } from '../hooks/useCalendarState'
 import CalendarGrid from '../components/CalendarGrid'
 import HoursSummary from '../components/HoursSummary'
-import TeamLeaves from '../components/TeamLeaves'
 import SelectedDayPanel from '../components/SelectedDayPanel'
 import LeaveBalance from '../components/LeaveBalance'
 import UpcomingEvents from '../components/UpcomingEvents'
@@ -17,30 +16,26 @@ import DateDetailModal from '../components/DateDetailModal'
 
 function MyCalendarEntry() {
     const {
-        // state
         selectedDate, view, setView,
         modal, openModal, closeModal,
         leaveForm, setLeaveForm,
         regForm, setRegForm, attendance, regRequests,
         reminderForm, setReminderForm,
-        reminders, detailDate,
-        // derived
+        reminders, detailDate, workSchedule, holidays, leaveBalance,
         year, month, firstDay, daysInMonth, selDs,
-        totalExtraMins, totalDeficitMins,
+        totalExtraMins, totalDeficitMins, totalCarryForwardMins,
         upcomingReminders, upcomingEvents,
-        // helpers
         getEvents, getExtra,
-        // handlers
         prevMonth, nextMonth, goToToday,
         handleLeaveSubmit, handleRegSubmit,
         handleReminderSubmit, handleReminderComplete, handleReminderDelete,
         handleDateClick,
-        // meta
         isManager,
+        isOvertimeApplicable,
     } = useCalendarState()
 
     return (
-        <div className="bg-gray-50 min-h-screen p-4 md:p-6">
+        <>
             <BreadCrumb
                 items={[{ label: 'My Calendar' }]}
                 title="My Calendar"
@@ -48,15 +43,15 @@ function MyCalendarEntry() {
                 actions={
                     <div className="flex flex-wrap gap-2">
                         <button onClick={() => openModal('leave')}
-                            className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2">
+                            className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 cursor-pointer">
                             <Plus size={15} /> Apply Leave
                         </button>
                         <button onClick={() => openModal('regularize')}
-                            className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 transition-colors flex items-center gap-2">
+                            className="px-4 py-2 bg-emerald-600 text-white rounded-md text-sm font-medium hover:bg-emerald-700 transition-colors flex items-center gap-2 cursor-pointer">
                             <AlarmClock size={15} /> Regularize
                         </button>
                         <button onClick={() => { openModal('reminder') }}
-                            className="px-4 py-2 bg-amber-500 text-white rounded-xl text-sm font-medium hover:bg-amber-600 transition-colors flex items-center gap-2">
+                            className="px-4 py-2 bg-amber-500 text-white rounded-md text-sm font-medium hover:bg-amber-600 transition-colors flex items-center gap-2 cursor-pointer">
                             <BellPlus size={15} /> Add Reminder
                         </button>
                     </div>
@@ -65,14 +60,12 @@ function MyCalendarEntry() {
 
             <div className="flex flex-wrap gap-3 mb-5">
                 {[
-                    { color: 'bg-red-400', label: 'Holiday' },
-                    { color: 'bg-pink-400', label: 'Birthday' },
-                    { color: 'bg-purple-400', label: 'Anniversary' },
-                    { color: 'bg-blue-400', label: 'My Leave' },
-                    { color: 'bg-yellow-400', label: 'Reminder' },
-                    { color: 'bg-indigo-400', label: 'Event' },
-                    { color: 'bg-emerald-400', label: 'Extra Hours' },
-                    { color: 'bg-rose-400', label: 'Absent' },
+                    { color: 'bg-amber-500', label: 'Holiday' },
+                    { color: 'bg-indigo-600', label: 'My Leave' },
+                    { color: 'bg-emerald-600', label: 'Attendance' },
+                    { color: 'bg-blue-500', label: 'Regularization' },
+                    { color: 'bg-yellow-500', label: 'Reminder' },
+                    { color: 'bg-red-500', label: 'Off Day' },
                 ].map(l => (
                     <div key={l.label} className="flex items-center gap-1.5">
                         <div className={`w-2.5 h-2.5 rounded-full ${l.color}`} />
@@ -93,6 +86,9 @@ function MyCalendarEntry() {
                         handleDateClick={handleDateClick}
                         getEvents={getEvents} getExtra={getExtra}
                         attendance={attendance}
+                        workSchedule={workSchedule}
+                        holidays={holidays}
+                        isOvertimeApplicable={isOvertimeApplicable}
                     />
 
                     <HoursSummary
@@ -100,11 +96,13 @@ function MyCalendarEntry() {
                         attendance={attendance}
                         totalExtraMins={totalExtraMins}
                         totalDeficitMins={totalDeficitMins}
+                        totalCarryForwardMins={totalCarryForwardMins}
                         openModal={openModal}
                         setRegForm={setRegForm}
+                        isOvertimeApplicable={isOvertimeApplicable}
+                        selectedDate={selectedDate}
                     />
 
-                    <TeamLeaves />
                 </div>
 
                 <div className="space-y-5">
@@ -115,7 +113,7 @@ function MyCalendarEntry() {
                         openModal={openModal}
                     />
 
-                    <LeaveBalance openModal={openModal} />
+                    <LeaveBalance openModal={openModal} leaveBalance={leaveBalance} />
 
                     <UpcomingEvents upcomingEvents={upcomingEvents} />
 
@@ -138,6 +136,7 @@ function MyCalendarEntry() {
                 leaveForm={leaveForm}
                 setLeaveForm={setLeaveForm}
                 handleLeaveSubmit={handleLeaveSubmit}
+                leaveBalance={leaveBalance}
             />
 
             <RegularizeModal
@@ -147,6 +146,7 @@ function MyCalendarEntry() {
                 setRegForm={setRegForm}
                 regRequests={regRequests}
                 handleRegSubmit={handleRegSubmit}
+                workSchedule={workSchedule}
             />
 
             <ReminderModal
@@ -164,8 +164,9 @@ function MyCalendarEntry() {
                 onClose={closeModal}
                 detailDate={detailDate}
                 openModal={openModal}
+                isOvertimeApplicable={isOvertimeApplicable}
             />
-        </div>
+        </>
     )
 }
 

@@ -5,6 +5,7 @@ import CommonTable from '../../basicComponents/commonTable';
 import { buildMasterTableColumns } from '../components/BuildMasterTableColumns';
 import { ApiCall, getRoleBasePath } from '../../library/constants';
 import Breadcrumb from '../../basicComponents/BreadCrumb';
+import moment from 'moment';
 
 function MasterMain() {
 
@@ -24,39 +25,37 @@ function MasterMain() {
         setIsLoading(true)
         try {
             const response = await ApiCall("GET", `/master/${mastercode}/getlist`)
-            console.log("Master List Response:", response.data.data);
 
-            const { master, fields, data } = response.data.data;
-            console.log("Master Meta:", master);
-            console.log("Master Fields:", fields);
-            console.log("Master Data:", data);
+            const { master, fields, data } = response.data.data
+            setMaster(master)
 
-            setMaster(master);
+            const enrichedData = data.map((row) => {
+                const formattedRow = { ...row }
+                fields.forEach(field => {
+                    if (field.field_type === "date" && formattedRow[field.column_name]) {
+                        formattedRow[field.column_name] = moment(formattedRow[field.column_name]).format("DD/MM/YYYY")
+                    }
+                })
+                formattedRow.onEdit = handleEdit
+                return formattedRow
+            })
 
-            const enrichedData = data.map((row) => ({
-                ...row,
-                onEdit: handleEdit
-            }));
+            setTableData(enrichedData)
 
-            console.log("Enriched Data:", enrichedData);
-
-            setTableData(enrichedData);
-
-            const tableColumns = buildMasterTableColumns(fields, handleEdit);
-            setColumns(tableColumns);
-            console.log("Table Columns:", tableColumns);
+            const tableColumns = buildMasterTableColumns(fields, handleEdit)
+            setColumns(tableColumns)
 
         } catch (err) {
-            console.error("Failed to load master list", err);
+            console.error("Failed to load master list", err)
         }
         setIsLoading(false)
-    };
+    }
 
     const handleEdit = (row) => {
         navigate(`${getRoleBasePath()}/master/${mastercode}/edit/${row.id}`)
-    };
+    }
 
-    if (!master) return null;
+    if (!master) return null
     return (
         <>
             <Breadcrumb

@@ -7,8 +7,11 @@ function ApprovalDetails({
     selectedRequest,
     handleApprove,
     handleReject,
-    handleDisburse
+    handleDisburse,
+    showDetailsModal
 }) {
+    if (!showDetailsModal || !selectedRequest) return null;
+
     const StatusBadge = ({ status }) => {
         const config = {
             'approved': { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircle, label: 'Approved' },

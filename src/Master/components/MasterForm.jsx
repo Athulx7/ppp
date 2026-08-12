@@ -6,6 +6,7 @@ import CommonDatePicker from "../../basicComponents/CommonDatePicker"
 import { ApiCall } from "../../library/constants"
 import LoadingSpinner from "../../basicComponents/LoadingSpinner"
 import { showStatusToast } from "../../basicComponents/CommonStatusPopUp"
+import moment from "moment"
 
 function MasterForm({ meta, initialData, onCancel, isEdit, isLoading, setIsLoading }) {
     const [formData, setFormData] = useState({})
@@ -88,7 +89,13 @@ function MasterForm({ meta, initialData, onCancel, isEdit, isLoading, setIsLoadi
         setIsLoading(true)
         setSaving(true)
         try {
-            const res = await ApiCall("POST", `/master/${meta.master_code}/save`, formData)
+            const payload = { ...formData }
+            meta.fields.forEach(field => {
+                if (field.field_type === "date" && payload[field.column_name]) {
+                    payload[field.column_name] = moment(payload[field.column_name],'DD/MM/YYYY').format('YYYY-MM-DD')
+                }
+            })
+            const res = await ApiCall("POST", `/master/${meta.master_code}/save`, payload)
 
             if (res?.data?.success) {
                 showStatusToast({

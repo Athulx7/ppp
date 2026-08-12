@@ -11,9 +11,9 @@ function MyLeavesEntry() {
     return (
         <>
             <Breadcrumb
-                items={[{ label: 'Leave Master' }]}
-                title="Leave Master"
-                description="Configure leave types and rules per company policy"
+                items={[{ label: 'My Leaves' }]}
+                title="My Leaves"
+                description="View and manage your leave balances"
                 loading={isLoading.normal}
             />
 

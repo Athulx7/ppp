@@ -1,4 +1,4 @@
-import { ChevronRight, CreditCard, Edit, HelpCircle, History, Info, ShieldCheck, Wallet } from 'lucide-react'
+import { ChevronRight, CreditCard, Edit, HelpCircle, History, Info, ShieldCheck, Wallet, AlertCircle } from 'lucide-react'
 import React from 'react'
 import StatusBadge from '../../MyCalendar/components/StatusBadge';
 
@@ -24,21 +24,31 @@ function EligibilityAndInfo({ eligibilityStatus, eligibility,
                             </span>
                         </div>
 
+                        {eligibility.eligibility_message && !eligibility.is_eligible && (
+                            <div className="p-3 bg-red-50 border border-red-200 rounded-md text-xs text-red-800 flex items-start gap-2">
+                                <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                                <div>
+                                    <span className="font-semibold block mb-0.5 text-red-900">Ineligibility Reason:</span>
+                                    <span className="text-red-700 leading-relaxed">{eligibility.eligibility_message}</span>
+                                </div>
+                            </div>
+                        )}
+
                         <div>
                             <div className="flex justify-between text-xs mb-1">
-                                <span className="text-gray-600">Used: ₹{eligibility.used_advances}</span>
-                                <span className="text-gray-600">Remaining: ₹{eligibility.remaining_limit}</span>
+                                <span className="text-gray-600">Used: ₹{(eligibility.used_advances || 0).toLocaleString()}</span>
+                                <span className="text-gray-600">Remaining: ₹{(eligibility.remaining_limit || 0).toLocaleString()}</span>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-2">
                                 <div
                                     className="bg-indigo-600 rounded-full h-2"
                                     style={{
-                                        width: `${(eligibility.used_advances / eligibility.max_eligible_amount) * 100}%`
+                                        width: `${((eligibility.used_advances || 0) / (eligibility.max_eligible_amount || 1)) * 100}%`
                                     }}
                                 ></div>
                             </div>
                             <p className="text-xs text-gray-500 mt-1">
-                                Max Limit: ₹{eligibility.max_eligible_amount.toLocaleString()}
+                                Max Limit: ₹{(eligibility.max_eligible_amount || 0).toLocaleString()}
                             </p>
                         </div>
 
@@ -46,7 +56,7 @@ function EligibilityAndInfo({ eligibilityStatus, eligibility,
                             <div className="flex items-start gap-2 text-xs">
                                 <Info className="w-3 h-3 text-gray-400 mt-0.5" />
                                 <p className="text-gray-600">
-                                    Salary advance is interest-free. The amount will be deducted from your salary in {eligibility.tenure_options.join('/')} monthly installments.
+                                    Salary advance is interest-free. The amount will be deducted from your salary in {(eligibility.tenure_options || []).join('/')} monthly installments.
                                 </p>
                             </div>
                         </div>

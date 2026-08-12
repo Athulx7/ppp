@@ -4,9 +4,11 @@ import CommonDropDown from '../../basicComponents/CommonDropDown'
 import CommonInputField from '../../basicComponents/CommonInputField';
 import CommonDatePicker from '../../basicComponents/CommonDatePicker';
 
-function SalaryAdvApproActionModal({ setShowActionModal, actionType, selectedRequest,
-    handleActionSubmit, actionComment, setActionComment, disbursementDetails, setDisbursementDetails
+function SalaryAdvApproActionModal({ setShowActionModal, showActionModal, actionType, selectedRequest,
+    handleActionSubmit, actionComment, setActionComment, disbursementDetails, setDisbursementDetails, submittingAction
 }) {
+    if (!showActionModal || !selectedRequest) return null;
+
     return (
         <>
             <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
