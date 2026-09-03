@@ -59,7 +59,7 @@ function CommonDropDown({
 
     return (
         <div
-            className={`relative ${className}`}
+            className={`relative ${isOpen ? "z-[100]" : "z-10"} ${className}`}
             style={style}
             ref={containerRef}
         >
@@ -97,9 +97,9 @@ function CommonDropDown({
                             onClick={(e) => e.stopPropagation()}
                         />
                     ) : (
-                        <span className={`truncate text-sm ${value ? "text-gray-800" : "text-gray-400"}`}>
-                            {value
-                                ? options.find(opt => opt.value === value)?.label
+                        <span className={`truncate text-sm ${value !== "" && value !== undefined && value !== null ? "text-gray-800" : "text-gray-400"}`}>
+                            {value !== "" && value !== undefined && value !== null
+                                ? options.find(opt => opt.value === value || String(opt.value) === String(value))?.label || value
                                 : placeholder}
                         </span>
                     )}
