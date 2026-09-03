@@ -23,7 +23,6 @@ import MyLeavesEntry from './LeaveMyLeavss/container/MyLeavesEntry'
 import LeaveApprovalEntry from './LeaveApproval/container/LeaveApprovalEntry'
 import SalaryAdvanceRequestEntry from './SalaryAdvanceRequest/container/SalaryAdvanceRequestEntry'
 import SalaryAdvanceApprovalEntry from './SalaryAdvanceApproval/container/SalaryAdvanceApprovalEntry'
-import PayrollRun from './PayrollRuns/PayrollRunstest'
 import PayrollInputstest from './PayrollRuns/PayrollInputstest'
 import PayrollSettingsEntry from './Payrollsettings/container/PayrollSettingsEntry'
 import MenuMappingEntry from './MenuMapping/container/MenuMappingEntry'
@@ -42,6 +41,7 @@ import ManagerApprovalsMobile from './Dashboard/Mobile/Managerapprovalsmobile'
 import LeaveMasterEntry from './LeaveMaster/container/LeaveMasterEntry'
 import LeaveMasterListEntry from './LeaveMaster/container/LeaveMasterListEntry'
 import ExCmdEntry from './ExCmd/container/ExCmdEntry'
+import PayrollRunEntry from './PayrollRuns/container/PayrollRunEntry'
 
 export const DASHBOARD_ROUTES = {
     ADMIN: { component: AdminDashboard },
@@ -96,7 +96,7 @@ export const ALL_ROUTES = [
     { path: 'salaryadvanceRequest', component: SalaryAdvanceRequestEntry },
     { path: 'salaryadvanceapproval', component: SalaryAdvanceApprovalEntry },
 
-    { path: 'payrollruns', component: PayrollRun },
+    { path: 'payrollruns', component: PayrollRunEntry },
     { path: 'payrollinputs', component: PayrollInputstest },
     { path: 'payrollsettings', component: PayrollSettingsEntry },
 
