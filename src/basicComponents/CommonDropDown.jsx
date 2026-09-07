@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react"
+import { createPortal } from "react-dom"
 import { ChevronDown, ChevronUp } from "lucide-react"
 import InlineMasterModal from "./InlineMasterModal"
 
@@ -23,30 +24,62 @@ function CommonDropDown({
     const [inlineOpen, setInlineOpen] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
     const [isOpen, setIsOpen] = useState(false)
+    const [dropdownStyle, setDropdownStyle] = useState({})
 
     const containerRef = useRef(null)
+    const inputContainerRef = useRef(null)
+    const dropdownMenuRef = useRef(null)
 
     const filteredOptions = options.filter(option =>
         option.label?.toLowerCase().includes(searchTerm?.toLowerCase())
     )
 
+    const updatePosition = () => {
+        if (inputContainerRef.current) {
+            const rect = inputContainerRef.current.getBoundingClientRect()
+            const spaceBelow = window.innerHeight - rect.bottom
+            const openUpwards = spaceBelow < 240 && rect.top > 240
+
+            setDropdownStyle({
+                position: "fixed",
+                width: `${rect.width}px`,
+                left: `${rect.left}px`,
+                top: openUpwards ? "auto" : `${rect.bottom + 4}px`,
+                bottom: openUpwards ? `${window.innerHeight - rect.top + 4}px` : "auto",
+                zIndex: 99999,
+            })
+        }
+    }
+
     useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (
-                containerRef.current &&
-                !containerRef.current.contains(event.target)
-            ) {
-                setIsOpen(false)
-                setSearchTerm("")
-            }
-        }
-
         if (isOpen) {
-            document.addEventListener("mousedown", handleClickOutside)
-        }
+            updatePosition()
 
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside)
+            const handleClickOutside = (event) => {
+                if (
+                    containerRef.current &&
+                    !containerRef.current.contains(event.target) &&
+                    dropdownMenuRef.current &&
+                    !dropdownMenuRef.current.contains(event.target)
+                ) {
+                    setIsOpen(false)
+                    setSearchTerm("")
+                }
+            }
+
+            const handleScrollOrResize = () => {
+                updatePosition()
+            }
+
+            document.addEventListener("mousedown", handleClickOutside)
+            window.addEventListener("resize", handleScrollOrResize)
+            window.addEventListener("scroll", handleScrollOrResize, true)
+
+            return () => {
+                document.removeEventListener("mousedown", handleClickOutside)
+                window.removeEventListener("resize", handleScrollOrResize)
+                window.removeEventListener("scroll", handleScrollOrResize, true)
+            }
         }
     }, [isOpen])
 
@@ -54,12 +87,11 @@ function CommonDropDown({
         onChange(selectedValue)
         setIsOpen(false)
         setSearchTerm("")
-
     }
 
     return (
         <div
-            className={`relative ${isOpen ? "z-[100]" : "z-10"} ${className}`}
+            className={`relative ${className}`}
             style={style}
             ref={containerRef}
         >
@@ -77,6 +109,7 @@ function CommonDropDown({
                 <div className="h-10 w-full bg-gray-200 rounded-lg animate-pulse"></div>
             ) : (
                 <div
+                    ref={inputContainerRef}
                     className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all
                     ${disabled
                             ? "bg-gray-100 text-gray-900 border border-indigo-500"
@@ -118,10 +151,11 @@ function CommonDropDown({
                 </div>
             )}
 
-            {isOpen && (
-
+            {isOpen && createPortal(
                 <div
-                    className="absolute left-0 top-full mt-1 w-full bg-white rounded-lg shadow-xl border border-indigo-500 z-[100]"
+                    ref={dropdownMenuRef}
+                    style={dropdownStyle}
+                    className="bg-white rounded-lg shadow-xl border border-indigo-500"
                 >
                     <div className="max-h-60 overflow-y-auto scrollbar">
                         {filteredOptions.length === 0 ? (
@@ -146,7 +180,6 @@ function CommonDropDown({
                                 </div>
                             ))
                         )}
-
                     </div>
 
                     {allowInlineCreate && (
@@ -161,9 +194,8 @@ function CommonDropDown({
                             + Add New
                         </div>
                     )}
-
-                </div>
-
+                </div>,
+                document.body
             )}
             <InlineMasterModal
                 open={inlineOpen}
