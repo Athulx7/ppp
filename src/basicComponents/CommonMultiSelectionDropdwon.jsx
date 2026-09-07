@@ -1,6 +1,8 @@
-import React, { useState } from "react"
+import React, { useState, useRef, useEffect } from "react"
+import { createPortal } from "react-dom"
 import { ChevronDown, ChevronUp, X } from "lucide-react"
 import './basicCss/comCss.css'
+
 function CommonMultiSelectionDropdown({
     label = "",
     required = false,
@@ -20,12 +22,66 @@ function CommonMultiSelectionDropdown({
 }) {
     const [isOpen, setIsOpen] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
+    const [dropdownStyle, setDropdownStyle] = useState({})
 
-    const filteredOptions = options.filter(opt => opt.label.toLowerCase().includes(searchTerm.toLowerCase()))
+    const containerRef = useRef(null)
+    const inputContainerRef = useRef(null)
+    const dropdownMenuRef = useRef(null)
+
+    const filteredOptions = options.filter(opt => opt.label?.toLowerCase().includes(searchTerm?.toLowerCase()))
 
     const isSelected = (val) => value.includes(val)
     const isMaxReached = maxSelection !== null && value.length >= maxSelection
     const isAllSelected = options.length > 0 && value.length === options.length
+
+    const updatePosition = () => {
+        if (inputContainerRef.current) {
+            const rect = inputContainerRef.current.getBoundingClientRect()
+            const spaceBelow = window.innerHeight - rect.bottom
+            const openUpwards = spaceBelow < 240 && rect.top > 240
+
+            setDropdownStyle({
+                position: "fixed",
+                width: `${rect.width}px`,
+                left: `${rect.left}px`,
+                top: openUpwards ? "auto" : `${rect.bottom + 4}px`,
+                bottom: openUpwards ? `${window.innerHeight - rect.top + 4}px` : "auto",
+                zIndex: 99999,
+            })
+        }
+    }
+
+    useEffect(() => {
+        if (isOpen) {
+            updatePosition()
+
+            const handleClickOutside = (event) => {
+                if (
+                    containerRef.current &&
+                    !containerRef.current.contains(event.target) &&
+                    dropdownMenuRef.current &&
+                    !dropdownMenuRef.current.contains(event.target)
+                ) {
+                    setIsOpen(false)
+                    setSearchTerm("")
+                }
+            }
+
+            const handleScrollOrResize = () => {
+                updatePosition()
+            }
+
+            document.addEventListener("mousedown", handleClickOutside)
+            window.addEventListener("resize", handleScrollOrResize)
+            window.addEventListener("scroll", handleScrollOrResize, true)
+
+            return () => {
+                document.removeEventListener("mousedown", handleClickOutside)
+                window.removeEventListener("resize", handleScrollOrResize)
+                window.removeEventListener("scroll", handleScrollOrResize, true)
+            }
+        }
+    }, [isOpen])
 
     const toggleSelect = (val) => {
         if (isSelected(val) && value.length <= minSelection) return
@@ -56,15 +112,17 @@ function CommonMultiSelectionDropdown({
     }
 
     return (
-        <div className={`relative ${className}`} style={style}>
+        <div className={`relative ${className}`} style={style} ref={containerRef}>
             {label && (
                 <label className="block mb-1 text-sm font-medium text-gray-700">
                     {label}
                     {required && <span className="ml-1 text-red-500">*</span>}
                 </label>
             )}
-            <div className={`flex items-center p-2 rounded-lg cursor-pointer ${disabled ? "bg-gray-100 text-gray-900 border border-indigo-500"
-                : "bg-white border border-indigo-500 hover:border-indigo-400"}
+            <div
+                ref={inputContainerRef}
+                className={`flex items-center p-2 rounded-lg cursor-pointer ${disabled ? "bg-gray-100 text-gray-900 border border-indigo-500"
+                    : "bg-white border border-indigo-500 hover:border-indigo-400"}
           ${isOpen ? "ring-1 ring-indigo-500" : ""} `}
                 onClick={() => !disabled && setIsOpen(!isOpen)}
             >
@@ -117,15 +175,19 @@ function CommonMultiSelectionDropdown({
                 </div>
             </div>
 
-            {isOpen && (
-                <div className="absolute z-[100] w-full mt-1 bg-white rounded-lg shadow-xl border border-indigo-500">
+            {isOpen && createPortal(
+                <div
+                    ref={dropdownMenuRef}
+                    style={dropdownStyle}
+                    className="bg-white rounded-lg shadow-xl border border-indigo-500"
+                >
                     {showSearch && (
                         <input
                             type="text"
                             placeholder="Search..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full p-2 text-sm border-b border-indigo-400 outline-none"
+                            className="w-full p-2 text-sm border-b border-indigo-400 outline-none rounded-t-lg"
                             autoFocus
                         />
                     )}
@@ -178,7 +240,8 @@ function CommonMultiSelectionDropdown({
                             })
                         )}
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     )
