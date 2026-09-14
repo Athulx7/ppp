@@ -14,8 +14,6 @@ function CtcReportEntry() {
                     { label: 'Reports', to: '/reports' },
                     { label: 'CTC Report' }
                 ]}
-                title="CTC Report"
-                description="View Cost to Company breakdown for employees"
                 loading={isLoading.normal}
             />
 
