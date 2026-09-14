@@ -50,7 +50,7 @@ function CommonModal({
     };
 
     return (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
+        <div className="fixed inset-0 z-50 overflow-y-auto scrollbar">
             <div
                 className={`fixed inset-0 bg-black/50 transition-opacity ${animationClasses[animation]}`}
                 onClick={overlayClose ? onClose : undefined}
@@ -75,7 +75,7 @@ function CommonModal({
                         </div>
                     )}
 
-                    <div className="p-4 overflow-y-auto max-h-[70vh]">
+                    <div className="p-4 overflow-y-auto max-h-[70vh] scrollbar">
                         {typeof body === "function" ? body() : body || children}
                     </div>
 

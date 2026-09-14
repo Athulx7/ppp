@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { 
     CheckCircle2, AlertCircle, Clock, CalendarDays, DollarSign, 
     CreditCard, ShieldAlert, ArrowRight, RefreshCw, Eye, Check,
@@ -11,37 +11,11 @@ export default function PreFlightChecklist({
     onOpenLopModal,
     onOpenOtModal,
     onOpenAdvanceModal,
-    metrics,
-    allVerified,
+    metrics = {},
+    featureFlags = {},
     onProceedToCalculation
 }) {
-    const handleToggleVerification = (key) => {
-        setVerificationStatus(prev => ({
-            ...prev,
-            [key]: {
-                ...prev[key],
-                verified: !prev[key].verified,
-                verifiedAt: !prev[key].verified ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null
-            }
-        }));
-    };
-
-    const handleVerifyAll = () => {
-        const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        setVerificationStatus(prev => {
-            const next = {};
-            Object.keys(prev).forEach(k => {
-                next[k] = { ...prev[k], verified: true, verifiedAt: now };
-            });
-            return next;
-        });
-    };
-
-    const verifiedCount = Object.values(verificationStatus).filter(v => v.verified).length;
-    const totalCount = Object.keys(verificationStatus).length;
-    const progressPercent = Math.round((verifiedCount / totalCount) * 100);
-
-    const checklistItems = [
+    const allChecklistItems = [
         {
             key: 'attendance_lop',
             title: 'Attendance & Loss of Pay (LOP) Verification',
@@ -50,7 +24,7 @@ export default function PreFlightChecklist({
             badgeColor: 'amber',
             description: 'Calculates unapproved absences, leaves balance, and loss of pay per-day rate deduction.',
             stats: [
-                { label: 'Total Working Days', value: '30 Days' },
+                { label: 'Total Working Days', value: `${metrics.working_days || 30} Days` },
                 { label: 'Employees with LOP', value: `${metrics.lopEmployeeCount || 0} Staff` },
                 { label: 'Total LOP Days', value: `${metrics.totalLopDays || 0} Days` },
                 { label: 'Total LOP Deduction', value: `₹${(metrics.totalLopDeductions || 0).toLocaleString('en-IN')}`, highlight: true }
@@ -115,24 +89,65 @@ export default function PreFlightChecklist({
         }
     ];
 
+    // Filter items conditionally based on payroll settings
+    const checklistItems = useMemo(() => {
+        return allChecklistItems.filter(item => {
+            if (item.key === 'overtime_variable') {
+                return featureFlags?.overtime_enabled || (metrics?.otEmployeeCount > 0);
+            }
+            if (item.key === 'advances_loans') {
+                return featureFlags?.advances_enabled || (metrics?.advanceCount > 0);
+            }
+            return true;
+        });
+    }, [featureFlags, metrics]);
+
+    const activeKeys = checklistItems.map(i => i.key);
+    const verifiedCount = activeKeys.filter(k => verificationStatus[k]?.verified).length;
+    const totalCount = activeKeys.length;
+    const progressPercent = totalCount > 0 ? Math.round((verifiedCount / totalCount) * 100) : 100;
+    const isAllVerified = activeKeys.length > 0 && activeKeys.every(k => verificationStatus[k]?.verified);
+
+    const handleToggleVerification = (key) => {
+        setVerificationStatus(prev => ({
+            ...prev,
+            [key]: {
+                ...prev[key],
+                verified: !prev[key]?.verified,
+                verifiedAt: !prev[key]?.verified ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null
+            }
+        }));
+    };
+
+    const handleVerifyAll = () => {
+        const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        setVerificationStatus(prev => {
+            const next = { ...prev };
+            activeKeys.forEach(k => {
+                next[k] = { ...prev[k], verified: true, verifiedAt: now };
+            });
+            return next;
+        });
+    };
+
     return (
         <div className="space-y-6">
             {/* Header & Progress Banner */}
-            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+            <div className="bg-white rounded-lg border border-gray-200 p-5 shadow-sm">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <div>
                         <div className="flex items-center gap-2">
                             <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                                 <FileCheck className="w-5 h-5 text-indigo-600" />
-                                Pre-Payroll Verification & Re-Clarification Checklist
+                                Pre-Payroll Verification Checklist
                             </h2>
                             <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
                                 Required Before Execution
                             </span>
                         </div>
                         <p className="text-xs text-gray-500 mt-1 max-w-2xl">
-                            In multi-tenant payroll, every company's attendance logs, leaves, and salary rules must be verified. 
-                            Review each module below and click <strong>"Re-clarify / Mark as Done"</strong> to unlock payroll computation.
+                            Attendance, leaves, statutory rules, and settings-configured deductions must be verified. 
+                            Review modules below and click <strong>"Confirm Done"</strong> or click <strong>"Inspect"</strong> to view and adjust live data.
                         </p>
                     </div>
 
@@ -142,13 +157,13 @@ export default function PreFlightChecklist({
                             className="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 border border-gray-300"
                         >
                             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                            Verify All Checkpoints
+                            Verify All ({totalCount}) Checkpoints
                         </button>
                         <button
-                            disabled={!allVerified}
+                            disabled={!isAllVerified}
                             onClick={onProceedToCalculation}
                             className={`px-4 py-2 rounded-lg text-xs font-semibold shadow-sm transition-all flex items-center gap-2 ${
-                                allVerified
+                                isAllVerified
                                     ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200'
                                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                             }`}
@@ -163,7 +178,7 @@ export default function PreFlightChecklist({
                 <div className="mt-5 pt-4 border-t border-gray-100">
                     <div className="flex justify-between items-center text-xs font-medium mb-1.5">
                         <span className="text-gray-600 flex items-center gap-1.5">
-                            <span className="font-semibold text-gray-900">{verifiedCount} of {totalCount}</span> items re-clarified and confirmed
+                            <span className="font-semibold text-gray-900">{verifiedCount} of {totalCount}</span> active items confirmed
                         </span>
                         <span className={`font-bold ${progressPercent === 100 ? 'text-emerald-600' : 'text-indigo-600'}`}>
                             {progressPercent}% Completed
@@ -189,7 +204,7 @@ export default function PreFlightChecklist({
                     return (
                         <div 
                             key={item.key}
-                            className={`bg-white rounded-xl border transition-all duration-200 p-5 ${
+                            className={`bg-white rounded-lg border transition-all duration-200 p-5 ${
                                 isDone 
                                     ? 'border-emerald-200 bg-emerald-50/20 shadow-sm' 
                                     : 'border-gray-200 hover:border-indigo-300 shadow-sm hover:shadow-md'
@@ -197,7 +212,7 @@ export default function PreFlightChecklist({
                         >
                             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                                 <div className="flex items-start gap-3.5">
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
+                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
                                         isDone ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-700'
                                     }`}>
                                         {isDone ? <CheckCircle2 className="w-5 h-5 text-emerald-600" /> : item.icon}
@@ -214,12 +229,12 @@ export default function PreFlightChecklist({
                                             {isDone ? (
                                                 <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
                                                     <Check className="w-3 h-3 text-emerald-600" />
-                                                    Re-clarified & Verified {status.verifiedAt ? `at ${status.verifiedAt}` : ''}
+                                                    Verified {status.verifiedAt ? `at ${status.verifiedAt}` : ''}
                                                 </span>
                                             ) : (
                                                 <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1">
                                                     <AlertTriangle className="w-3 h-3 text-amber-600" />
-                                                    Action / Review Pending
+                                                    Review Pending
                                                 </span>
                                             )}
                                         </div>
@@ -247,7 +262,7 @@ export default function PreFlightChecklist({
                                     {item.actionInspect && (
                                         <button
                                             onClick={item.actionInspect}
-                                            className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5"
+                                            className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm"
                                         >
                                             <Eye className="w-3.5 h-3.5" />
                                             {item.actionInspectLabel}
@@ -270,7 +285,7 @@ export default function PreFlightChecklist({
                                         ) : (
                                             <>
                                                 <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600" />
-                                                Re-clarify & Confirm Done
+                                                Confirm Done
                                             </>
                                         )}
                                     </button>
@@ -282,15 +297,15 @@ export default function PreFlightChecklist({
             </div>
 
             {/* Quick Action bar if all verified */}
-            {allVerified && (
-                <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 animate-fadeIn">
+            {isAllVerified && (
+                <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-lg p-4 flex flex-col sm:flex-row items-center justify-between gap-3 animate-fadeIn">
                     <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
                             <Sparkles className="w-5 h-5 text-emerald-600" />
                         </div>
                         <div>
-                            <h4 className="text-xs font-bold text-emerald-900">All 5 Pre-Payroll Verifications Completed!</h4>
-                            <p className="text-[11px] text-emerald-700">Attendance, LOP, OT, Advances, and Statutory Slabs are re-clarified and in sync with Company DB.</p>
+                            <h4 className="text-xs font-bold text-emerald-900">All {totalCount} Pre-Payroll Verifications Completed!</h4>
+                            <p className="text-[11px] text-emerald-700">Attendance, LOP, structure deductions, and statutory slabs are confirmed.</p>
                         </div>
                     </div>
                     <button

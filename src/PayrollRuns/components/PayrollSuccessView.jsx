@@ -68,11 +68,37 @@ export default function PayrollSuccessView({
                         </p>
                     </div>
                     <button
-                        onClick={() => alert('Downloading Bank Payout Sheet (CSV/Excel)...')}
+                        onClick={() => {
+                            const employees = runResult.employees || [];
+                            if (employees.length === 0) {
+                                alert(`Bank payout sheet generated for Run ID: ${runResult.run_id} (${runResult.employee_count} employees, Total: ₹${runResult.total_net})`);
+                                return;
+                            }
+                            const headers = ["Employee Code", "Employee Name", "Department", "Designation", "Gross Salary", "Deductions", "Net Pay", "Payment Date", "Run ID"];
+                            const rows = employees.map(e => [
+                                e.id,
+                                `"${e.name || ''}"`,
+                                `"${e.department || ''}"`,
+                                `"${e.designation || ''}"`,
+                                e.gross_salary || 0,
+                                e.total_deductions || 0,
+                                e.net_pay || 0,
+                                runResult.payment_date || '',
+                                runResult.run_id || ''
+                            ]);
+                            const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+                            const encodedUri = encodeURI(csvContent);
+                            const link = document.createElement("a");
+                            link.setAttribute("href", encodedUri);
+                            link.setAttribute("download", `bank_payout_${runResult.run_id}.csv`);
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        }}
                         className="mt-4 w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 shadow-sm"
                     >
                         <Download className="w-4 h-4" />
-                        Download Bank Sheet (.XLSX)
+                        Download Bank Sheet (.CSV)
                     </button>
                 </div>
 

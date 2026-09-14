@@ -1,13 +1,63 @@
-import React from 'react'
+import React from 'react';
 import CommonDropDown from '../../basicComponents/CommonDropDown';
 import CommonTable from '../../basicComponents/commonTable';
+import { Filter, RotateCcw, FileText } from 'lucide-react';
 
-function PayslipsFilterAndView({ months, years, departments, designations, viewMode, currentUser, selectedMonth, setSelectedMonth, selectedYear, setSelectedYear, selectedDepartment, setSelectedDepartment, selectedDesignation, setSelectedDesignation, employees, selectedEmployee, setSelectedEmployee, payslipColumns, filteredData }) {
+function PayslipsFilterAndView({
+    months,
+    years,
+    departments,
+    designations,
+    viewMode,
+    currentUser,
+    selectedMonth,
+    setSelectedMonth,
+    selectedYear,
+    setSelectedYear,
+    selectedDepartment,
+    setSelectedDepartment,
+    selectedDesignation,
+    setSelectedDesignation,
+    employees,
+    selectedEmployee,
+    setSelectedEmployee,
+    payslipColumns,
+    filteredData
+}) {
+    const hasActiveFilters = Boolean(selectedMonth || selectedYear || selectedDepartment || selectedDesignation || selectedEmployee)
+
+    const handleClearFilters = () => {
+        setSelectedEmployee('')
+        setSelectedDepartment('')
+        setSelectedDesignation('')
+        setSelectedMonth('')
+        setSelectedYear('')
+    }
+
     return (
-        <>
-            <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
+                    <div className="flex items-center gap-2">
+                        <Filter className="w-4 h-4 text-indigo-600" />
+                        <h3 className="text-sm font-bold text-gray-800">Filter Payslips</h3>
+                        <span className="text-xs text-gray-400 font-normal">
+                            ({filteredData.length} records found)
+                        </span>
+                    </div>
 
+                    {hasActiveFilters && (
+                        <button
+                            onClick={handleClearFilters}
+                            className="text-xs font-semibold text-rose-600 hover:text-rose-700 flex items-center gap-1 bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200 transition-colors"
+                        >
+                            <RotateCcw className="w-3 h-3" />
+                            Reset Filters
+                        </button>
+                    )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5 items-end">
                     <CommonDropDown
                         label="Month"
                         value={selectedMonth}
@@ -16,7 +66,7 @@ function PayslipsFilterAndView({ months, years, departments, designations, viewM
                             { label: 'All Months', value: '' },
                             ...months
                         ]}
-                        placeholder="Filter by Month"
+                        placeholder="All Months"
                     />
 
                     <CommonDropDown
@@ -27,7 +77,7 @@ function PayslipsFilterAndView({ months, years, departments, designations, viewM
                             { label: 'All Years', value: '' },
                             ...years
                         ]}
-                        placeholder="Filter by Year"
+                        placeholder="All Years"
                     />
 
                     {(viewMode === 'all' || currentUser.role === 'hr' || currentUser.role === 'admin') && (
@@ -40,7 +90,7 @@ function PayslipsFilterAndView({ months, years, departments, designations, viewM
                                     { label: 'All Departments', value: '' },
                                     ...departments.map(dept => ({ label: dept, value: dept }))
                                 ]}
-                                placeholder="Filter by Department"
+                                placeholder="All Departments"
                             />
 
                             <CommonDropDown
@@ -51,7 +101,7 @@ function PayslipsFilterAndView({ months, years, departments, designations, viewM
                                     { label: 'All Designations', value: '' },
                                     ...designations.map(des => ({ label: des, value: des }))
                                 ]}
-                                placeholder="Filter by Designation"
+                                placeholder="All Designations"
                             />
                         </>
                     )}
@@ -63,30 +113,16 @@ function PayslipsFilterAndView({ months, years, departments, designations, viewM
                         options={[
                             { label: 'All Employees', value: '' },
                             ...employees.map(emp => ({
-                                label: emp.emp_name,
+                                label: `${emp.emp_name} (${emp.emp_code})`,
                                 value: emp.emp_code,
                                 description: `${emp.designation}`
                             }))
                         ]}
-                        placeholder="Select Employee"
+                        placeholder="All Employees"
                     />
                 </div>
-
-                <div className="flex justify-end gap-3 mt-4">
-                    <button
-                        onClick={() => {
-                            setSelectedEmployee('');
-                            setSelectedDepartment('');
-                            setSelectedDesignation('');
-                            setSelectedMonth('');
-                            setSelectedYear('');
-                        }}
-                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                        Clear Filters
-                    </button>
-                </div>
             </div>
+
             <CommonTable
                 columns={payslipColumns}
                 data={filteredData}
@@ -94,7 +130,7 @@ function PayslipsFilterAndView({ months, years, departments, designations, viewM
                 showSearch={false}
                 showPagination={true}
             />
-        </>
+        </div>
     )
 }
 

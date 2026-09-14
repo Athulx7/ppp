@@ -163,22 +163,34 @@ function CommonDropDown({
                                 No options found
                             </div>
                         ) : (
-                            filteredOptions.map(option => (
-                                <div
-                                    key={option.value}
-                                    className={`p-3 text-sm cursor-pointer hover:bg-indigo-50 border-b border-indigo-100
-                                    ${value === option.value
-                                            ? "bg-indigo-100 text-indigo-700 font-medium"
-                                            : "text-gray-700"}
-                                    `}
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        handleSelect(option.value)
-                                    }}
-                                >
-                                    {option.label}
-                                </div>
-                            ))
+                            filteredOptions.map(option => {
+                                const isOptionDisabled = Boolean(option.disabled);
+                                return (
+                                    <div
+                                        key={option.value}
+                                        className={`p-3 text-sm border-b border-indigo-100 flex items-center justify-between transition-colors
+                                        ${isOptionDisabled
+                                                ? "bg-gray-50 text-gray-400 cursor-not-allowed select-none opacity-60"
+                                                : value === option.value
+                                                    ? "bg-indigo-100 text-indigo-700 font-medium cursor-pointer"
+                                                    : "text-gray-700 hover:bg-indigo-50 cursor-pointer"}
+                                        `}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (!isOptionDisabled) {
+                                                handleSelect(option.value);
+                                            }
+                                        }}
+                                    >
+                                        <span>{option.label}</span>
+                                        {isOptionDisabled && (
+                                            <span className="text-[10px] font-semibold tracking-wide uppercase px-1.5 py-0.5 bg-gray-200 text-gray-500 rounded">
+                                                Disabled
+                                            </span>
+                                        )}
+                                    </div>
+                                );
+                            })
                         )}
                     </div>
 

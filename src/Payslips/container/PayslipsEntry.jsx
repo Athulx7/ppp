@@ -14,8 +14,6 @@ function PayslipsEntry() {
                     { label: 'Payroll', to: '/payroll' },
                     { label: 'Payslips' }
                 ]}
-                title="Payslip Management"
-                description="View and manage employee payslips"
                 loading={isLoading.normal}
             />
 
