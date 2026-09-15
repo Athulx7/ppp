@@ -1,4 +1,5 @@
 import axios from "axios"
+import { jwtDecode } from "jwt-decode"
 
 const api = axios.create({
     baseURL: "http://localhost:3000/api",
@@ -14,6 +15,25 @@ api.interceptors.request.use(
         return config;
     },
     (error) => Promise.reject(error)
+)
+
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response && error.response.status === 401) {
+            const data = error.response.data;
+            const isExpired = data?.isExpired ||
+                data?.error === 'TokenExpiredError' ||
+                (typeof data?.message === 'string' && data.message.toLowerCase().includes('expired'));
+
+            if (isExpired) {
+                window.dispatchEvent(new CustomEvent('session-expired', {
+                    detail: { message: data?.message || "Your session has expired. Please log in again." }
+                }));
+            }
+        }
+        return Promise.reject(error);
+    }
 )
 
 export const ApiCall = async (method, endpoint, payload = null) => {
@@ -38,15 +58,12 @@ export const ApiCall = async (method, endpoint, payload = null) => {
     }
 }
 
-
 export function getTokenData() {
     try {
         const token = sessionStorage.getItem("token")
         if (!token) return null
 
         const decoded = jwtDecode(token)
-        console.log("Decoded Token:", decoded)
-
         return decoded
     } catch (error) {
         console.error("Error decoding token:", error)

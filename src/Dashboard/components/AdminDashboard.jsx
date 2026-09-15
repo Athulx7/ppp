@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Receipt, Banknote, BarChart, Shield, FileCheck, Calculator,
     Calendar, Users, DollarSign, Clock, TrendingUp, Bell, Gift,
@@ -12,211 +13,207 @@ import {
 import LoadingSpinner from '../../basicComponents/LoadingSpinner';
 import Greetings from '../common/Greetings';
 import CalendarSection from '../common/CalendarSection';
+import { ApiCall } from '../../library/constants';
 
 function AdminDashboard() {
-    const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('overview');
+    const [dashboardData, setDashboardData] = useState(null);
 
-    // Admin Metrics
-    const adminMetrics = [
-        {
-            title: "Total Employees",
-            value: "1,247",
-            icon: Users,
-            color: "bg-blue-500",
-            change: "+48 this month",
-            detail: "Active: 1,230 | Inactive: 17"
-        },
-        {
-            title: "System Users",
-            value: "28",
-            icon: UserCog,
-            color: "bg-purple-500",
-            change: "Admin: 3 | HR: 8 | Payroll: 4",
-            detail: "Active roles configured"
-        },
-        {
-            title: "Pending Approvals",
-            value: "42",
-            icon: AlertTriangle,
-            color: "bg-amber-500",
-            change: "12 urgent requests",
-            detail: "HR: 25 | Payroll: 17"
-        },
-        {
-            title: "Total Payroll",
-            value: "$1.2M",
-            icon: DollarSign,
-            color: "bg-green-500",
-            change: "+5.8% from last month",
-            detail: "Monthly: $298,750"
-        },
-        {
-            title: "System Health",
-            value: "98.7%",
-            icon: CheckCircle,
-            color: "bg-emerald-500",
-            change: "Uptime this month",
-            detail: "Issues: 2 minor"
-        },
-        {
-            title: "Company Settings",
-            value: "Updated",
-            icon: Settings,
-            color: "bg-indigo-500",
-            change: "Last: 2 hours ago",
-            detail: "Configurations: 48"
-        },
-    ];
+    useEffect(() => {
+        const fetchAdminDashboard = async () => {
+            setIsLoading(true);
+            try {
+                const res = await ApiCall('get', '/dashboard/admin');
+                if (res?.data?.success && res.data.data) {
+                    setDashboardData(res.data.data);
+                }
+            } catch (error) {
+                console.error('Failed to load admin dashboard:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
 
-    // User Access Management
-    const userAccess = [
-        {
-            name: "HR Manager",
-            users: 8,
-            permissions: ["Employee Management", "Leave Approval", "Recruitment"],
-            icon: UsersIcon,
-            color: "bg-blue-100 text-blue-600"
-        },
-        {
-            name: "Payroll Admin",
-            users: 4,
-            permissions: ["Salary Processing", "Tax Management", "Reports"],
-            icon: CreditCard,
-            color: "bg-green-100 text-green-600"
-        },
-        {
-            name: "Department Heads",
-            users: 14,
-            permissions: ["Team Management", "Leave Approval", "Reports"],
-            icon: Building,
-            color: "bg-purple-100 text-purple-600"
-        },
-        {
-            name: "Super Admin",
-            users: 3,
-            permissions: ["Full System Access", "User Management", "Settings"],
-            icon: Crown,
-            color: "bg-amber-100 text-amber-600"
-        },
-    ];
+        fetchAdminDashboard();
+    }, []);
 
-    // Recent Employee CTC Updates
-    const recentCtcUpdates = [
-        {
-            name: "John Smith",
-            department: "Engineering",
-            oldCtc: "$85,000",
-            newCtc: "$95,000",
-            change: "+11.8%",
-            date: "Today"
-        },
-        {
-            name: "Sarah Johnson",
-            department: "HR",
-            oldCtc: "$65,000",
-            newCtc: "$72,000",
-            change: "+10.8%",
-            date: "Yesterday"
-        },
-        {
-            name: "Mike Chen",
-            department: "Sales",
-            oldCtc: "$90,000",
-            newCtc: "$105,000",
-            change: "+16.7%",
-            date: "2 days ago"
-        },
-        {
-            name: "Priya Sharma",
-            department: "Marketing",
-            oldCtc: "$75,000",
-            newCtc: "$82,000",
-            change: "+9.3%",
-            date: "3 days ago"
-        },
-    ];
+    // Dynamic Admin Metrics
+    const adminMetrics = useMemo(() => {
+        const m = dashboardData?.metrics || {};
+        return [
+            {
+                title: "Total Employees",
+                value: m.totalEmployees?.value ?? "0",
+                icon: Users,
+                color: "bg-blue-500",
+                change: m.totalEmployees?.change ?? "+0 this month",
+                detail: m.totalEmployees?.detail ?? "Active: 0 | Inactive: 0"
+            },
+            {
+                title: "System Users",
+                value: m.systemUsers?.value ?? "0",
+                icon: UserCog,
+                color: "bg-purple-500",
+                change: m.systemUsers?.change ?? "Active users",
+                detail: m.systemUsers?.detail ?? "Active roles configured"
+            },
+            {
+                title: "Pending Approvals",
+                value: m.pendingApprovals?.value ?? "0",
+                icon: AlertTriangle,
+                color: "bg-amber-500",
+                change: m.pendingApprovals?.change ?? "0 urgent requests",
+                detail: m.pendingApprovals?.detail ?? "HR & Payroll"
+            },
+            {
+                title: "Total Payroll",
+                value: m.totalPayroll?.value ?? "$0",
+                icon: DollarSign,
+                color: "bg-green-500",
+                change: m.totalPayroll?.change ?? "Latest run",
+                detail: m.totalPayroll?.detail ?? "Monthly payroll"
+            },
+            {
+                title: "System Health",
+                value: m.systemHealth?.value ?? "100%",
+                icon: CheckCircle,
+                color: "bg-emerald-500",
+                change: m.systemHealth?.change ?? "Operational",
+                detail: m.systemHealth?.detail ?? "Database Connected"
+            },
+            {
+                title: "Company Settings",
+                value: m.companySettings?.value ?? "Configured",
+                icon: Settings,
+                color: "bg-indigo-500",
+                change: m.companySettings?.change ?? "Active",
+                detail: m.companySettings?.detail ?? "Configurations"
+            },
+        ];
+    }, [dashboardData]);
 
-    // Company Settings Overview
-    const companySettings = [
-        { category: "Company Info", items: 12, lastUpdated: "Today", icon: Building, color: "bg-blue-100" },
-        { category: "HR Policies", items: 28, lastUpdated: "2 days ago", icon: Shield, color: "bg-green-100" },
-        { category: "Payroll Config", items: 35, lastUpdated: "Today", icon: CreditCard, color: "bg-purple-100" },
-        { category: "Email Templates", items: 18, lastUpdated: "1 week ago", icon: Mail, color: "bg-amber-100" },
-    ];
+    // Dynamic User Access Management
+    const userAccess = useMemo(() => {
+        const icons = [UsersIcon, CreditCard, Building, Crown];
+        const colors = [
+            "bg-blue-100 text-blue-600",
+            "bg-green-100 text-green-600",
+            "bg-purple-100 text-purple-600",
+            "bg-amber-100 text-amber-600"
+        ];
+        const list = dashboardData?.userAccess || [];
+        if (list.length === 0) {
+            return [
+                { name: "HR Manager", users: 0, permissions: ["Employee Management", "Leave Approval", "Attendance"], icon: UsersIcon, color: colors[0] },
+                { name: "Payroll Admin", users: 0, permissions: ["Salary Processing", "Payslip Generation", "Tax Reports"], icon: CreditCard, color: colors[1] },
+                { name: "Department Heads", users: 0, permissions: ["Team Management", "Leave Approval", "Reports"], icon: Building, color: colors[2] },
+                { name: "Super Admin", users: 0, permissions: ["Full System Access", "User Management", "Settings"], icon: Crown, color: colors[3] },
+            ];
+        }
+        return list.map((item, idx) => ({
+            ...item,
+            icon: icons[idx % icons.length],
+            color: item.color || colors[idx % colors.length]
+        }));
+    }, [dashboardData]);
 
-    // Salary Component Breakdown
-    const salaryComponents = [
-        { name: "Basic Salary", value: "$750,000", percentage: "62.8%", color: "bg-blue-500" },
-        { name: "Allowances", value: "$225,000", percentage: "18.8%", color: "bg-green-500" },
-        { name: "Benefits", value: "$119,500", percentage: "10.0%", color: "bg-purple-500" },
-        { name: "Bonuses", value: "$60,000", percentage: "5.0%", color: "bg-amber-500" },
-        { name: "Statutory Deductions", value: "$40,500", percentage: "3.4%", color: "bg-red-500" },
-    ];
+    // Dynamic Recent Employee CTC Updates
+    const recentCtcUpdates = useMemo(() => {
+        return dashboardData?.recentCtcUpdates || [];
+    }, [dashboardData]);
 
-    // System Activities
-    const systemActivities = [
-        { action: "User role updated", person: "Admin", target: "HR Manager", time: "10 min ago" },
-        { action: "Company email updated", person: "Admin", target: "Settings", time: "2 hours ago" },
-        { action: "Payroll processed", person: "System", target: "All employees", time: "1 day ago" },
-        { action: "New employee added", person: "HR Manager", target: "John Doe", time: "2 days ago" },
-    ];
+    // Dynamic Company Settings Overview
+    const companySettings = useMemo(() => {
+        const icons = [Building, Shield, CreditCard, Mail];
+        const list = dashboardData?.companySettings || [];
+        if (list.length === 0) {
+            return [
+                { category: "Company Info", items: 1, lastUpdated: "Configured", icon: Building, color: "bg-blue-100" },
+                { category: "Departments", items: 0, lastUpdated: "Active", icon: Shield, color: "bg-green-100" },
+                { category: "Designations", items: 0, lastUpdated: "Active", icon: CreditCard, color: "bg-purple-100" },
+                { category: "Salary Components", items: 0, lastUpdated: "Active", icon: Mail, color: "bg-amber-100" },
+            ];
+        }
+        return list.map((item, idx) => ({
+            ...item,
+            icon: icons[idx % icons.length]
+        }));
+    }, [dashboardData]);
+
+    // Dynamic Salary Component Breakdown
+    const salaryComponents = useMemo(() => {
+        return dashboardData?.salaryComponents || [];
+    }, [dashboardData]);
+
+    // Dynamic System Activities
+    const systemActivities = useMemo(() => {
+        return dashboardData?.systemActivities || [];
+    }, [dashboardData]);
 
     // Admin Quick Actions
     const adminQuickActions = [
         {
-            label: "User Management",
-            icon: UserCog,
+            label: "Employee Master",
+            icon: Users,
             color: "hover:bg-blue-50 border-blue-200",
-            description: "Manage system users & roles"
+            description: "View and manage employees",
+            path: "/admin/employee_master_entry"
         },
         {
             label: "Company Settings",
             icon: Settings,
             color: "hover:bg-green-50 border-green-200",
-            description: "Configure company data"
+            description: "Configure company data",
+            path: "/admin/companysettings"
         },
         {
             label: "View All CTCs",
             icon: DollarSign,
             color: "hover:bg-purple-50 border-purple-200",
-            description: "Access employee compensation"
+            description: "Access employee compensation",
+            path: "/admin/ctcreport"
         },
         {
             label: "Payslip Access",
             icon: Eye,
             color: "hover:bg-amber-50 border-amber-200",
-            description: "View all employee payslips"
+            description: "View all employee payslips",
+            path: "/admin/payslip"
         },
         {
-            label: "System Logs",
-            icon: Activity,
+            label: "Salary Components",
+            icon: CreditCard,
             color: "hover:bg-red-50 border-red-200",
-            description: "Monitor system activities"
+            description: "Manage salary components",
+            path: "/admin/salary_components"
         },
         {
-            label: "Backup & Restore",
+            label: "Salary Structures",
             icon: Database,
             color: "hover:bg-indigo-50 border-indigo-200",
-            description: "Data management"
+            description: "Manage salary structures",
+            path: "/admin/salary_structure"
         },
     ];
 
     const handleQuickAction = (action) => {
-        console.log(`Admin action: ${action.label}`);
-        // Navigation logic here
+        if (action?.path) {
+            navigate(action.path);
+        }
     };
 
-    const viewEmployeePayslip = (employeeName) => {
-        console.log(`Viewing payslip for ${employeeName}`);
+    const viewEmployeePayslip = () => {
+        navigate('/admin/payslip');
     };
 
-    const editUserAccess = (userType) => {
-        console.log(`Editing access for ${userType}`);
+    const editUserAccess = () => {
+        navigate('/admin/employee_master_entry');
     };
 
-    const updateCompanySettings = (category) => {
-        console.log(`Updating ${category} settings`);
+    const updateCompanySettings = () => {
+        navigate('/admin/companysettings');
     };
 
     return (

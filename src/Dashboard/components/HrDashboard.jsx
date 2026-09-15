@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Users, CalendarDays, DollarSign, TrendingUp,
     Briefcase, GraduationCap, FileCheck, PieChart,
@@ -12,246 +13,174 @@ import LoadingSpinner from '../../basicComponents/LoadingSpinner';
 import Greetings from '../common/Greetings';
 import CalendarSection from '../common/CalendarSection';
 import CommonButton from '../../basicComponents/CommonButton';
+import { ApiCall } from '../../library/constants';
 
 function HRDashboard() {
-    const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(true);
+    const [dashboardData, setDashboardData] = useState(null);
 
-    const hrMetrics = [
-        {
-            title: "Total Employees",
-            value: "247",
-            icon: Users,
-            color: "bg-blue-500",
-            change: "+12 this month",
-            detail: "Active: 240 | On Leave: 7"
-        },
-        {
-            title: "Leave Requests",
-            value: "28",
-            icon: CalendarDays,
-            color: "bg-amber-500",
-            change: "+8 pending",
-            detail: "Approved: 20 | Rejected: 5"
-        },
-        {
-            title: "Employee Master",
-            value: "Updated",
-            icon: UserCog,
-            color: "bg-purple-500",
-            change: "15 edits pending",
-            detail: "Last updated: Today"
-        },
-        {
-            title: "Departments",
-            value: "14",
-            icon: FolderTree,
-            color: "bg-green-500",
-            change: "2 new added",
-            detail: "Largest: Engineering"
-        },
-        {
-            title: "Designations",
-            value: "32",
-            icon: Award,
-            color: "bg-indigo-500",
-            change: "3 new roles",
-            detail: "Recent: Tech Lead"
-        },
-        {
-            title: "Leave Types",
-            value: "8",
-            icon: ListTodo,
-            color: "bg-orange-500",
-            change: "1 new added",
-            detail: "Popular: Sick Leave"
-        },
-    ];
+    useEffect(() => {
+        const fetchHrDashboard = async () => {
+            setIsLoading(true);
+            try {
+                const res = await ApiCall('get', '/dashboard/hr');
+                if (res?.data?.success && res.data.data) {
+                    setDashboardData(res.data.data);
+                }
+            } catch (error) {
+                console.error('Failed to load HR dashboard:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
 
-    const upcomingLeaves = [
-        {
-            name: "John Smith",
-            department: "Engineering",
-            type: "Annual Leave",
-            dates: "Dec 25-29",
-            status: "approved",
-            days: "5 days"
-        },
-        {
-            name: "Sarah Johnson",
-            department: "HR",
-            type: "Sick Leave",
-            dates: "Dec 26",
-            status: "pending",
-            days: "1 day"
-        },
-        {
-            name: "Mike Chen",
-            department: "Sales",
-            type: "Emergency Leave",
-            dates: "Today",
-            status: "urgent",
-            days: "1 day"
-        },
-        {
-            name: "Priya Sharma",
-            department: "Marketing",
-            type: "Maternity Leave",
-            dates: "Jan 1-30",
-            status: "approved",
-            days: "30 days"
-        },
-    ];
+        fetchHrDashboard();
+    }, []);
 
-    const pendingApprovals = [
-        {
-            id: 1,
-            type: "Leave Request",
-            employee: "Raj Kumar",
-            details: "Annual Leave",
-            duration: "3 days",
-            date: "Dec 20-22",
-            status: "pending",
-            priority: "normal"
-        },
-        {
-            id: 2,
-            type: "Leave Request",
-            employee: "Maria Garcia",
-            details: "Sick Leave",
-            duration: "2 days",
-            date: "Dec 18-19",
-            status: "pending",
-            priority: "normal"
-        },
-        {
-            id: 3,
-            type: "Employee Edit",
-            employee: "David Lee",
-            details: "Update Bank Details",
-            duration: "",
-            date: "Dec 15",
-            status: "pending",
-            priority: "medium"
-        },
-        {
-            id: 4,
-            type: "Leave Type",
-            employee: "System",
-            details: "Add Paternity Leave",
-            duration: "",
-            date: "Dec 14",
-            status: "pending",
-            priority: "low"
-        },
-    ];
+    // Dynamic HR Metrics
+    const hrMetrics = useMemo(() => {
+        const m = dashboardData?.metrics || {};
+        return [
+            {
+                title: "Total Employees",
+                value: m.totalEmployees?.value ?? "0",
+                icon: Users,
+                color: "bg-blue-500",
+                change: m.totalEmployees?.change ?? "+0 this month",
+                detail: m.totalEmployees?.detail ?? "Active: 0 | On Leave: 0"
+            },
+            {
+                title: "Leave Requests",
+                value: m.leaveRequests?.value ?? "0",
+                icon: CalendarDays,
+                color: "bg-amber-500",
+                change: m.leaveRequests?.change ?? "0 pending",
+                detail: m.leaveRequests?.detail ?? "Approved: 0 | Rejected: 0"
+            },
+            {
+                title: "Employee Master",
+                value: m.employeeMaster?.value ?? "0",
+                icon: UserCog,
+                color: "bg-purple-500",
+                change: m.employeeMaster?.change ?? "Active records",
+                detail: m.employeeMaster?.detail ?? "All up to date"
+            },
+            {
+                title: "Departments",
+                value: m.departments?.value ?? "0",
+                icon: FolderTree,
+                color: "bg-green-500",
+                change: m.departments?.change ?? "Active",
+                detail: m.departments?.detail ?? "Configured"
+            },
+            {
+                title: "Designations",
+                value: m.designations?.value ?? "0",
+                icon: Award,
+                color: "bg-indigo-500",
+                change: m.designations?.change ?? "Active",
+                detail: m.designations?.detail ?? "Roles configured"
+            },
+            {
+                title: "Leave Types",
+                value: m.leaveTypes?.value ?? "0",
+                icon: ListTodo,
+                color: "bg-orange-500",
+                change: m.leaveTypes?.change ?? "Policies",
+                detail: m.leaveTypes?.detail ?? "Leave types active"
+            },
+        ];
+    }, [dashboardData]);
 
-    const recentEmployeeUpdates = [
-        {
-            name: "Emily Brown",
-            action: "Employee Added",
-            department: "Engineering",
-            date: "Today",
-            time: "10:30 AM"
-        },
-        {
-            name: "Robert Wilson",
-            action: "Details Updated",
-            department: "Sales",
-            date: "Yesterday",
-            time: "3:45 PM"
-        },
-        {
-            name: "Lisa Wang",
-            action: "Leave Assigned",
-            department: "Marketing",
-            date: "2 days ago",
-            time: "11:20 AM"
-        },
-        {
-            name: "Alex Turner",
-            action: "Department Changed",
-            department: "HR",
-            date: "3 days ago",
-            time: "2:15 PM"
-        },
-    ];
+    const upcomingLeaves = useMemo(() => {
+        return dashboardData?.upcomingLeaves || [];
+    }, [dashboardData]);
 
-    const departmentStats = [
-        { name: "Engineering", employees: 85, color: "bg-blue-500" },
-        { name: "Sales", employees: 45, color: "bg-green-500" },
-        { name: "Marketing", employees: 28, color: "bg-purple-500" },
-        { name: "HR", employees: 18, color: "bg-amber-500" },
-        { name: "Finance", employees: 22, color: "bg-indigo-500" },
-        { name: "Operations", employees: 49, color: "bg-red-500" },
-    ];
+    const pendingApprovals = useMemo(() => {
+        return dashboardData?.pendingApprovals || [];
+    }, [dashboardData]);
 
-    const leaveTypeStats = [
-        { type: "Annual Leave", count: 45, color: "bg-blue-500" },
-        { type: "Sick Leave", count: 28, color: "bg-green-500" },
-        { type: "Casual Leave", count: 32, color: "bg-amber-500" },
-        { type: "Maternity", count: 5, color: "bg-pink-500" },
-        { type: "Paternity", count: 3, color: "bg-indigo-500" },
-        { type: "Emergency", count: 12, color: "bg-red-500" },
-    ];
+    const recentEmployeeUpdates = useMemo(() => {
+        return dashboardData?.recentEmployeeUpdates || [];
+    }, [dashboardData]);
 
-    const quickStats = [
-        { label: "Active Departments", value: "14" },
-        { label: "Total Designations", value: "32" },
-        { label: "Leave Types", value: "8" },
-        { label: "Pending Approvals", value: "28" },
-        { label: "This Month Joinees", value: "12" },
-        { label: "Employee Updates", value: "47" },
-    ];
+    const departmentStats = useMemo(() => {
+        return dashboardData?.departmentStats || [];
+    }, [dashboardData]);
+
+    const leaveTypeStats = useMemo(() => {
+        return dashboardData?.leaveTypeStats || [];
+    }, [dashboardData]);
+
+    const quickStats = useMemo(() => {
+        return dashboardData?.quickStats || [
+            { label: "Active Departments", value: hrMetrics[3].value },
+            { label: "Total Designations", value: hrMetrics[4].value },
+            { label: "Leave Types", value: hrMetrics[5].value },
+            { label: "Pending Approvals", value: hrMetrics[1].change.replace('+', '') },
+            { label: "Total Employees", value: hrMetrics[0].value },
+            { label: "This Month Joinees", value: hrMetrics[0].change.replace('+', '') },
+        ];
+    }, [dashboardData, hrMetrics]);
 
     const hrQuickActions = [
         {
             label: "Employee Master",
             icon: Users,
             color: "hover:bg-blue-50 border-blue-200",
-            description: "Add/Edit employee details"
+            description: "Add/Edit employee details",
+            path: "/hr/employee_master_entry"
         },
         {
-            label: "Leave Manager",
+            label: "Leave Approvals",
             icon: CalendarDays,
             color: "hover:bg-green-50 border-green-200",
-            description: "Manage leaves & approvals"
+            description: "Manage leaves & approvals",
+            path: "/hr/leaveapproval"
         },
         {
             label: "Department Master",
             icon: FolderTree,
             color: "hover:bg-amber-50 border-amber-200",
-            description: "Add/Edit departments"
+            description: "Add/Edit departments",
+            path: "/hr/master/department_mst"
         },
         {
             label: "Designation Master",
             icon: Award,
             color: "hover:bg-purple-50 border-purple-200",
-            description: "Manage designations"
+            description: "Manage designations",
+            path: "/hr/master/designation_mst"
         },
         {
-            label: "Leave Types",
+            label: "Salary Structures",
             icon: ListTodo,
             color: "hover:bg-indigo-50 border-indigo-200",
-            description: "Configure leave policies"
+            description: "Configure salary structures",
+            path: "/hr/salary_structure"
         },
         {
-            label: "Reports",
+            label: "CTC Report",
             icon: BarChart,
             color: "hover:bg-emerald-50 border-emerald-200",
-            description: "Generate HR reports"
+            description: "Generate compensation reports",
+            path: "/hr/ctcreport"
         },
     ];
 
     const handleQuickAction = (action) => {
-        console.log(`Clicked ${action.label}`);
+        if (action?.path) {
+            navigate(action.path);
+        }
     };
 
     const handleApprove = (id) => {
-        console.log(`Approving request ${id}`);
+        navigate('/hr/leaveapproval');
     };
 
     const handleReject = (id) => {
-        console.log(`Rejecting request ${id}`);
+        navigate('/hr/leaveapproval');
     };
 
     return (
