@@ -27,9 +27,9 @@ function UserProfileSecurityInfo({ profileData }) {
     const [successMessage, setSuccessMessage] = useState('')
     const [passwordStatusText, setPasswordStatusText] = useState('Default is Employee Code')
 
-    // Live validation checks
-    const hasNonDigitInNew = newPassword.length > 0 && /\D/.test(newPassword)
-    const isNewValidDigits = newPassword.length > 0 && /^\d+$/.test(newPassword)
+    const trimmedNew = newPassword.trim()
+    const isSingleCharDisallowed = trimmedNew.length === 1 && !/^\d$/.test(trimmedNew)
+    const isNewPasswordValid = trimmedNew.length > 0 && !isSingleCharDisallowed
     const isConfirmMatching = confirmPassword.length > 0 && confirmPassword === newPassword
 
     const handleOpenModal = () => {
@@ -61,13 +61,18 @@ function UserProfileSecurityInfo({ profileData }) {
             return
         }
 
-        if (!newPassword) {
+        if (!trimmedNew) {
             setErrorMessage('New password is required.')
             return
         }
 
-        if (!/^\d+$/.test(newPassword.trim())) {
-            setErrorMessage('Password must consist of digits only (single digit or multiple digits, e.g. 1, 1234). Letters and symbols are not allowed.')
+        if (trimmedNew.length === 1 && !/^\d$/.test(trimmedNew)) {
+            setErrorMessage('Single letter or single symbol is not allowed. Single characters must be a digit (0-9). For letters or symbols, please use 2 or more characters.')
+            return
+        }
+
+        if (trimmedNew !== confirmPassword.trim()) {
+            setErrorMessage('New password and confirm password do not match.')
             return
         }
 
@@ -185,7 +190,7 @@ function UserProfileSecurityInfo({ profileData }) {
                             <Shield className="w-3.5 h-3.5 text-indigo-600" />
                             Password Requirements
                         </div>
-                        The new password must be <strong>digits only</strong> (can be a single digit like <code className="bg-indigo-100 px-1 py-0.5 rounded font-mono">1</code>, or multiple digits like <code className="bg-indigo-100 px-1 py-0.5 rounded font-mono">1234</code>). Letters and special symbols are not allowed.
+                        The new password can be a <strong>single digit</strong> (e.g. <code className="bg-indigo-100 px-1 py-0.5 rounded font-mono">1</code>), <strong>multiple digits</strong> (e.g. <code className="bg-indigo-100 px-1 py-0.5 rounded font-mono">1234</code>), or <strong>letters & symbols</strong> (2 or more characters, e.g. <code className="bg-indigo-100 px-1 py-0.5 rounded font-mono">Pass@123</code>). A <em>single letter or single symbol alone is not allowed</em>.
                     </div>
 
                     {errorMessage && (
@@ -239,12 +244,12 @@ function UserProfileSecurityInfo({ profileData }) {
                                 type={showNew ? 'text' : 'password'}
                                 value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
-                                placeholder="Enter digits (e.g. 1, 1234)"
+                                placeholder="Enter new password (e.g. 1, 1234, Pass@123)"
                                 disabled={isSubmitting}
                                 className={`w-full px-3.5 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 pr-10 ${
-                                    hasNonDigitInNew
+                                    isSingleCharDisallowed
                                         ? 'border-rose-400 bg-rose-50/40 focus:ring-rose-400'
-                                        : isNewValidDigits
+                                        : isNewPasswordValid
                                             ? 'border-emerald-400 bg-emerald-50/20 focus:ring-emerald-400'
                                             : 'border-gray-300 focus:ring-indigo-500'
                                 }`}
@@ -258,14 +263,14 @@ function UserProfileSecurityInfo({ profileData }) {
                             </button>
                         </div>
 
-                        {hasNonDigitInNew && (
+                        {isSingleCharDisallowed && (
                             <p className="text-[11px] text-rose-600 mt-1 flex items-center gap-1 font-medium">
-                                <AlertCircle className="w-3 h-3" /> Only digits allowed (single digit or multiple digits, no symbols or letters).
+                                <AlertCircle className="w-3 h-3" /> Single letter or symbol is not allowed. A single character must be a digit (0-9). For letters or symbols, use 2 or more characters.
                             </p>
                         )}
-                        {isNewValidDigits && (
+                        {isNewPasswordValid && (
                             <p className="text-[11px] text-emerald-600 mt-1 flex items-center gap-1 font-medium">
-                                <Check className="w-3 h-3" /> Valid numeric password ({newPassword.length} digit{newPassword.length > 1 ? 's' : ''}).
+                                <Check className="w-3 h-3" /> Valid password ({trimmedNew.length} character{trimmedNew.length > 1 ? 's' : ''}).
                             </p>
                         )}
                     </div>
@@ -322,7 +327,7 @@ function UserProfileSecurityInfo({ profileData }) {
                         </button>
                         <button
                             type="submit"
-                            disabled={isSubmitting || !currentPassword || !isNewValidDigits || !isConfirmMatching}
+                            disabled={isSubmitting || !currentPassword || !isNewPasswordValid || !isConfirmMatching}
                             className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed"
                         >
                             {isSubmitting ? (

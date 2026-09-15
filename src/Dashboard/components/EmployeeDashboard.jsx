@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     CalendarDays, Gift, Clock, Bell, FileText, DollarSign,
     CheckCircle, AlertCircle, Briefcase, Coffee, ChevronRight,
@@ -13,154 +14,108 @@ import Greetings from '../common/Greetings';
 import CommonButton from '../../basicComponents/CommonButton';
 import { useIsMobile } from '../Hooks/useIsMobile';
 import EmployeeDashboardMobile from '../Mobile/EmployeeDashboardMobile';
+import { ApiCall } from '../../library/constants';
 
 function EmployeeDashboard() {
-    const isMobile = useIsMobile()
-    const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
+    const isMobile = useIsMobile();
+    const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('overview');
-    const [selectedYear, setSelectedYear] = useState('2024');
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+    const [dashboardData, setDashboardData] = useState(null);
 
-    // Employee Metrics
-    const employeeMetrics = [
-        {
-            title: "Leave Balance",
-            value: "32 Days",
-            icon: CalendarDays,
-            color: "bg-blue-100 text-blue-600",
-            subtitle: "Annual: 12 | Sick: 7 | Casual: 5",
-            trend: "+2 days added",
-            trendColor: "text-green-600"
-        },
-        {
-            title: "Current CTC",
-            value: "$58,200",
-            icon: DollarSign,
-            color: "bg-green-100 text-green-600",
-            subtitle: "Monthly: $4,850 | Annual",
-            trend: "Last hike: +12%",
-            trendColor: "text-green-600"
-        },
-        {
-            title: "Pending Requests",
-            value: "3",
-            icon: Bell,
-            color: "bg-amber-100 text-amber-600",
-            subtitle: "1 urgent approval",
-            trend: "Awaiting HR review",
-            trendColor: "text-amber-600"
-        },
-        {
-            title: "Documents",
-            value: "2 Pending",
-            icon: FileCheck,
-            color: "bg-purple-100 text-purple-600",
-            subtitle: "Upload required",
-            trend: "Deadline: Dec 30",
-            trendColor: "text-red-600"
-        },
-    ];
+    useEffect(() => {
+        const fetchEmployeeDashboard = async () => {
+            setIsLoading(true);
+            try {
+                const res = await ApiCall('get', '/dashboard/employee');
+                if (res?.data?.success && res.data.data) {
+                    setDashboardData(res.data.data);
+                }
+            } catch (error) {
+                console.error('Failed to load employee dashboard:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
 
-    // Leave Breakdown
-    const leaveBreakdown = [
-        { type: "Annual Leave", allocated: 15, used: 3, balance: 12, color: "bg-blue-500" },
-        { type: "Sick Leave", allocated: 10, used: 3, balance: 7, color: "bg-green-500" },
-        { type: "Casual Leave", allocated: 8, used: 3, balance: 5, color: "bg-amber-500" },
-        { type: "Maternity Leave", allocated: 180, used: 0, balance: 180, color: "bg-pink-500" },
-        { type: "Paternity Leave", allocated: 15, used: 0, balance: 15, color: "bg-indigo-500" },
-    ];
+        fetchEmployeeDashboard();
+    }, []);
 
-    // Recent Payslips
-    const recentPayslips = [
-        { month: "December 2024", gross: "$5,200", net: "$4,850", status: "paid", download: true },
-        { month: "November 2024", gross: "$5,200", net: "$4,850", status: "paid", download: true },
-        { month: "October 2024", gross: "$5,200", net: "$4,850", status: "paid", download: true },
-        { month: "September 2024", gross: "$5,200", net: "$4,850", status: "paid", download: true },
-    ];
+    // Dynamic Employee Metrics
+    const employeeMetrics = useMemo(() => {
+        const m = dashboardData?.metrics || {};
+        return [
+            {
+                title: "Leave Balance",
+                value: m.leaveBalance?.value ?? "0 Days",
+                icon: CalendarDays,
+                color: "bg-blue-100 text-blue-600",
+                subtitle: m.leaveBalance?.subtitle ?? "Allocated vs Used",
+                trend: m.leaveBalance?.trend ?? "Active leaves",
+                trendColor: m.leaveBalance?.trendColor ?? "text-green-600"
+            },
+            {
+                title: "Current CTC",
+                value: m.currentCtc?.value ?? "$0",
+                icon: DollarSign,
+                color: "bg-green-100 text-green-600",
+                subtitle: m.currentCtc?.subtitle ?? "Annual compensation",
+                trend: m.currentCtc?.trend ?? "Active structure",
+                trendColor: m.currentCtc?.trendColor ?? "text-green-600"
+            },
+            {
+                title: "Pending Requests",
+                value: m.pendingRequests?.value ?? "0",
+                icon: Bell,
+                color: "bg-amber-100 text-amber-600",
+                subtitle: m.pendingRequests?.subtitle ?? "Leave & Advance",
+                trend: m.pendingRequests?.trend ?? "Awaiting review",
+                trendColor: m.pendingRequests?.trendColor ?? "text-amber-600"
+            },
+            {
+                title: "Documents",
+                value: m.documents?.value ?? "Verified",
+                icon: FileCheck,
+                color: "bg-purple-100 text-purple-600",
+                subtitle: m.documents?.subtitle ?? "Profile active",
+                trend: m.documents?.trend ?? "Status: Active",
+                trendColor: m.documents?.trendColor ?? "text-emerald-600"
+            },
+        ];
+    }, [dashboardData]);
 
-    // CTC Breakdown
-    const ctcBreakdown = [
-        { component: "Basic Salary", amount: "$34,920", percentage: "60%", color: "bg-blue-500" },
-        { component: "HRA", amount: "$17,460", percentage: "30%", color: "bg-green-500" },
-        { component: "Special Allowance", amount: "$5,820", percentage: "10%", color: "bg-amber-500" },
-        { component: "Performance Bonus", amount: "$5,000", percentage: "8.6%", color: "bg-purple-500" },
-        { component: "Retiral Benefits", amount: "$8,000", percentage: "13.7%", color: "bg-indigo-500" },
-    ];
+    // Dynamic Leave Breakdown
+    const leaveBreakdown = useMemo(() => {
+        return dashboardData?.leaveBreakdown || [];
+    }, [dashboardData]);
 
-    // Recent Activities
-    const recentActivities = [
-        {
-            action: "Leave request approved",
-            details: "Annual Leave (Dec 20-22)",
-            time: "2 hours ago",
-            icon: CheckCircle,
-            color: "text-green-600",
-            status: "approved"
-        },
-        {
-            action: "Salary credited",
-            details: "December salary - $4,850",
-            time: "1 day ago",
-            icon: DollarSign,
-            color: "text-blue-600",
-            status: "completed"
-        },
-        {
-            action: "Advance salary request submitted",
-            details: "Requested: $500",
-            time: "2 days ago",
-            icon: Send,
-            color: "text-amber-600",
-            status: "pending"
-        },
-        {
-            action: "Document uploaded",
-            details: "Updated PAN card",
-            time: "3 days ago",
-            icon: FileCheck,
-            color: "text-purple-600",
-            status: "completed"
-        },
-    ];
+    // Dynamic Recent Payslips
+    const recentPayslips = useMemo(() => {
+        return dashboardData?.recentPayslips || [];
+    }, [dashboardData]);
 
-    // My Requests
-    const myRequests = [
-        {
-            id: 1,
-            type: "Annual Leave",
-            status: "Approved",
-            details: "Family vacation",
-            date: "Dec 20-22",
-            duration: "3 days",
-            appliedOn: "Dec 15, 2024"
-        },
-        {
-            id: 2,
-            type: "Advance Salary",
-            status: "Processing",
-            details: "Medical emergency",
-            amount: "$500",
-            date: "Dec 18",
-            appliedOn: "Dec 10, 2024"
-        },
-        {
-            id: 3,
-            type: "Medical Claim",
-            status: "Pending",
-            details: "Hospital bills",
-            amount: "$150",
-            date: "Dec 15",
-            appliedOn: "Dec 8, 2024"
-        },
-        {
-            id: 4,
-            type: "WFH Request",
-            status: "Approved",
-            details: "Remote work",
-            date: "Dec 25",
-            duration: "1 day",
-            appliedOn: "Dec 5, 2024"
-        },
-    ];
+    // Dynamic CTC Breakdown
+    const ctcBreakdown = useMemo(() => {
+        return dashboardData?.ctcBreakdown || [];
+    }, [dashboardData]);
+
+    // Dynamic Recent Activities
+    const recentActivities = useMemo(() => {
+        const icons = [CheckCircle, DollarSign, Send, FileCheck];
+        const colors = ["text-green-600", "text-blue-600", "text-amber-600", "text-purple-600"];
+        const list = dashboardData?.recentActivities || [];
+        return list.map((item, idx) => ({
+            ...item,
+            icon: icons[idx % icons.length],
+            color: colors[idx % colors.length]
+        }));
+    }, [dashboardData]);
+
+    // Dynamic My Requests
+    const myRequests = useMemo(() => {
+        return dashboardData?.myRequests || [];
+    }, [dashboardData]);
 
     // Upcoming Holidays
     const upcomingHolidays = [
@@ -176,63 +131,66 @@ function EmployeeDashboard() {
             label: "Apply Leave",
             icon: Calendar,
             color: "hover:bg-blue-50 border-blue-200",
-            description: "Submit leave request"
+            description: "Submit leave request",
+            path: "/employee/leaveRequest"
         },
         {
             label: "Advance Salary",
             icon: Wallet,
             color: "hover:bg-green-50 border-green-200",
-            description: "Request salary advance"
+            description: "Request salary advance",
+            path: "/employee/salaryadvanceRequest"
         },
         {
             label: "View Payslips",
             icon: Receipt,
             color: "hover:bg-purple-50 border-purple-200",
-            description: "Download salary slips"
+            description: "Download salary slips",
+            path: "/employee/payslip"
         },
         {
             label: "View CTC",
             icon: TrendingUp,
             color: "hover:bg-amber-50 border-amber-200",
-            description: "Check compensation"
+            description: "Check compensation",
+            path: "/employee/ctcreport"
         },
         {
-            label: "My Documents",
+            label: "My Profile",
             icon: FileText,
             color: "hover:bg-emerald-50 border-emerald-200",
-            description: "Upload/View docs"
+            description: "View personal details",
+            path: "/employee/profile"
         },
         {
-            label: "Request History",
+            label: "My Leaves",
             icon: History,
             color: "hover:bg-indigo-50 border-indigo-200",
-            description: "Track all requests"
+            description: "Track leave balance",
+            path: "/employee/myleves"
         },
     ];
 
     const handleQuickAction = (action) => {
-        console.log(`Clicked ${action.label}`);
-        // Navigation logic here
+        if (action?.path) {
+            navigate(action.path);
+        }
     };
 
-    const downloadPayslip = (month) => {
-        console.log(`Downloading payslip for ${month}`);
-        // Download logic here
+    const downloadPayslip = () => {
+        navigate('/employee/payslip');
     };
 
-    const viewPayslip = (month) => {
-        console.log(`Viewing payslip for ${month}`);
-        // View logic here
+    const viewPayslip = () => {
+        navigate('/employee/payslip');
     };
 
     const applyLeave = () => {
-        console.log("Opening leave application");
-        // Leave application logic
+        navigate('/employee/leaveRequest');
     };
 
     const requestAdvance = () => {
-        console.log("Opening advance salary request");
-        // Advance request logic
+        navigate('/employee/salaryadvanceRequest');
     };
 
     return isMobile ? <EmployeeDashboardMobile /> :

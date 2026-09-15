@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     DollarSign, Calculator, FileCheck, PieChart,
     CreditCard, Receipt, TrendingUp, Clock,
@@ -14,310 +15,204 @@ import {
 import LoadingSpinner from '../../basicComponents/LoadingSpinner';
 import Greetings from '../common/Greetings';
 import CalendarSection from '../common/CalendarSection';
+import { ApiCall } from '../../library/constants';
 
 function PayrollManagerDashboard() {
-    const [isLoading, setIsLoading] = useState(false);
-    const [selectedMonth, setSelectedMonth] = useState('December 2024');
+    const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(true);
+    const [selectedMonth, setSelectedMonth] = useState('Current Period');
     const [uploadProgress, setUploadProgress] = useState({});
+    const [dashboardData, setDashboardData] = useState(null);
 
-    // Payroll Metrics - Enhanced
-    const payrollMetrics = [
-        {
-            title: "This Month Payroll",
-            value: "$298,750",
-            icon: DollarSign,
-            color: "bg-green-500",
-            change: "+5.8% from last month",
-            detail: "For 247 employees"
-        },
-        {
-            title: "Pending Processing",
-            value: "32",
-            icon: Clock,
-            color: "bg-amber-500",
-            change: "Claims & Advances",
-            detail: "Requires attention"
-        },
-        {
-            title: "LOP Days",
-            value: "124",
-            icon: TrendingDown,
-            color: "bg-red-500",
-            change: "-8.5% from last month",
-            detail: "Across all employees"
-        },
-        {
-            title: "Tax Deductions",
-            value: "$45,280",
-            icon: Shield,
-            color: "bg-purple-500",
-            change: "This month's TDS",
-            detail: "Net tax payable: $38,420"
-        },
-        {
-            title: "Overtime Hours",
-            value: "248 hrs",
-            icon: Clock,
-            color: "bg-blue-500",
-            change: "+42 hrs this month",
-            detail: "Cost: $8,920"
-        },
-        {
-            title: "Cost Per Employee",
-            value: "$1,210",
-            icon: Calculator,
-            color: "bg-indigo-500",
-            change: "+2.3% from last month",
-            detail: "Monthly average"
-        },
-    ];
+    useEffect(() => {
+        const fetchPayrollDashboard = async () => {
+            setIsLoading(true);
+            try {
+                const res = await ApiCall('get', '/dashboard/payroll');
+                if (res?.data?.success && res.data.data) {
+                    setDashboardData(res.data.data);
+                }
+            } catch (error) {
+                console.error('Failed to load payroll dashboard:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
 
-    // Data Upload Options
-    const dataUploadOptions = [
-        {
-            title: "LOP (Loss of Pay)",
-            icon: TrendingDown,
-            color: "bg-red-100 text-red-600",
-            description: "Upload LOP days for employees",
-            format: "CSV/Excel",
-            status: "pending",
-            records: 18
-        },
-        {
-            title: "Sales Commission",
-            icon: DollarIcon,
-            color: "bg-green-100 text-green-600",
-            description: "Upload sales performance data",
-            format: "CSV/Excel",
-            status: "completed",
-            records: 45
-        },
-        {
-            title: "Performance Bonus",
-            icon: Target,
-            color: "bg-amber-100 text-amber-600",
-            description: "Upload performance ratings",
-            format: "CSV/Excel",
-            status: "pending",
-            records: 32
-        },
-        {
-            title: "Attendance Data",
-            icon: CalendarDays,
-            color: "bg-blue-100 text-blue-600",
-            description: "Upload attendance records",
-            format: "CSV/Excel",
-            status: "uploaded",
-            records: 247
-        },
-        {
-            title: "Reimbursements",
-            icon: Receipt,
-            color: "bg-purple-100 text-purple-600",
-            description: "Upload expense claims",
-            format: "CSV/Excel",
-            status: "pending",
-            records: 28
-        },
-        {
-            title: "Loan Deductions",
-            icon: Banknote,
-            color: "bg-indigo-100 text-indigo-600",
-            description: "Upload loan recovery data",
-            format: "CSV/Excel",
-            status: "completed",
-            records: 15
-        },
-    ];
+        fetchPayrollDashboard();
+    }, []);
 
-    // Payroll Run Status
-    const payrollRuns = [
-        {
-            month: "December 2024",
-            status: "processing",
-            amount: "$298,750",
-            processed: "85%",
-            employees: "210/247",
-            processedDate: "Dec 23, 2024",
-            canRun: false
-        },
-        {
-            month: "January 2025",
-            status: "pending",
-            amount: "$302,450",
-            processed: "0%",
-            employees: "0/247",
-            processedDate: "Not started",
-            canRun: true
-        },
-        {
-            month: "November 2024",
-            status: "completed",
-            amount: "$282,430",
-            processed: "100%",
-            employees: "247/247",
-            processedDate: "Nov 25, 2024",
-            canRun: false
-        },
-    ];
+    // Dynamic Payroll Metrics
+    const payrollMetrics = useMemo(() => {
+        const m = dashboardData?.metrics || {};
+        return [
+            {
+                title: "This Month Payroll",
+                value: m.thisMonthPayroll?.value ?? "$0",
+                icon: DollarSign,
+                color: "bg-green-500",
+                change: m.thisMonthPayroll?.change ?? "Latest run",
+                detail: m.thisMonthPayroll?.detail ?? "For 0 employees"
+            },
+            {
+                title: "Pending Processing",
+                value: m.pendingProcessing?.value ?? "0",
+                icon: Clock,
+                color: "bg-amber-500",
+                change: m.pendingProcessing?.change ?? "Claims & Advances",
+                detail: m.pendingProcessing?.detail ?? "Requires attention"
+            },
+            {
+                title: "LOP Days",
+                value: m.lopDays?.value ?? "0",
+                icon: TrendingDown,
+                color: "bg-red-500",
+                change: m.lopDays?.change ?? "0 days",
+                detail: m.lopDays?.detail ?? "Loss of pay days"
+            },
+            {
+                title: "Tax Deductions",
+                value: m.taxDeductions?.value ?? "$0",
+                icon: Shield,
+                color: "bg-purple-500",
+                change: m.taxDeductions?.change ?? "Total Deductions",
+                detail: m.taxDeductions?.detail ?? "Latest run deductions"
+            },
+            {
+                title: "Overtime Hours",
+                value: m.overtimeHours?.value ?? "0 hrs",
+                icon: Clock,
+                color: "bg-blue-500",
+                change: m.overtimeHours?.change ?? "+0 hrs",
+                detail: m.overtimeHours?.detail ?? "Overtime logged"
+            },
+            {
+                title: "Cost Per Employee",
+                value: m.costPerEmployee?.value ?? "$0",
+                icon: Calculator,
+                color: "bg-indigo-500",
+                change: m.costPerEmployee?.change ?? "Monthly average",
+                detail: m.costPerEmployee?.detail ?? "Average net salary"
+            },
+        ];
+    }, [dashboardData]);
 
-    // Pending Leave Requests affecting payroll
-    const payrollLeaves = [
-        {
-            name: "John Smith",
-            department: "Sales",
-            leaveType: "LOP",
-            days: "3",
-            date: "Dec 15-17",
-            impact: "$450",
-            status: "approved"
-        },
-        {
-            name: "Maria Garcia",
-            department: "Engineering",
-            leaveType: "Half-day LOP",
-            days: "0.5",
-            date: "Dec 20",
-            impact: "$75",
-            status: "pending"
-        },
-        {
-            name: "Raj Kumar",
-            department: "Marketing",
-            leaveType: "LOP",
-            days: "2",
-            date: "Dec 22-23",
-            impact: "$300",
-            status: "approved"
-        },
-        {
-            name: "Lisa Wang",
-            department: "HR",
-            leaveType: "LOP",
-            days: "1",
-            date: "Dec 18",
-            impact: "$150",
-            status: "approved"
-        },
-    ];
+    // Dynamic Data Upload Options
+    const dataUploadOptions = useMemo(() => {
+        const icons = [TrendingDown, DollarIcon, Target, CalendarDays, Receipt, Banknote];
+        const colors = [
+            "bg-red-100 text-red-600",
+            "bg-green-100 text-green-600",
+            "bg-amber-100 text-amber-600",
+            "bg-blue-100 text-blue-600",
+            "bg-purple-100 text-purple-600",
+            "bg-indigo-100 text-indigo-600"
+        ];
+        const list = dashboardData?.dataUploadOptions || [];
+        if (list.length === 0) {
+            return [
+                { title: "Attendance Data", icon: CalendarDays, color: colors[3], description: "Upload biometric attendance logs", format: "CSV/Excel", status: "ready", records: 0 },
+                { title: "LOP (Loss of Pay)", icon: TrendingDown, color: colors[0], description: "Upload employee LOP days", format: "CSV/Excel", status: "ready", records: 0 },
+                { title: "Overtime & Variable Pay", icon: DollarIcon, color: colors[1], description: "Upload overtime records", format: "CSV/Excel", status: "ready", records: 0 },
+                { title: "Salary Advance Deductions", icon: Banknote, color: colors[5], description: "Upload loan recovery data", format: "CSV/Excel", status: "ready", records: 0 },
+            ];
+        }
+        return list.map((item, idx) => ({
+            ...item,
+            icon: icons[idx % icons.length],
+            color: colors[idx % colors.length]
+        }));
+    }, [dashboardData]);
 
-    // Salary Advances
-    const salaryAdvances = [
-        {
-            name: "David Lee",
-            department: "Operations",
-            amount: "$500",
-            date: "Dec 15",
-            repayment: "$100/month",
-            status: "approved",
-            remaining: "$400"
-        },
-        {
-            name: "Alex Turner",
-            department: "Engineering",
-            amount: "$1,000",
-            date: "Dec 10",
-            repayment: "$200/month",
-            status: "pending",
-            remaining: "$1,000"
-        },
-        {
-            name: "Sarah Johnson",
-            department: "Sales",
-            amount: "$750",
-            date: "Dec 5",
-            repayment: "$150/month",
-            status: "approved",
-            remaining: "$600"
-        },
-    ];
+    // Dynamic Payroll Run Status
+    const payrollRuns = useMemo(() => {
+        return dashboardData?.payrollRuns || [];
+    }, [dashboardData]);
 
-    // Performance Data Overview
-    const performanceData = [
-        { metric: "Sales Target Achievement", value: "87%", change: "+5%", color: "bg-green-500" },
-        { metric: "Productivity Score", value: "4.2/5", change: "+0.3", color: "bg-blue-500" },
-        { metric: "Quality Rating", value: "92%", change: "+2%", color: "bg-purple-500" },
-        { metric: "Attendance Score", value: "96%", change: "-1%", color: "bg-amber-500" },
-    ];
+    // Dynamic Pending Leave Requests affecting payroll
+    const payrollLeaves = useMemo(() => {
+        return dashboardData?.payrollLeaves || [];
+    }, [dashboardData]);
 
-    // Salary Component Breakdown
-    const salaryComponents = [
-        { name: "Basic Salary", value: "$150,000", percentage: "50.2%", color: "bg-blue-500" },
-        { name: "HRA", value: "$60,000", percentage: "20.1%", color: "bg-green-500" },
-        { name: "Allowances", value: "$45,000", percentage: "15.1%", color: "bg-amber-500" },
-        { name: "Performance Bonus", value: "$28,750", percentage: "9.6%", color: "bg-purple-500" },
-        { name: "Statutory Deductions", value: "$15,000", percentage: "5.0%", color: "bg-red-500" },
-    ];
+    // Dynamic Salary Advances
+    const salaryAdvances = useMemo(() => {
+        return dashboardData?.salaryAdvances || [];
+    }, [dashboardData]);
+
+    // Dynamic Performance Data Overview
+    const performanceData = useMemo(() => {
+        return dashboardData?.performanceData || [
+            { metric: "Payroll Execution Rate", value: "100%", change: "On schedule", color: "bg-green-500" },
+            { metric: "Employee Coverage", value: "100%", change: "All active", color: "bg-blue-500" },
+            { metric: "Statutory Compliance", value: "Verified", change: "TDS / PF / ESI", color: "bg-purple-500" },
+            { metric: "Data Sync Status", value: "Up to date", change: "Attendance & Leaves", color: "bg-amber-500" },
+        ];
+    }, [dashboardData]);
+
+    // Dynamic Salary Component Breakdown
+    const salaryComponents = useMemo(() => {
+        return dashboardData?.salaryComponents || [];
+    }, [dashboardData]);
 
     const payrollQuickActions = [
         {
             label: "Run Payroll",
             icon: Calculator,
             color: "hover:bg-green-50 border-green-200",
-            description: "Process monthly payroll"
+            description: "Process monthly payroll",
+            path: "/payroll/payrollruns"
         },
         {
             label: "Upload Data",
             icon: Upload,
             color: "hover:bg-blue-50 border-blue-200",
-            description: "Upload LOP, sales, etc."
+            description: "Upload LOP, attendance, etc.",
+            path: "/payroll/uploadDash"
         },
         {
             label: "View Payslips",
             icon: Eye,
             color: "hover:bg-purple-50 border-purple-200",
-            description: "Access all payslips"
+            description: "Access all payslips",
+            path: "/payroll/payslip"
         },
         {
             label: "Process Advances",
             icon: DollarSign,
             color: "hover:bg-amber-50 border-amber-200",
-            description: "Handle salary advances"
+            description: "Handle salary advances",
+            path: "/payroll/salaryadvanceApproval"
         },
         {
-            label: "Reports",
+            label: "CTC Report",
             icon: BarChart,
             color: "hover:bg-indigo-50 border-indigo-200",
-            description: "Generate payroll reports"
+            description: "Generate payroll reports",
+            path: "/payroll/ctcreport"
         },
         {
-            label: "Compliance",
-            icon: Shield,
+            label: "Upload History",
+            icon: FileCheck,
             color: "hover:bg-red-50 border-red-200",
-            description: "Tax & statutory filings"
+            description: "Review batch upload status",
+            path: "/payroll/uploadHistory"
         },
     ];
 
     const handleDataUpload = (uploadType) => {
-        console.log(`Uploading ${uploadType} data`);
-        // Simulate upload progress
-        setUploadProgress(prev => ({
-            ...prev,
-            [uploadType]: 0
-        }));
-
-        const interval = setInterval(() => {
-            setUploadProgress(prev => {
-                const newProgress = (prev[uploadType] || 0) + 10;
-                if (newProgress >= 100) {
-                    clearInterval(interval);
-                    return { ...prev, [uploadType]: 100 };
-                }
-                return { ...prev, [uploadType]: newProgress };
-            });
-        }, 200);
+        navigate('/payroll/uploadDash');
     };
 
     const handleRunPayroll = (month) => {
-        console.log(`Running payroll for ${month}`);
+        navigate('/payroll/payrollruns');
     };
 
     const processAdvance = (employeeName) => {
-        console.log(`Processing advance for ${employeeName}`);
+        navigate('/payroll/salaryadvanceApproval');
     };
 
     const downloadTemplate = (uploadType) => {
-        console.log(`Downloading template for ${uploadType}`);
+        navigate('/payroll/uploadDash');
     };
 
     return (

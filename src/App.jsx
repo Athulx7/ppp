@@ -234,6 +234,7 @@ import AnimatelandingPage from './AnimatedLandingPage/AnimatelandingPage'
 import RouteGuard from './RouteGuard'
 import { ALL_ROUTES, DASHBOARD_ROUTES } from './routeRegistry'
 import { ArrowLeft } from 'lucide-react'
+import SessionManager from './basicComponents/SessionManager'
 
 const PublicRoute = ({ children }) => {
   const token = sessionStorage.getItem('token')
@@ -262,19 +263,22 @@ function RoleRoutes({ basePath, role }) {
 
 function App() {
   return (
-    <Routes>
-      <Route path='/' element={<PublicRoute><LoginPage /></PublicRoute>} />
-      <Route path='/login' element={<PublicRoute><AnimatelandingPage /></PublicRoute>} />
+    <>
+      <SessionManager />
+      <Routes>
+        <Route path='/' element={<PublicRoute><LoginPage /></PublicRoute>} />
+        <Route path='/login' element={<PublicRoute><AnimatelandingPage /></PublicRoute>} />
 
-      {RoleRoutes({ basePath: '/admin', role: 'ADMIN' })}
-      {RoleRoutes({ basePath: '/hr', role: 'HR' })}
-      {RoleRoutes({ basePath: '/payroll', role: 'PAYROLL_MANAGER' })}
-      {RoleRoutes({ basePath: '/employee', role: 'EMPLOYEE' })}
+        {RoleRoutes({ basePath: '/admin', role: 'ADMIN' })}
+        {RoleRoutes({ basePath: '/hr', role: 'HR' })}
+        {RoleRoutes({ basePath: '/payroll', role: 'PAYROLL_MANAGER' })}
+        {RoleRoutes({ basePath: '/employee', role: 'EMPLOYEE' })}
 
-      <Route path='/dashboard' element={<RoleBasedRedirect />} />
-      <Route path='/unauthorized' element={<UnauthorizedPage />} />
-      <Route path='*' element={<NotFoundPage />} />
-    </Routes>
+        <Route path='/dashboard' element={<RoleBasedRedirect />} />
+        <Route path='/unauthorized' element={<UnauthorizedPage />} />
+        <Route path='*' element={<NotFoundPage />} />
+      </Routes>
+    </>
   )
 }
 

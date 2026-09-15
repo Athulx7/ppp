@@ -5,9 +5,11 @@ import { Link } from 'react-router-dom';
 function Greetings() {
     const currentTime = new Date();
     const currentHour = currentTime.getHours();
-    const userName = "User Name";
+    const storedUser = JSON.parse(sessionStorage.getItem('user') || '{}');
+    const storedCompany = JSON.parse(sessionStorage.getItem('company') || '{}');
 
-    const userRole = JSON.parse(sessionStorage.getItem('user')).role_code || 'employee'
+    const userName = storedUser.role_name || storedUser.email?.split('@')[0] || storedUser.user_code || "User";
+    const userRole = (storedUser.role_code || 'EMPLOYEE').toUpperCase()
 
     let greeting = "";
     let greetingIcon = null;
@@ -42,11 +44,11 @@ function Greetings() {
     }
 
     const companyInfo = {
-        name: "Company Name",
-        location: "Location,locat",
-        hremail: "hr@company.com",
-        companyInfo: "www.company.com",
-        companyMobile: "+1234567890"
+        name: storedCompany.company_name || "Company",
+        location: storedCompany.company_code || "Corporate Office",
+        hremail: storedUser.email || "support@company.com",
+        companyInfo: "HRMS Enterprise Portal",
+        companyMobile: ""
     };
 
     const getWelcomeMessage = () => {
