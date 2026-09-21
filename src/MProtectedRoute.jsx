@@ -11,6 +11,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
     if (allowedRoles && !allowedRoles.includes(user.role_code)) {
         switch (user.role_code) {
+            case 'SYSTEM_ADMIN':
+                return <Navigate to="/system-admin" replace />
             case 'ADMIN':
                 return <Navigate to="/admin" replace />
             case 'HR':
