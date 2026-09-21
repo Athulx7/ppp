@@ -21,7 +21,7 @@ function LoginPage() {
 
         if (!formData.companyCode.trim()) {
             newErrors.companyCode = 'Company code is required'
-        } else if (!/^[A-Z0-9]{4,8}$/i.test(formData.companyCode)) {
+        } else if (!/^[A-Z0-9]{4,10}$/i.test(formData.companyCode)) {
             newErrors.companyCode = 'Invalid company code format'
         }
 
@@ -250,7 +250,7 @@ function LoginPage() {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold py-2.5 px-4 rounded-md transition-colors flex items-center justify-center gap-2"
+                                className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold py-2.5 px-4 rounded-md transition-colors flex items-center justify-center gap-2 cursor-pointer"
                             >
                                 {loading ? (
                                     <>
@@ -262,6 +262,15 @@ function LoginPage() {
                                     </>
                                 ) : 'Sign In'}
                             </button>
+
+                            <div className="pt-2 text-center">
+                                <Link
+                                    to="/system-admin/login"
+                                    className="text-xs text-indigo-600 hover:text-indigo-800 font-medium inline-flex items-center gap-1 transition-colors"
+                                >
+                                    Platform System Administrator? Sign in here &rarr;
+                                </Link>
+                            </div>
                         </form>
                     </div>
 

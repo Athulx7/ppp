@@ -235,6 +235,8 @@ import RouteGuard from './RouteGuard'
 import { ALL_ROUTES, DASHBOARD_ROUTES } from './routeRegistry'
 import { ArrowLeft } from 'lucide-react'
 import SessionManager from './basicComponents/SessionManager'
+import SystemAdminLogin from './LandingPages/LoginPage/SystemAdminLogin'
+import SystemAdminDashboard from './Dashboard/components/SystemAdminDashboard'
 
 const PublicRoute = ({ children }) => {
   const token = sessionStorage.getItem('token')
@@ -245,7 +247,7 @@ const PublicRoute = ({ children }) => {
 
 const RoleBasedRedirect = ({ user }) => {
   const u = user || JSON.parse(sessionStorage.getItem('user') || '{}')
-  const map = { ADMIN: '/admin', HR: '/hr', PAYROLL_MANAGER: '/payroll', EMPLOYEE: '/employee' }
+  const map = { SYSTEM_ADMIN: '/system-admin', ADMIN: '/admin', HR: '/hr', PAYROLL_MANAGER: '/payroll', EMPLOYEE: '/employee' }
   return <Navigate to={map[u.role_code] || '/login'} replace />
 }
 
@@ -268,6 +270,14 @@ function App() {
       <Routes>
         <Route path='/' element={<PublicRoute><LoginPage /></PublicRoute>} />
         <Route path='/login' element={<PublicRoute><AnimatelandingPage /></PublicRoute>} />
+
+        {/* System Admin (Super Admin) Portal Routes */}
+        <Route path='/system-admin/login' element={<SystemAdminLogin />} />
+        <Route path='/system-admin' element={
+          <ProtectedRoute allowedRoles={['SYSTEM_ADMIN']}>
+            <SystemAdminDashboard />
+          </ProtectedRoute>
+        } />
 
         {RoleRoutes({ basePath: '/admin', role: 'ADMIN' })}
         {RoleRoutes({ basePath: '/hr', role: 'HR' })}
